@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-APP_NAME="DeskMate"
+APP_NAME="MyMacTools"
 BUILD_DIR=".build"
 APP_BUNDLE="${BUILD_DIR}/${APP_NAME}.app"
 CONTENTS="${APP_BUNDLE}/Contents"

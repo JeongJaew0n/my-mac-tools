@@ -1,4 +1,4 @@
-# DeskMate
+# MyMacTools
 
 macOS 유틸리티 앱
 
@@ -12,14 +12,14 @@ GUI에서 `caffeinate -di`를 ON/OFF 할 수 있습니다.
 ## 빌드 & 실행
 
 ```bash
-# .app 번들 빌드 (DeskMate.app)
+# .app 번들 빌드 (MyMacTools.app)
 ./scripts/build-app.sh
 
 # 실행
-open .build/DeskMate.app
+open .build/MyMacTools.app
 
 # 설치 (선택)
-cp -r .build/DeskMate.app /Applications/
+cp -r .build/MyMacTools.app /Applications/
 ```
 
 ## 사용법

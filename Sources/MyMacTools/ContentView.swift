@@ -5,7 +5,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("DeskMate")
+            Text("MyMacTools")
                 .font(.title2)
                 .fontWeight(.bold)
 

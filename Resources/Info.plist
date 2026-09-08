@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>DeskMate</string>
+    <string>MyMacTools</string>
     <key>CFBundleIdentifier</key>
-    <string>com.jjw.deskmate</string>
+    <string>com.jjw.mymactools</string>
     <key>CFBundleName</key>
-    <string>DeskMate</string>
+    <string>MyMacTools</string>
     <key>CFBundleDisplayName</key>
-    <string>DeskMate</string>
+    <string>MyMacTools</string>
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>
