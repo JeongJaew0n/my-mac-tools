@@ -20,10 +20,6 @@ struct ContentView: View {
             .keyboardShortcut(.defaultAction)
 
             progress
-
-            Divider()
-
-            languageRow
         }
         .padding(24)
         .frame(width: 320)
@@ -90,20 +86,6 @@ struct ContentView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .disabled(manager.isRunning)
-    }
-
-    private var languageRow: some View {
-        HStack(spacing: 8) {
-            Text(l10n(.labelLanguage))
-            Spacer(minLength: 4)
-            Picker("", selection: $l10n.language) {
-                ForEach(AppLanguage.allCases) { language in
-                    Text(language.displayName(l10n)).tag(language)
-                }
-            }
-            .labelsHidden()
-            .fixedSize()
-        }
     }
 
     private var caption: String {

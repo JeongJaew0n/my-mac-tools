@@ -13,7 +13,7 @@
 "unit.second" = "초";
 
 /* Controls */
-"toggle.sleepWhenDone" = "시간이 끝나면 잠자기";
+"toggle.sleepWhenDone" = "끝나면 Mac잠자기 모드";
 "button.start" = "시작";
 "button.stop" = "정지";
 
