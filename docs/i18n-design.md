@@ -2,7 +2,7 @@
 
 MyMacTools UI 를 **한국어 · 영어 · 일본어** 로 제공하고, 앱 안에서 언어를 바꿀 수 있게 한다.
 
-- 상태: 설계 확정 대기 (구현 전)
+- 상태: 구현 완료 (2026-09-09)
 - 작성일: 2026-09-09
 
 ---
@@ -155,11 +155,11 @@ final class L10n: ObservableObject {
 | `status.working` | Working — screen off | 작업 중 — 화면 꺼짐 | 作業中 — 画面オフ |
 | `status.idle` | Idle | 대기 중 | 待機中 |
 | `label.keepWorking` | Keep working | 유지 시간 | 継続時間 |
-| `label.screenOffIn` | Screen off in | 화면 끄기 | 画面オフ |
+| `label.screenOffIn` | Screen off in | 화면 끄기까지 | 画面オフまで |
 | `label.language` | Language | 언어 | 言語 |
 | `unit.hour` | h | 시간 | 時間 |
 | `unit.minute` | m | 분 | 分 |
-| `unit.second` | sec | 초 후 | 秒後 |
+| `unit.second` | sec | 초 | 秒 |
 | `toggle.sleepWhenDone` | Sleep when time is up | 시간이 끝나면 잠자기 | 終了時にスリープ |
 | `caption.unlimited` | 0h 00m = keep going until you press Stop | 0시간 00분 = Stop 을 누를 때까지 계속 | 0時間00分 = Stop を押すまで継続 |
 | `caption.willSleep` | The Mac sleeps when the time is up | 시간이 끝나면 잠자기로 전환됩니다 | 終了時にスリープします |
@@ -172,6 +172,11 @@ final class L10n: ObservableObject {
 | `language.system` | System | 시스템 설정 | システム設定 |
 
 앱 이름 `MyMacTools` 는 번역하지 않는다.
+
+구현하면서 `label.screenOffIn` · `unit.second` 의 ko/ja 를 초안에서 고쳤다.
+초안대로면 `화면 끄기 5 초 후` 처럼 어순이 어색해서, 라벨을 `화면 끄기까지` 로
+바꾸고 단위를 `초` 로 줄여 `화면 끄기까지 5 초` 가 되게 했다. ja 도 같은 이유로
+`画面オフまで 5 秒` 로 맞췄다.
 
 `progress.remaining` 의 `%@` 가 en/ko 는 앞, ja 는 뒤에 온다. 조각 이어붙이기를 금지하는 이유다.
 

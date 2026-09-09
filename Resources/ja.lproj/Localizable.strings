@@ -1,0 +1,31 @@
+/* Status */
+"status.working" = "作業中 — 画面オフ";
+"status.idle" = "待機中";
+
+/* Labels */
+"label.keepWorking" = "継続時間";
+"label.screenOffIn" = "画面オフまで";
+"label.language" = "言語";
+
+/* Units */
+"unit.hour" = "時間";
+"unit.minute" = "分";
+"unit.second" = "秒";
+
+/* Controls */
+"toggle.sleepWhenDone" = "終了時にスリープ";
+"button.start" = "開始";
+"button.stop" = "停止";
+
+/* Captions */
+"caption.unlimited" = "0時間00分 = Stop を押すまで継続";
+"caption.willSleep" = "終了時にスリープします";
+"caption.normalSleep" = "終了時に通常の省エネ動作に戻ります";
+
+/* Progress */
+"progress.screenOff" = "%d秒後に画面が消えます";
+"progress.remaining" = "残り %@";
+"progress.noLimit" = "時間制限なし";
+
+/* Language menu */
+"language.system" = "システム設定";

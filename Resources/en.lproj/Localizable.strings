@@ -1,0 +1,31 @@
+/* Status */
+"status.working" = "Working — screen off";
+"status.idle" = "Idle";
+
+/* Labels */
+"label.keepWorking" = "Keep working";
+"label.screenOffIn" = "Screen off in";
+"label.language" = "Language";
+
+/* Units */
+"unit.hour" = "h";
+"unit.minute" = "m";
+"unit.second" = "sec";
+
+/* Controls */
+"toggle.sleepWhenDone" = "Sleep when time is up";
+"button.start" = "Start";
+"button.stop" = "Stop";
+
+/* Captions */
+"caption.unlimited" = "0h 00m = keep going until you press Stop";
+"caption.willSleep" = "The Mac sleeps when the time is up";
+"caption.normalSleep" = "Sleep behaviour returns to normal when the time is up";
+
+/* Progress */
+"progress.screenOff" = "Screen turns off in %ds";
+"progress.remaining" = "%@ left";
+"progress.noLimit" = "no time limit";
+
+/* Language menu */
+"language.system" = "System";

@@ -1,0 +1,31 @@
+/* Status */
+"status.working" = "작업 중 — 화면 꺼짐";
+"status.idle" = "대기 중";
+
+/* Labels */
+"label.keepWorking" = "유지 시간";
+"label.screenOffIn" = "화면 끄기까지";
+"label.language" = "언어";
+
+/* Units */
+"unit.hour" = "시간";
+"unit.minute" = "분";
+"unit.second" = "초";
+
+/* Controls */
+"toggle.sleepWhenDone" = "시간이 끝나면 잠자기";
+"button.start" = "시작";
+"button.stop" = "정지";
+
+/* Captions */
+"caption.unlimited" = "0시간 00분 = Stop 을 누를 때까지 계속";
+"caption.willSleep" = "시간이 끝나면 잠자기로 전환됩니다";
+"caption.normalSleep" = "시간이 끝나면 평소 절전 동작으로 돌아갑니다";
+
+/* Progress */
+"progress.screenOff" = "%d초 후 화면이 꺼집니다";
+"progress.remaining" = "%@ 남음";
+"progress.noLimit" = "시간 제한 없음";
+
+/* Language menu */
+"language.system" = "시스템 설정";

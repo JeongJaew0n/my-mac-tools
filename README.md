@@ -32,6 +32,18 @@ macOS 유틸리티 앱
 
 `caffeinate -d`(디스플레이 슬립 방지)는 화면을 끄려는 목적과 정반대라 쓰지 않습니다.
 
+### 언어
+
+한국어 · English · 日本語 를 지원합니다. 창 아래쪽 **Language** 에서 고릅니다.
+
+- 기본값은 **시스템 설정**을 따릅니다. 지원하지 않는 언어면 영어로 대체됩니다.
+- 고른 언어는 `UserDefaults` 에 저장돼 다음 실행에도 유지됩니다.
+- 앱 재시작 없이 즉시 바뀝니다.
+
+문자열은 `Resources/{en,ko,ja}.lproj/Localizable.strings` 에 있고,
+`scripts/build-app.sh` 가 앱 번들의 `Contents/Resources/` 로 복사합니다.
+설계 근거는 [`docs/i18n-design.md`](docs/i18n-design.md) 를 보세요.
+
 #### 한계
 
 - 키보드·트랙패드를 건드리면 화면은 다시 켜집니다. `pmset` 으로 막을 수 없습니다.

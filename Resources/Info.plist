@@ -18,6 +18,14 @@
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>ko</string>
+        <string>ja</string>
+    </array>
 
 </dict>
 </plist>
