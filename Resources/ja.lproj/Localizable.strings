@@ -29,3 +29,8 @@
 
 /* Language menu */
 "language.system" = "システム設定";
+
+/* Keep screen off */
+"toggle.keepScreenOff" = "画面をオフのままにする";
+"progress.reblank" = "%d秒後に画面を再びオフにします";
+"status.keepOffFailed" = "画面をオフのままにできませんでした";

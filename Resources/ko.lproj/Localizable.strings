@@ -29,3 +29,8 @@
 
 /* Language menu */
 "language.system" = "시스템 설정";
+
+/* Keep screen off */
+"toggle.keepScreenOff" = "화면 계속 끄기";
+"progress.reblank" = "%d초 후 화면을 다시 끕니다";
+"status.keepOffFailed" = "화면을 계속 끌 수 없습니다";

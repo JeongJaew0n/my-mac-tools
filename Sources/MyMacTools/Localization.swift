@@ -43,6 +43,7 @@ final class L10n: ObservableObject {
         case unitSecond = "unit.second"
 
         case toggleSleepWhenDone = "toggle.sleepWhenDone"
+        case toggleKeepScreenOff = "toggle.keepScreenOff"
         case buttonStart = "button.start"
         case buttonStop = "button.stop"
 
@@ -53,6 +54,8 @@ final class L10n: ObservableObject {
         case progressScreenOff = "progress.screenOff"
         case progressRemaining = "progress.remaining"
         case progressNoLimit = "progress.noLimit"
+        case progressReblank = "progress.reblank"
+        case statusKeepOffFailed = "status.keepOffFailed"
 
         case languageSystem = "language.system"
     }

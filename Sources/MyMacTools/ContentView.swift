@@ -76,6 +76,8 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Toggle(l10n(.toggleKeepScreenOff), isOn: $manager.keepScreenOff)
+
             Toggle(l10n(.toggleSleepWhenDone), isOn: $manager.sleepWhenDone)
                 .disabled(manager.durationSeconds == nil)
 
@@ -101,6 +103,14 @@ struct ContentView: View {
             Text(l10n(.progressScreenOff, countdown))
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(.orange)
+        } else if let grace = manager.screenGraceRemaining {
+            Text(l10n(.progressReblank, grace))
+                .font(.system(.callout, design: .monospaced))
+                .foregroundStyle(.orange)
+        } else if manager.keepScreenOffGaveUp {
+            Text(l10n(.statusKeepOffFailed))
+                .font(.callout)
+                .foregroundStyle(.red)
         } else if let remaining = manager.remaining {
             Text(l10n(.progressRemaining, Self.format(remaining)))
                 .font(.system(.callout, design: .monospaced))

@@ -29,3 +29,8 @@
 
 /* Language menu */
 "language.system" = "System";
+
+/* Keep screen off */
+"toggle.keepScreenOff" = "Keep screen off";
+"progress.reblank" = "Screen goes off again in %ds";
+"status.keepOffFailed" = "Could not keep the screen off";
