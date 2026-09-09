@@ -2,13 +2,13 @@ import SwiftUI
 
 @main
 struct MyMacToolsApp: App {
-    @StateObject private var caffeinateManager = CaffeinateManager()
+    @StateObject private var manager = BlackWorkManager()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(caffeinateManager: caffeinateManager)
+            ContentView(manager: manager)
                 .onDisappear {
-                    caffeinateManager.stop()
+                    manager.stop()
                 }
         }
         .windowResizability(.contentSize)
