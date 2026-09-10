@@ -73,6 +73,18 @@ macOS 유틸리티 앱
 - caffeinate 가 외부에서 kill 되면 세션은 정리되지만 잠자기로는 보내지 않습니다.
   만료 시각에 도달한 종료만 잠자기 대상입니다.
 
+## 아이콘
+
+원본은 `Resources/AppIcon.png` 한 장이다. `scripts/build-app.sh` 가 `sips` 로 필요한 크기
+(16~512, @1x/@2x)를 만들고 `iconutil` 로 `AppIcon.icns` 를 구워 번들에 넣는다.
+`Info.plist` 의 `CFBundleIconFile` 이 이를 가리킨다.
+
+구운 결과는 `.build/AppIcon.icns` 에 캐시된다. 원본 PNG 가 더 새로울 때만 다시 굽는다.
+아이콘을 바꾸려면 `Resources/AppIcon.png` 를 갈아끼우고 다시 빌드하면 된다.
+
+macOS 26 이 앱 아이콘에 스퀘어클 마스크와 그림자를 자동으로 입히므로,
+원본은 배경이 꽉 찬 정사각형이어도 된다.
+
 ## 빌드 & 실행
 
 ```bash
