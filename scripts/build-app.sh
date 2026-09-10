@@ -50,6 +50,14 @@ for lproj in Resources/*.lproj; do
     echo "  + $(basename "${lproj}")"
 done
 
+# ad-hoc 서명. 링커가 실행파일에만 붙여주는 서명은 Info.plist·Resources 를 봉인하지
+# 않아 `codesign --verify` 가 실패하고, LaunchServices 가 번들을 망가진 것으로 보아
+# Spotlight 결과와 아이콘이 기본값으로 떨어진다. 번들 전체를 다시 서명해 봉인한다.
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "${CONTENTS}/Info.plist")"
+codesign --force --sign - --identifier "${BUNDLE_ID}" "${APP_BUNDLE}"
+codesign --verify --deep --strict "${APP_BUNDLE}"
+echo "  signed: ${BUNDLE_ID}"
+
 echo "Done! App bundle created at: ${APP_BUNDLE}"
 echo ""
 echo "To run:  open ${APP_BUNDLE}"
