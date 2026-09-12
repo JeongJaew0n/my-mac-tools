@@ -14,13 +14,13 @@
       ```
 - [ ] 제거 확인: `ioreg -n IOPMrootDomain -r -d 1 | grep SleepDisabled` → `No`
 - [x] 상충 지점 식별 및 테스트 계획 작성 → `test-plan.md`
-- [ ] **Phase 1 실행** — 앱 코드 전에 시스템 사실 확정 (사용자가 sudo 로 실행)
+- [x] **Phase 1 실행** — 앱 코드 전에 시스템 사실 확정 (사용자가 sudo 로 실행)
       ```
       sudo bash docs/plans/lid-close-keep-working/probe-conflicts.sh
       ```
-      - [ ] T1 대조군 통과
-      - [ ] T2 (C1) — `disablesleep=1` 에서 `displaysleepnow` 동작 여부
-      - [ ] T3 (C3) — 플래그 전환이 꺼진 화면을 깨우는지
+      - [x] T1 대조군 통과 — PASS
+      - [x] T2 (C1) — PASS. 화면 꺼짐. 동시 실행 유효
+      - [x] T3 (C3) — PASS. 화면 그대로 꺼져 있음
       - [ ] T4 (C2) — `sleepnow` 무력화 여부 (`--sleepnow` 옵트인)
 - [ ] Phase 1 결과를 spec.md 에 반영. T2 실패 시 Scope 결정 재검토
 

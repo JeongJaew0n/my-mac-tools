@@ -81,7 +81,10 @@ ioreg -n IOPMrootDomain -r -d 1 | grep SleepDisabled   →  "SleepDisabled" = Ye
 ## 비고 / 알려진 제약
 - `do shell script ... with administrator privileges` 는 같은 프로세스 안에서 약 5분간
   자격을 캐시한다. 그 이후 중지하려면 암호를 다시 묻는다.
-- **미확인 사항**: `disablesleep=1` 인 상태에서 `pmset displaysleepnow` 가 여전히 동작하는지
-  검증되지 않았다. 두 기능의 동시 실행을 허용했으므로 구현 중 반드시 확인해야 한다.
-  동작하지 않으면 Scope 결정을 재검토해야 한다.
+- **확인 완료 (2026-09-12, `probe-conflicts.sh`)**: `disablesleep=1` 상태에서도
+  `pmset displaysleepnow` 가 정상 동작한다. 화면 슬립과 시스템 슬립은 독립이다.
+  화면이 꺼진 상태에서 `disablesleep` 플래그를 0→1 로 바꿔도 화면이 깨어나지 않는다.
+  → 동시 실행 설계(Scope 결정)가 유효함이 확인됐다.
+- **남은 미확인**: `disablesleep=1` 에서 `pmset sleepnow`(기능 A 의 "끝나면 잠자기")가
+  무력화되는지. 무력화된다면 B 가 켜진 동안 해당 토글을 비활성화하거나 경고해야 한다.
 - ad-hoc 서명이라 다른 맥으로 옮기면 Gatekeeper 경고가 뜬다. 이 기능과 무관한 기존 제약이다.
