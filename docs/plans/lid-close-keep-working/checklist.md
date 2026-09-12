@@ -13,8 +13,16 @@
       sudo pmset -a disablesleep 0
       ```
 - [ ] 제거 확인: `ioreg -n IOPMrootDomain -r -d 1 | grep SleepDisabled` → `No`
-- [ ] **미확인 사항 검증**: `disablesleep=1` 상태에서 `pmset displaysleepnow` 가 동작하는지.
-      동작하지 않으면 spec.md 의 Scope 결정을 재검토하고 사용자에게 보고한다.
+- [x] 상충 지점 식별 및 테스트 계획 작성 → `test-plan.md`
+- [ ] **Phase 1 실행** — 앱 코드 전에 시스템 사실 확정 (사용자가 sudo 로 실행)
+      ```
+      sudo bash docs/plans/lid-close-keep-working/probe-conflicts.sh
+      ```
+      - [ ] T1 대조군 통과
+      - [ ] T2 (C1) — `disablesleep=1` 에서 `displaysleepnow` 동작 여부
+      - [ ] T3 (C3) — 플래그 전환이 꺼진 화면을 깨우는지
+      - [ ] T4 (C2) — `sleepnow` 무력화 여부 (`--sleepnow` 옵트인)
+- [ ] Phase 1 결과를 spec.md 에 반영. T2 실패 시 Scope 결정 재검토
 
 ## 1. 구현
 - [ ] `Sources/MyMacTools/LidWorkManager.swift` 신규 — 상태 조회(`ioreg`) + 인증 실행(`NSAppleScript`)
@@ -33,7 +41,9 @@
 - [ ] 인증 취소 시 버튼 상태 유지되는지 확인
 - [ ] 켜진 상태로 종료 시도 → 경고 다이얼로그 확인
 - [ ] 강제 종료 후 재실행 → 버튼 ON 복원 확인
-- [ ] 기존 "화면 끄고 작업" 회귀 확인 + 두 기능 동시 실행 확인
+- [ ] Phase 2 상태 조합 매트릭스 4종 + 순서 의존성 (test-plan.md 2-1)
+- [ ] C4 — A 가 화면을 끈 상태에서 B 의 인증 다이얼로그가 블랭킹되지 않는지 (test-plan.md 2-2)
+- [ ] C5 — A 만 중지했을 때 B 가 남는 것이 UI 에서 명확한지 (test-plan.md 2-3)
 - [ ] 3개 언어 전환하며 신규 문자열 누락 없는지 확인
 - [ ] 실제 덮개 닫기 테스트 — AC 연결, 30초, `pmset -g log` 에 `Clamshell Sleep` 신규 항목 없음
 
