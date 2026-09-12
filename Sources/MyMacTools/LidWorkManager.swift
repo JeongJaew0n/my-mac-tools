@@ -33,6 +33,22 @@ final class LidWorkManager: ObservableObject {
     /// 마지막 토글이 실패했을 때의 사유. 성공하거나 다시 시도하면 지운다.
     @Published private(set) var lastError: String?
 
+    /// 종료할 때 사용자에게 묻지 않고 조용히 되돌릴 수 있는가.
+    ///
+    /// 인증 창 경로에서는 종료 중에 창이 안 뜨거나 사용자가 취소할 수 있어 신뢰할 수 없다.
+    ///
+    /// 판정은 **현재 값을 그대로 다시 쓰는 무해한 실제 명령**으로 한다.
+    /// `sudo -n -l` 로 허용 여부만 묻는 방법은 쓰지 않는다. `-l` 은 "암호 없이 되는가"가
+    /// 아니라 "허용되는가"를 보기 때문에, 관리자 계정이면 `(ALL) ALL` 때문에 무엇이든
+    /// 통과한다. 게다가 한 번 통과하면 자격 캐시가 생겨 그 뒤로는 전부 통과해버린다.
+    /// 실제로 실행해봐야만 지금 암호 없이 되는지 알 수 있다.
+    var canRevertSilently: Bool {
+        let current = isRunning ? "1" : "0"
+        return Self.execute(
+            "/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", current]
+        ).status == 0
+    }
+
     init() {
         refreshFromSystem()
     }
@@ -93,18 +109,33 @@ final class LidWorkManager: ObservableObject {
         case failed(String)
     }
 
+    /// `pmset -a disablesleep <0|1>` 을 root 로 실행한다.
+    ///
+    /// sudoers 규칙이 있으면 암호 없이 실행하고, 없으면 관리자 인증 창으로 넘어간다.
+    /// 규칙 파일을 지우면 자동으로 후자로 돌아가므로 앱을 고칠 필요가 없다.
+    private static func runPrivileged(disableSleep enabled: Bool) -> RunResult {
+        let flag = enabled ? "1" : "0"
+
+        // 먼저 그냥 해본다. `-n` 은 절대 암호를 묻지 않으므로, 규칙이 없으면 조용히 실패한다.
+        // 미리 가능 여부를 따져보는 것보다 정확하다 — 실행해봐야만 알 수 있기 때문이다.
+        if execute("/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", flag]).status == 0 {
+            return .ok
+        }
+
+        return runViaAuthorizationDialog(flag: flag)
+    }
+
     /// 관리자 인증 다이얼로그를 띄워 명령을 실행한다.
     ///
-    /// 앱이 ad-hoc 서명이라 `SMJobBless` 기반 권한 헬퍼를 쓸 수 없다. 설치 과정 없이
+    /// 앱이 ad-hoc 서명이라 `SMJobBless` 기반 권한 헬퍼를 쓸 수 없다. sudoers 규칙 없이
     /// root 를 얻는 수단은 이것뿐이다.
     ///
     /// 메인 스레드에서 동기로 실행한다. `NSAppleScript` 가 메인 스레드 전용이고,
     /// 인증 다이얼로그가 떠 있는 동안 앱이 멈춰 있는 것이 자연스럽기 때문이다.
     /// 부수 효과로 `BlackWorkManager` 의 1초 티커도 그동안 멈춰, 암호를 입력하는 사이에
     /// 화면이 꺼지는 것을 덜어준다.
-    private static func runPrivileged(disableSleep enabled: Bool) -> RunResult {
+    private static func runViaAuthorizationDialog(flag: String) -> RunResult {
         // 셸에 넘기는 값은 리터럴 0/1 뿐이라 주입 여지가 없다.
-        let flag = enabled ? "1" : "0"
         let source = "do shell script \"/usr/bin/pmset -a disablesleep \(flag)\""
                    + " with administrator privileges"
 
@@ -123,6 +154,34 @@ final class LidWorkManager: ObservableObject {
 
         let message = errorInfo[NSAppleScript.errorMessage] as? String ?? "authorization failed (\(code))"
         return .failed(message)
+    }
+
+    private struct ExecResult {
+        let status: Int32
+        let stderr: String
+    }
+
+    private static func execute(_ path: String, _ arguments: [String]) -> ExecResult {
+        let proc = Process()
+        proc.executableURL = URL(fileURLWithPath: path)
+        proc.arguments = arguments
+        proc.standardOutput = FileHandle.nullDevice
+        let errors = Pipe()
+        proc.standardError = errors
+
+        do {
+            try proc.run()
+        } catch {
+            return ExecResult(status: -1, stderr: "\(error)")
+        }
+
+        // 파이프가 가득 차 프로세스가 멈추지 않도록 종료를 기다리기 전에 읽는다.
+        let data = errors.fileHandleForReading.readDataToEndOfFile()
+        proc.waitUntilExit()
+
+        let text = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return ExecResult(status: proc.terminationStatus, stderr: text)
     }
 
     /// 커널 `IOPMrootDomain` 의 `SleepDisabled`.

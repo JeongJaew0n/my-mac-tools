@@ -55,3 +55,38 @@
 - `Sources/MyMacTools/Localization.swift`, `docs/i18n-design.md` — 문자열 추가 시 따라야 할 구조.
   `Bundle.module` 을 쓰지 않고 `Contents/Resources/*.lproj` 를 `Bundle.main` 으로 읽는 이유가 적혀 있다.
 - `scripts/build-app.sh` — `.lproj` 번들링과 ad-hoc `codesign` 단계.
+
+
+## 변경 이력
+
+### 2026-09-12 — 암호 요구를 sudoers 규칙으로 대체
+
+사용자 요청: "암호 꼭 필요해? 니가 제어를 못하니 불편한데 그냥 다른 안전장치 검토해봐."
+
+검토 결과 두 가지가 드러났다.
+
+1. **암호가 보안 경계 역할을 거의 못 하고 있었다.** `pmset -a disablesleep` 이 주는 권한은
+   "맥을 안 재운다" 하나뿐이고, 파일 접근이나 프로세스 실행으로 이어지지 않는다.
+   인증 창은 보안 장치라기보다 실수 방지 턱이었다.
+2. **암호 요구가 Failure-mode 결정을 더 나쁜 쪽으로 묶어두고 있었다.** 종료 시 자동 원복을
+   기각한 유일한 이유가 "원복도 인증 창이 필요하다" 였다. 암호가 없어지면 자동 원복이
+   가능해지고, 잔류 문제가 구조적으로 해소된다.
+
+그래서 "보안을 낮추는 변경"이 아니라 **안전성이 올라가는 변경**으로 판단하고 도입했다.
+
+기각한 대안:
+- **sudoers 전용(인증 창 제거)** — 규칙 파일이 없거나 지워지면 기능이 그냥 죽는다.
+  폴백을 남겨 두면 어떤 환경에서도 동작하고, 규칙을 지우면 자동으로 예전 방식으로 돌아간다.
+
+규칙 범위는 와일드카드 없이 argv 를 끝까지 고정했다. 자격 캐시를 비우고 실측해 확인했다:
+```
+ALLOW  pmset -a disablesleep 0 / 1
+DENY   pmset -a sleep 0
+DENY   pmset -a hibernatemode 0
+DENY   pmset sleepnow
+DENY   whoami
+DENY   sh -c id
+```
+
+설치·제거는 `scripts/install-sudoers.sh` 가 맡는다. `visudo -c` 로 설치 전 문법 검사,
+설치 후 sudoers 전체 재검사, 실패 시 자동 롤백까지 세 겹으로 막았다.

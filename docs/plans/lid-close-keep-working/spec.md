@@ -32,8 +32,8 @@ MyMacTools 앱에서 버튼 하나(시작/중지)로 "맥북 덮개를 닫아도
 
 | 결정 축 | 확정 내용 | 근거 |
 |---|---|---|
-| Security | `NSAppleScript` 로 `do shell script "..." with administrator privileges` 실행 | 앱이 ad-hoc 서명이라 `SMJobBless` 기반 권한 헬퍼를 쓸 수 없다. 설치 과정 없이 동작하는 유일한 수단 |
-| Failure-mode | 켜진 상태로 종료 시도 시 경고 다이얼로그(중지하고 종료 / 그대로 종료). 앱 실행 시 `ioreg` 의 `SleepDisabled` 실제 값을 읽어 버튼 상태를 복원 | 종료 중에는 인증 다이얼로그가 뜨지 않거나 사용자가 취소할 수 있어 자동 원복이 신뢰 불가. 기존 `CGDisplayIsAsleep` 로 실제 상태를 확인하는 패턴과 동일한 철학 |
+| Security | sudoers 규칙이 있으면 `sudo -n` 으로 암호 없이, 없으면 `NSAppleScript` 인증 창으로 폴백 | ad-hoc 서명이라 `SMJobBless` 불가. 규칙은 argv 를 끝까지 고정해 두 개만 허용하므로 부여되는 권한은 "맥을 안 재운다" 하나뿐이다. 규칙이 없는 환경에서도 앱이 그대로 동작한다 |
+| Failure-mode | 암호 없이 끌 수 있으면 **종료 시 자동 원복**. 불가능하거나 원복에 실패하면 경고 다이얼로그로 폴백. 앱 실행 시 `SleepDisabled` 실제 값을 읽어 버튼 상태를 복원 | 자동 원복을 기각했던 이유가 "원복도 인증 창이 필요하다" 하나였고, sudoers 도입으로 그 제약이 사라졌다. 잔류 문제가 "경고만 하고 남겨두기"에서 "실제로 되돌리기"로 올라간다 |
 | Scope | 기존 "화면 끄고 작업" 세션과 완전 독립. 구분선 아래 별도 섹션, 동시 실행 허용 | 시간 제한이 있는 세션 vs 상시 토글로 성격이 다르다 |
 | UX | 버튼 위에 항상 보이는 정적 주의사항 텍스트. 전원 상태 감시·차단 없음 | 사용자 요구: "프로그램이 아니라 사용자가 지켜야 할 것" |
 
@@ -79,8 +79,12 @@ ioreg -n IOPMrootDomain -r -d 1 | grep SleepDisabled   →  "SleepDisabled" = Ye
 - 사전 작업: LaunchDaemon `local.clamshell-awake` 제거 (아래 checklist 0단계)
 
 ## 비고 / 알려진 제약
-- `do shell script ... with administrator privileges` 는 같은 프로세스 안에서 약 5분간
-  자격을 캐시한다. 그 이후 중지하려면 암호를 다시 묻는다.
+- sudoers 규칙이 없는 환경에서는 `do shell script ... with administrator privileges` 로
+  떨어지며, 같은 프로세스 안에서 약 5분간 자격을 캐시한다. 그 이후 중지하려면 암호를 다시 묻는다.
+- **`sudo -n -l` 로 "암호 없이 되는지"를 판정하면 안 된다.** `-l` 은 "허용되는가"를 보므로
+  관리자 계정이면 `(ALL) ALL` 때문에 무엇이든 통과하고, 한 번 통과하면 자격 캐시가 생겨
+  그 뒤로는 전부 통과한다. 실측으로 확인했다. 판정은 현재 값을 그대로 다시 쓰는
+  무해한 실제 명령으로 한다.
 - **확인 완료 (2026-09-12, `probe-conflicts.sh`)**: `disablesleep=1` 상태에서도
   `pmset displaysleepnow` 가 정상 동작한다. 화면 슬립과 시스템 슬립은 독립이다.
   화면이 꺼진 상태에서 `disablesleep` 플래그를 0→1 로 바꿔도 화면이 깨어나지 않는다.

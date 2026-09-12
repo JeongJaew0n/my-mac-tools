@@ -7,15 +7,22 @@ import AppKit
 /// `LidWorkManager` 가 건드리는 `disablesleep` 은 시스템 설정이라 재부팅해도 남는다.
 /// 켜진 채로 종료하면 맥이 영영 잠들지 않게 되므로 반드시 한 번 묻는다.
 ///
-/// 종료 시점에 자동으로 꺼주지 않는 이유: 끄는 것도 root 권한이라 인증 다이얼로그가
-/// 필요한데, 종료 중에는 그 창이 뜨지 않거나 사용자가 취소할 수 있어 "될 때도 있고
-/// 안 될 때도 있는" 동작이 된다. 대신 명시적으로 선택하게 한다.
+/// sudoers 규칙이 깔려 있으면 암호 없이 끌 수 있으므로 묻지 않고 조용히 되돌린다.
+/// 규칙이 없으면 끄는 것도 인증 창이 필요한데, 종료 중에는 그 창이 뜨지 않거나 사용자가
+/// 취소할 수 있어 "될 때도 있고 안 될 때도 있는" 동작이 된다. 그때만 명시적으로 묻는다.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var lid: LidWorkManager?
     var l10n: L10n?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let lid, let l10n, lid.isRunning else { return .terminateNow }
+
+        // 조용히 되돌릴 수 있으면 먼저 시도한다.
+        // `canRevertSilently` 는 sudo 자격 캐시 때문에 거짓 양성일 수 있으므로
+        // 실제로 꺼졌는지 확인하고, 실패했으면 아래 경고로 넘어간다.
+        if lid.canRevertSilently, case .changed(false) = lid.stop() {
+            return .terminateNow
+        }
 
         let alert = NSAlert()
         alert.alertStyle = .warning
