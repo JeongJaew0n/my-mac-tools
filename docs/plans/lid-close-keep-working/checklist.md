@@ -31,10 +31,10 @@
 - [x] `Resources/ko.lproj/Localizable.strings` 갱신
 - [x] `Resources/en.lproj/Localizable.strings` 갱신
 - [x] `Resources/ja.lproj/Localizable.strings` 갱신
-- [ ] `ContentView` 에 구분선 + 신규 섹션(상태 · 주의사항 · 버튼) 추가
-- [ ] B 가 ON 이면 A 의 "끝나면 잠자기" 토글 비활성화 (C2 대응)
-- [ ] `MyMacToolsApp` 에 종료 경고 다이얼로그 연결
-- [ ] 앱 실행 시 `refreshFromSystem()` 으로 버튼 상태 복원
+- [x] `ContentView` 에 구분선 + 신규 섹션(상태 · 주의사항 4줄 · 버튼) 추가
+- [x] B 가 ON 이면 A 의 "끝나면 잠자기" 토글 비활성화 + caption 으로 이유 표시 (C2 대응)
+- [x] `MyMacToolsApp` 에 `AppDelegate.applicationShouldTerminate` 로 종료 경고 연결 (중지하고 종료 / 그대로 종료 / 취소)
+- [x] 앱 실행 시 + `didBecomeActive` 마다 `refreshFromSystem()` 으로 커널 값 동기화
 
 ## 2. 검증
 - [ ] 시작 → 인증 → `SleepDisabled=Yes` 확인

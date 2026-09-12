@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var manager: BlackWorkManager
+    @ObservedObject var lid: LidWorkManager
     @ObservedObject var l10n: L10n
 
     var body: some View {
@@ -20,9 +21,18 @@ struct ContentView: View {
             .keyboardShortcut(.defaultAction)
 
             progress
+
+            Divider()
+
+            lidSection
         }
         .padding(24)
         .frame(width: 320)
+        // 값이 재부팅·강제 종료 뒤에도 남으므로, 창이 다시 앞으로 나올 때마다
+        // 앱이 기억한 상태가 아니라 커널의 실제 값으로 맞춘다.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            lid.refreshFromSystem()
+        }
     }
 
     // MARK: - Sections
@@ -78,8 +88,10 @@ struct ContentView: View {
 
             Toggle(l10n(.toggleKeepScreenOff), isOn: $manager.keepScreenOff)
 
+            // 덮개 기능이 켜져 있으면 `pmset sleepnow` 가 kIOReturnNotPermitted 로 거부된다.
+            // 눌러도 아무 일이 없으므로 아예 잠가두고 caption 으로 이유를 알린다.
             Toggle(l10n(.toggleSleepWhenDone), isOn: $manager.sleepWhenDone)
-                .disabled(manager.durationSeconds == nil)
+                .disabled(manager.durationSeconds == nil || lid.isRunning)
 
             Text(caption)
                 .font(.caption)
@@ -94,7 +106,66 @@ struct ContentView: View {
         if manager.durationSeconds == nil {
             return l10n(.captionUnlimited)
         }
+        if lid.isRunning && manager.sleepWhenDone {
+            return l10n(.captionSleepBlockedByLid)
+        }
         return manager.sleepWhenDone ? l10n(.captionWillSleep) : l10n(.captionNormalSleep)
+    }
+
+    /// 덮개를 닫아도 작업을 계속하는 기능. 위 세션과 독립이라 동시에 켤 수 있다.
+    private var lidSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(lid.isRunning ? .green : .gray)
+                    .frame(width: 10, height: 10)
+                Text(l10n(.lidTitle))
+                    .fontWeight(.medium)
+            }
+
+            Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            cautions
+
+            if let error = lid.lastError {
+                Text(l10n(.lidError, error))
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Button(l10n(lid.isRunning ? .buttonStop : .buttonStart)) {
+                lid.toggle()
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    /// 프로그램이 강제하지 않고 사용자가 지켜야 하는 것들. 항상 보이게 둔다.
+    private static let cautionKeys: [L10n.Key] = [
+        .lidCautionPower, .lidCautionHeat, .lidCautionSurface, .lidCautionStop,
+    ]
+
+    private var cautions: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                Text(l10n(.lidCautionTitle))
+                    .fontWeight(.medium)
+            }
+            ForEach(Self.cautionKeys, id: \.self) { key in
+                HStack(alignment: .top, spacing: 5) {
+                    Text("•")
+                    Text(l10n(key))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
 
     @ViewBuilder
