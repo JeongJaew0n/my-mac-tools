@@ -53,3 +53,4 @@
 "quit.stopAndQuit" = "停止して終了";
 "quit.anyway" = "このまま終了";
 "quit.cancel" = "キャンセル";
+"lid.autoStopFailed" = "時間が終わりましたが自動で解除できませんでした。手動で停止してください。";

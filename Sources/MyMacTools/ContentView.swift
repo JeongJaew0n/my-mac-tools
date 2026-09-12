@@ -131,7 +131,52 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            // 유지 시간. 켜져 있는 동안에는 못 바꾼다.
+            HStack(spacing: 8) {
+                Text(l10n(.labelKeepWorking))
+                Spacer(minLength: 4)
+                Picker("", selection: $lid.hours) {
+                    ForEach(LidWorkManager.hourOptions, id: \.self) { hour in
+                        Text("\(hour)").tag(hour)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                Text(l10n(.unitHour))
+                    .foregroundStyle(.secondary)
+                Picker("", selection: $lid.minutes) {
+                    ForEach(LidWorkManager.minuteOptions, id: \.self) { minute in
+                        Text(String(format: "%02d", minute)).tag(minute)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+                Text(l10n(.unitMinute))
+                    .foregroundStyle(.secondary)
+            }
+            .disabled(lid.isRunning)
+
+            if lid.durationSeconds == nil {
+                Text(l10n(.captionUnlimited))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             cautions
+
+            if let remaining = lid.remaining {
+                Text(l10n(.progressRemaining, Self.format(remaining)))
+                    .font(.system(.callout, design: .monospaced))
+                    .foregroundStyle(.secondary)
+            }
+
+            if lid.autoStopFailed {
+                Text(l10n(.lidAutoStopFailed))
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             if let error = lid.lastError {
                 Text(l10n(.lidError, error))

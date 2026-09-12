@@ -53,3 +53,4 @@
 "quit.stopAndQuit" = "중지하고 종료";
 "quit.anyway" = "그대로 종료";
 "quit.cancel" = "취소";
+"lid.autoStopFailed" = "시간이 끝났지만 자동으로 끄지 못했습니다. 직접 정지를 눌러주세요.";

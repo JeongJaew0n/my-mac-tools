@@ -53,3 +53,4 @@
 "quit.stopAndQuit" = "Stop and Quit";
 "quit.anyway" = "Quit Anyway";
 "quit.cancel" = "Cancel";
+"lid.autoStopFailed" = "Time is up but it could not be turned off automatically. Press Stop yourself.";

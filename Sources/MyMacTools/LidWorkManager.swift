@@ -33,12 +33,34 @@ final class LidWorkManager: ObservableObject {
     /// 마지막 토글이 실패했을 때의 사유. 성공하거나 다시 시도하면 지운다.
     @Published private(set) var lastError: String?
 
+    /// 유지 시간 - 시 (0...24). `BlackWorkManager` 와 같은 폭을 쓴다.
+    static let hourOptions = Array(0...24)
+    /// 유지 시간 - 분 (0, 10, ... 50)
+    static let minuteOptions = Array(stride(from: 0, through: 50, by: 10))
+
+    @Published var hours = 0
+    @Published var minutes = 0
+
+    /// 남은 시간(초). 무제한이거나 꺼져 있으면 nil.
+    @Published private(set) var remaining: TimeInterval?
+    /// 시간이 끝났는데 자동으로 끄지 못했는가.
+    @Published private(set) var autoStopFailed = false
+
+    /// 선택한 유지 시간(초). 0시간 0분이면 nil = 시간 제한 없음.
+    var durationSeconds: Int? {
+        let total = hours * 3600 + minutes * 60
+        return total == 0 ? nil : total
+    }
+
     /// 이 프로세스가 켠 것인가.
     ///
     /// 켜져 있다는 사실만으로는 누가 켰는지 알 수 없다. 다른 도구나 사용자의 터미널이
     /// 켜둔 것을 앱이 종료하면서 말없이 꺼버리면 남의 상태를 망가뜨리는 것이다.
     /// 읽는 것은 주인을 가리지 않지만, **쓰는 것은 가린다.**
     private(set) var turnedOnByThisProcess = false
+
+    private var endDate: Date?
+    private var ticker: Timer?
 
     init() {
         refreshFromSystem()
@@ -91,7 +113,13 @@ final class LidWorkManager: ObservableObject {
                 lastError = reason
                 return .failed(reason)
             }
-            if enabled { turnedOnByThisProcess = true }
+            if enabled {
+                turnedOnByThisProcess = true
+                autoStopFailed = false
+                startCountdownIfNeeded()
+            } else {
+                clearCountdown()
+            }
             lastError = nil
             return .changed(enabled)
         }
@@ -120,8 +148,52 @@ final class LidWorkManager: ObservableObject {
 
         guard waitForSleepDisabled(toBecome: false) else { return false }
         turnedOnByThisProcess = false
+        clearCountdown()
         lastError = nil
         return true
+    }
+
+    // MARK: - 유지 시간
+
+    /// 유지 시간이 지정돼 있으면 1초 티커를 건다. 무제한이면 아무것도 하지 않는다.
+    private func startCountdownIfNeeded() {
+        clearCountdown()
+        guard let seconds = durationSeconds else { return }
+
+        endDate = Date().addingTimeInterval(TimeInterval(seconds))
+        remaining = TimeInterval(seconds)
+
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+            self?.tick()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        ticker = timer
+    }
+
+    private func clearCountdown() {
+        ticker?.invalidate()
+        ticker = nil
+        endDate = nil
+        remaining = nil
+    }
+
+    private func tick() {
+        guard let endDate else { return }
+
+        let left = endDate.timeIntervalSinceNow
+        guard left <= 0 else {
+            remaining = left
+            return
+        }
+
+        // 만료. 인증 창은 절대 띄우지 않는다 — 덮개를 닫아두고 자리를 비운 상황이
+        // 전형이라 아무도 암호를 칠 수 없고, 창만 떠 있는 채로 맥이 계속 깨어 있게 된다.
+        // 조용히 끌 수 없으면 끄지 못했다고 알리기만 하고 켜진 상태를 유지한다.
+        if !revertWithoutPrompting() {
+            clearCountdown()
+            autoStopFailed = true
+            refreshFromSystem()
+        }
     }
 
     private enum RunResult {

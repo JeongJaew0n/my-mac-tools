@@ -62,6 +62,7 @@ final class L10n: ObservableObject {
         case lidCautionSurface = "lid.caution.surface"
         case lidCautionStop = "lid.caution.stop"
         case lidError = "lid.error"
+        case lidAutoStopFailed = "lid.autoStopFailed"
 
         // 켜진 채로 종료하려 할 때의 경고
         case quitTitle = "quit.title"
