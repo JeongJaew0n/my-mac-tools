@@ -7,20 +7,24 @@ import AppKit
 /// `LidWorkManager` 가 건드리는 `disablesleep` 은 시스템 설정이라 재부팅해도 남는다.
 /// 켜진 채로 종료하면 맥이 영영 잠들지 않게 되므로 반드시 한 번 묻는다.
 ///
-/// sudoers 규칙이 깔려 있으면 암호 없이 끌 수 있으므로 묻지 않고 조용히 되돌린다.
+/// 이 앱이 켠 것이고 암호 없이 끌 수 있으면 묻지 않고 되돌린다. 그 외에는 묻는다.
 /// 규칙이 없으면 끄는 것도 인증 창이 필요한데, 종료 중에는 그 창이 뜨지 않거나 사용자가
-/// 취소할 수 있어 "될 때도 있고 안 될 때도 있는" 동작이 된다. 그때만 명시적으로 묻는다.
+/// 취소할 수 있어 "될 때도 있고 안 될 때도 있는" 동작이 된다.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var lid: LidWorkManager?
     var l10n: L10n?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard let lid, let l10n, lid.isRunning else { return .terminateNow }
+        guard let lid, let l10n else { return .terminateNow }
 
-        // 조용히 되돌릴 수 있으면 먼저 시도한다.
-        // `canRevertSilently` 는 sudo 자격 캐시 때문에 거짓 양성일 수 있으므로
-        // 실제로 꺼졌는지 확인하고, 실패했으면 아래 경고로 넘어간다.
-        if lid.canRevertSilently, case .changed(false) = lid.stop() {
+        // 기억해둔 값이 아니라 커널의 지금 값으로 판단한다. 마지막 활성화 이후에 밖에서
+        // 켜졌다면 기억만 보고 그냥 종료해버려, 끌 수 없는 상태로 맥을 남기게 된다.
+        lid.refreshFromSystem()
+        guard lid.isRunning else { return .terminateNow }
+
+        // 이 앱이 켠 것일 때만 말없이 되돌린다. 다른 도구가 켜둔 것을 앱 종료가
+        // 조용히 꺼버리면 남의 상태를 망가뜨리는 것이다.
+        if lid.turnedOnByThisProcess, lid.revertWithoutPrompting() {
             return .terminateNow
         }
 

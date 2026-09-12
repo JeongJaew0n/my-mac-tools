@@ -63,10 +63,24 @@ fi
 
 echo
 echo "동작 확인:"
-if sudo -u "$TARGET_USER" sudo -n -l /usr/bin/pmset -a disablesleep 1 >/dev/null 2>&1; then
+
+# `sudo -n -l` 로 확인하면 안 된다. `-l` 은 "암호 없이 되는가"가 아니라 "허용되는가"를
+# 보므로, 관리자 계정이면 %admin 의 (ALL) ALL 때문에 규칙과 무관하게 무엇이든 통과한다.
+# 실제로 실행해봐야만 알 수 있다. 현재 값을 그대로 다시 쓰면 상태가 바뀌지 않는다.
+CURRENT=$(ioreg -n IOPMrootDomain -r -d 1 \
+          | awk -F'= ' '/SleepDisabled/{gsub(/[ "]/,"",$2);print $2}')
+[ "$CURRENT" = "Yes" ] && SAME=1 || SAME=0
+
+# 대상 사용자의 자격 캐시가 남아 있으면 규칙이 없어도 통과해버린다. 비우고 잰다.
+sudo -u "$TARGET_USER" sudo -k 2>/dev/null || true
+
+if sudo -u "$TARGET_USER" sudo -n /usr/bin/pmset -a disablesleep "$SAME" >/dev/null 2>&1; then
     echo "  OK — ${TARGET_USER} 가 암호 없이 실행할 수 있습니다."
+    echo "  (확인용으로 현재 값 ${SAME} 을 그대로 다시 썼습니다. 상태는 바뀌지 않았습니다.)"
 else
-    echo "  실패 — 규칙이 적용되지 않았습니다. 앱은 인증 창 방식으로 동작합니다."
+    rm -f "$RULE_PATH"
+    echo "  실패 — 규칙이 적용되지 않아 되돌렸습니다."
+    echo "  앱은 관리자 인증 창 방식으로 동작합니다."
     exit 1
 fi
 

@@ -33,6 +33,8 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             lid.refreshFromSystem()
         }
+        // 창을 닫았다 다시 열면 앱이 활성화된 뒤에 뷰가 만들어져 위 알림을 놓칠 수 있다.
+        .onAppear { lid.refreshFromSystem() }
     }
 
     // MARK: - Sections
@@ -106,7 +108,9 @@ struct ContentView: View {
         if manager.durationSeconds == nil {
             return l10n(.captionUnlimited)
         }
-        if lid.isRunning && manager.sleepWhenDone {
+        // sleepWhenDone 이 꺼져 있어도 "평소 절전 동작으로 돌아갑니다" 는 거짓이다.
+        // disablesleep=1 이면 시스템 잠자기 자체가 막혀 있다.
+        if lid.isRunning {
             return l10n(.captionSleepBlockedByLid)
         }
         return manager.sleepWhenDone ? l10n(.captionWillSleep) : l10n(.captionNormalSleep)
@@ -137,7 +141,12 @@ struct ContentView: View {
             }
 
             Button(l10n(lid.isRunning ? .buttonStop : .buttonStart)) {
-                lid.toggle()
+                if case .changed(true) = lid.toggle() {
+                    // 켜는 데 성공했으면 "끝나면 잠자기"를 끈다. 토글이 비활성화될 뿐
+                    // 값은 남아 있어서, 그대로 두면 만료 시 `pmset sleepnow` 가
+                    // kIOReturnNotPermitted 로 거부되고 아무 일도 없는 것처럼 보인다.
+                    manager.sleepWhenDone = false
+                }
             }
             .frame(maxWidth: .infinity)
         }

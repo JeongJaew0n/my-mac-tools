@@ -33,21 +33,12 @@ final class LidWorkManager: ObservableObject {
     /// 마지막 토글이 실패했을 때의 사유. 성공하거나 다시 시도하면 지운다.
     @Published private(set) var lastError: String?
 
-    /// 종료할 때 사용자에게 묻지 않고 조용히 되돌릴 수 있는가.
+    /// 이 프로세스가 켠 것인가.
     ///
-    /// 인증 창 경로에서는 종료 중에 창이 안 뜨거나 사용자가 취소할 수 있어 신뢰할 수 없다.
-    ///
-    /// 판정은 **현재 값을 그대로 다시 쓰는 무해한 실제 명령**으로 한다.
-    /// `sudo -n -l` 로 허용 여부만 묻는 방법은 쓰지 않는다. `-l` 은 "암호 없이 되는가"가
-    /// 아니라 "허용되는가"를 보기 때문에, 관리자 계정이면 `(ALL) ALL` 때문에 무엇이든
-    /// 통과한다. 게다가 한 번 통과하면 자격 캐시가 생겨 그 뒤로는 전부 통과해버린다.
-    /// 실제로 실행해봐야만 지금 암호 없이 되는지 알 수 있다.
-    var canRevertSilently: Bool {
-        let current = isRunning ? "1" : "0"
-        return Self.execute(
-            "/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", current]
-        ).status == 0
-    }
+    /// 켜져 있다는 사실만으로는 누가 켰는지 알 수 없다. 다른 도구나 사용자의 터미널이
+    /// 켜둔 것을 앱이 종료하면서 말없이 꺼버리면 남의 상태를 망가뜨리는 것이다.
+    /// 읽는 것은 주인을 가리지 않지만, **쓰는 것은 가린다.**
+    private(set) var turnedOnByThisProcess = false
 
     init() {
         refreshFromSystem()
@@ -79,28 +70,56 @@ final class LidWorkManager: ObservableObject {
     private func apply(_ enabled: Bool) -> ToggleOutcome {
         let outcome = Self.runPrivileged(disableSleep: enabled)
 
-        // 성공이든 실패든 실제 값을 다시 읽는다. 이것만이 신뢰할 수 있는 상태다.
-        refreshFromSystem()
-
         switch outcome {
         case .cancelled:
+            refreshFromSystem()
             lastError = nil
             return .cancelled
 
         case .failed(let reason):
+            refreshFromSystem()
             lastError = reason
             return .failed(reason)
 
         case .ok:
-            guard isRunning == enabled else {
-                // 인증은 통과했는데 값이 안 바뀐 경우. pmset 이 거부했거나 무언가가 되돌렸다.
+            // pmset 은 powerd 를 거쳐 비동기로 반영되므로 프로세스가 끝난 직후에는 아직
+            // 옛 값이 읽힐 수 있다. 곧바로 실패로 단정하지 않고 짧게 기다려본다.
+            guard waitForSleepDisabled(toBecome: enabled) else {
                 let reason = "pmset did not change SleepDisabled"
                 lastError = reason
                 return .failed(reason)
             }
+            if enabled { turnedOnByThisProcess = true }
             lastError = nil
             return .changed(enabled)
         }
+    }
+
+    /// `SleepDisabled` 가 원하는 값이 될 때까지 최대 0.5초 기다린다. 되면 true.
+    /// 기다리는 동안 `isRunning` 도 같이 갱신된다.
+    private func waitForSleepDisabled(toBecome expected: Bool) -> Bool {
+        for _ in 0..<10 {
+            refreshFromSystem()
+            if isRunning == expected { return true }
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+        refreshFromSystem()
+        return isRunning == expected
+    }
+
+    /// 인증 창을 띄우지 않고 끄기만 시도한다. 성공하면 true.
+    ///
+    /// 종료 경로 전용이다. 종료 중에는 인증 창이 뜨지 않거나 사용자가 취소할 수 있어
+    /// 창을 띄우는 경로로 넘어가면 안 된다. 실패하면 호출한 쪽이 사용자에게 물어야 한다.
+    func revertWithoutPrompting() -> Bool {
+        guard Self.execute(
+            "/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", "0"]
+        ).status == 0 else { return false }
+
+        guard waitForSleepDisabled(toBecome: false) else { return false }
+        turnedOnByThisProcess = false
+        lastError = nil
+        return true
     }
 
     private enum RunResult {
@@ -118,11 +137,19 @@ final class LidWorkManager: ObservableObject {
 
         // 먼저 그냥 해본다. `-n` 은 절대 암호를 묻지 않으므로, 규칙이 없으면 조용히 실패한다.
         // 미리 가능 여부를 따져보는 것보다 정확하다 — 실행해봐야만 알 수 있기 때문이다.
-        if execute("/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", flag]).status == 0 {
-            return .ok
-        }
+        //
+        // `sudo -n -l` 로 가능 여부를 먼저 묻는 방법은 쓰지 않는다. `-l` 은 "암호 없이
+        // 되는가"가 아니라 "허용되는가"를 보므로 관리자 계정이면 무엇이든 통과한다.
+        let sudo = execute("/usr/bin/sudo", ["-n", "/usr/bin/pmset", "-a", "disablesleep", flag])
+        if sudo.status == 0 { return .ok }
 
-        return runViaAuthorizationDialog(flag: flag)
+        let dialog = runViaAuthorizationDialog(flag: flag)
+        // 인증 창까지 실패했으면 sudo 쪽 사유도 함께 남긴다. 둘 중 하나만 봐서는
+        // 원인을 못 찾는 경우가 있다.
+        if case .failed(let reason) = dialog, !sudo.stderr.isEmpty {
+            return .failed("\(reason) (sudo: \(sudo.stderr))")
+        }
+        return dialog
     }
 
     /// 관리자 인증 다이얼로그를 띄워 명령을 실행한다.
