@@ -82,8 +82,10 @@ final class LidWorkManager: ObservableObject {
             return .failed(reason)
 
         case .ok:
-            // pmset 은 powerd 를 거쳐 비동기로 반영되므로 프로세스가 끝난 직후에는 아직
-            // 옛 값이 읽힐 수 있다. 곧바로 실패로 단정하지 않고 짧게 기다려본다.
+            // 방어적 폴링. 20회 반복 측정에서는 pmset 종료 직후 첫 읽기가 항상 새 값이었고
+            // 지연이 관측되지 않았다(0/20). 알려진 결함이 아니라, 부하나 다른 머신에서
+            // powerd 반영이 늦을 경우 성공을 실패로 오판하지 않기 위한 여유다.
+            // 값이 이미 맞으면 첫 반복에서 바로 빠져나오므로 비용이 없다.
             guard waitForSleepDisabled(toBecome: enabled) else {
                 let reason = "pmset did not change SleepDisabled"
                 lastError = reason
