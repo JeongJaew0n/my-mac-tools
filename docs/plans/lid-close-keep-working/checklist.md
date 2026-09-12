@@ -21,8 +21,8 @@
       - [x] T1 대조군 통과 — PASS
       - [x] T2 (C1) — PASS. 화면 꺼짐. 동시 실행 유효
       - [x] T3 (C3) — PASS. 화면 그대로 꺼져 있음
-      - [ ] T4 (C2) — `sleepnow` 무력화 여부 (`--sleepnow` 옵트인)
-- [ ] Phase 1 결과를 spec.md 에 반영. T2 실패 시 Scope 결정 재검토
+      - [x] T4 (C2) — PASS. error 0xe00002e2 로 실패. 잠들지 않음
+- [x] Phase 1 결과를 spec.md 에 반영. 전 항목 통과, Scope 결정 유지
 
 ## 1. 구현
 - [ ] `Sources/MyMacTools/LidWorkManager.swift` 신규 — 상태 조회(`ioreg`) + 인증 실행(`NSAppleScript`)
@@ -32,6 +32,7 @@
 - [ ] `Resources/en.lproj/Localizable.strings` 갱신
 - [ ] `Resources/ja.lproj/Localizable.strings` 갱신
 - [ ] `ContentView` 에 구분선 + 신규 섹션(상태 · 주의사항 · 버튼) 추가
+- [ ] B 가 ON 이면 A 의 "끝나면 잠자기" 토글 비활성화 (C2 대응)
 - [ ] `MyMacToolsApp` 에 종료 경고 다이얼로그 연결
 - [ ] 앱 실행 시 `refreshFromSystem()` 으로 버튼 상태 복원
 

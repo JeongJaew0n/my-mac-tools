@@ -53,10 +53,12 @@ T4 는 성공 시 맥이 실제로 잠들어 스크립트가 중단되므로 `--
 T1 대조군 (disablesleep=0)  PASS — 화면 꺼짐
 T2 (C1) disablesleep=1      PASS — 화면 꺼짐. 동시 실행 가능
 T3 (C3) 플래그 전환          PASS — 화면 그대로 꺼져 있음
-T4 (C2) sleepnow            미실행
+T4 (C2) sleepnow            PASS — error 0xe00002e2 로 실패, 잠들지 않음
 ```
 
-**결론**: 화면 슬립과 시스템 슬립은 독립적이다. `disablesleep=1` 은 시스템 잠자기만 막고
+**결론**: 화면 슬립과 시스템 슬립은 독립적이다. 그리고 `sleepnow` 는 `disablesleep=1` 에서
+`kIOReturnNotPermitted` 로 거부된다 — C1·C2·C3 모두 해소.
+ `disablesleep=1` 은 시스템 잠자기만 막고
 `pmset displaysleepnow` 에는 영향을 주지 않는다. C1·C3 해소, Scope 결정(동시 실행) 유효.
 
 ## Phase 2 — 앱 레벨 (구현 후)

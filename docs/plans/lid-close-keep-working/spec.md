@@ -85,6 +85,10 @@ ioreg -n IOPMrootDomain -r -d 1 | grep SleepDisabled   →  "SleepDisabled" = Ye
   `pmset displaysleepnow` 가 정상 동작한다. 화면 슬립과 시스템 슬립은 독립이다.
   화면이 꺼진 상태에서 `disablesleep` 플래그를 0→1 로 바꿔도 화면이 깨어나지 않는다.
   → 동시 실행 설계(Scope 결정)가 유효함이 확인됐다.
-- **남은 미확인**: `disablesleep=1` 에서 `pmset sleepnow`(기능 A 의 "끝나면 잠자기")가
-  무력화되는지. 무력화된다면 B 가 켜진 동안 해당 토글을 비활성화하거나 경고해야 한다.
+- **확인 완료 (2026-09-12)**: `disablesleep=1` 에서 `pmset sleepnow` 는 실패한다.
+  `Unable to sleep system: error 0xe00002e2` (`kIOReturnNotPermitted`) 를 내며 잠들지 않는다.
+  조용한 무시가 아니라 명시적 에러지만, 기존 `run()` 헬퍼가 종료 코드를 보지 않으므로
+  앱 안에서는 아무 일도 없는 것처럼 보인다.
+  → **B 가 켜진 동안 기능 A 의 "끝나면 잠자기" 토글을 비활성화한다.**
+  `ContentView` 의 기존 `.disabled(manager.durationSeconds == nil)` 조건을 확장하는 방식.
 - ad-hoc 서명이라 다른 맥으로 옮기면 Gatekeeper 경고가 뜬다. 이 기능과 무관한 기존 제약이다.
