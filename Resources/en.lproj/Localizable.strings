@@ -34,3 +34,22 @@
 "toggle.keepScreenOff" = "Keep screen off";
 "progress.reblank" = "Screen goes off again in %ds";
 "status.keepOffFailed" = "Could not keep the screen off";
+
+/* Keep working with the lid closed */
+"lid.title" = "Keep working with the lid closed";
+"lid.statusOn" = "On — keeps running with the lid closed";
+"lid.statusOff" = "Off";
+"lid.cautionTitle" = "Before you start";
+"lid.caution.power" = "Plug in AC power. Closing the lid on battery drains it until the Mac shuts down.";
+"lid.caution.heat" = "Avoid long, heavy work with the lid shut. The keyboard deck is the main heat sink.";
+"lid.caution.surface" = "Do not leave it on a bed or cushion. That blocks the airflow.";
+"lid.caution.stop" = "Stop it when you are done. While it is on, the Mac will not sleep even with the lid open.";
+"lid.error" = "Could not change it: %@";
+"caption.sleepBlockedByLid" = "The Mac cannot be put to sleep while “Keep working with the lid closed” is on";
+
+/* Quitting while it is still on */
+"quit.title" = "“Keep working with the lid closed” is on";
+"quit.body" = "If you quit now, the Mac will keep staying awake. The setting survives a reboot. You can turn it off later by reopening this app, or with sudo pmset -a disablesleep 0 in Terminal.";
+"quit.stopAndQuit" = "Stop and Quit";
+"quit.anyway" = "Quit Anyway";
+"quit.cancel" = "Cancel";

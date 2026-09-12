@@ -34,3 +34,22 @@
 "toggle.keepScreenOff" = "画面をオフのままにする";
 "progress.reblank" = "%d秒後に画面を再びオフにします";
 "status.keepOffFailed" = "画面をオフのままにできませんでした";
+
+/* ふたを閉じても作業を継続 */
+"lid.title" = "ふたを閉じても作業を継続";
+"lid.statusOn" = "オン — ふたを閉じても動作します";
+"lid.statusOff" = "オフ";
+"lid.cautionTitle" = "開始する前に確認してください";
+"lid.caution.power" = "AC電源に接続してください。バッテリーのままふたを閉じると、放電して強制終了します。";
+"lid.caution.heat" = "閉じたまま長時間の重い作業は避けてください。キーボード面が主な放熱面です。";
+"lid.caution.surface" = "ベッドやクッションの上に置かないでください。通気がふさがれます。";
+"lid.caution.stop" = "使い終わったら必ず停止してください。オンの間は、ふたを開けていてもMacはスリープしません。";
+"lid.error" = "変更できませんでした: %@";
+"caption.sleepBlockedByLid" = "「ふたを閉じても作業を継続」がオンの間はスリープに移行できません";
+
+/* オンのまま終了しようとしたとき */
+"quit.title" = "「ふたを閉じても作業を継続」がオンです";
+"quit.body" = "このまま終了するとMacはスリープしないままになります。この設定は再起動しても残ります。あとでこのAppを開き直すか、ターミナルで sudo pmset -a disablesleep 0 を実行すると解除できます。";
+"quit.stopAndQuit" = "停止して終了";
+"quit.anyway" = "このまま終了";
+"quit.cancel" = "キャンセル";

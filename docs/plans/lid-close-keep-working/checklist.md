@@ -25,12 +25,12 @@
 - [x] Phase 1 결과를 spec.md 에 반영. 전 항목 통과, Scope 결정 유지
 
 ## 1. 구현
-- [ ] `Sources/MyMacTools/LidWorkManager.swift` 신규 — 상태 조회(`ioreg`) + 인증 실행(`NSAppleScript`)
-- [ ] 인증 취소·실패 시 상태를 바꾸지 않는 경로 확인 (낙관적 갱신 금지)
-- [ ] `L10n.Key` 에 신규 키 추가 (섹션 제목, 상태 2종, 버튼 2종, 주의사항 4줄, 종료 경고)
-- [ ] `Resources/ko.lproj/Localizable.strings` 갱신
-- [ ] `Resources/en.lproj/Localizable.strings` 갱신
-- [ ] `Resources/ja.lproj/Localizable.strings` 갱신
+- [x] `Sources/MyMacTools/LidWorkManager.swift` 신규 — 상태 조회는 `ioreg` 프로세스 대신 IOKit 직접 읽기로. `NSAppleScript` 로 인증 실행
+- [x] 인증 취소·실패 시 상태를 바꾸지 않는 경로 — `apply()` 가 항상 커널 값을 다시 읽어 확정. `ToggleOutcome` 으로 취소/실패 구분
+- [x] `L10n.Key` 에 신규 키 15개 추가 (버튼은 기존 `button.start`/`button.stop` 재사용)
+- [x] `Resources/ko.lproj/Localizable.strings` 갱신
+- [x] `Resources/en.lproj/Localizable.strings` 갱신
+- [x] `Resources/ja.lproj/Localizable.strings` 갱신
 - [ ] `ContentView` 에 구분선 + 신규 섹션(상태 · 주의사항 · 버튼) 추가
 - [ ] B 가 ON 이면 A 의 "끝나면 잠자기" 토글 비활성화 (C2 대응)
 - [ ] `MyMacToolsApp` 에 종료 경고 다이얼로그 연결

@@ -50,6 +50,25 @@ final class L10n: ObservableObject {
         case captionUnlimited = "caption.unlimited"
         case captionWillSleep = "caption.willSleep"
         case captionNormalSleep = "caption.normalSleep"
+        case captionSleepBlockedByLid = "caption.sleepBlockedByLid"
+
+        // 덮개 닫아도 작업 진행
+        case lidTitle = "lid.title"
+        case lidStatusOn = "lid.statusOn"
+        case lidStatusOff = "lid.statusOff"
+        case lidCautionTitle = "lid.cautionTitle"
+        case lidCautionPower = "lid.caution.power"
+        case lidCautionHeat = "lid.caution.heat"
+        case lidCautionSurface = "lid.caution.surface"
+        case lidCautionStop = "lid.caution.stop"
+        case lidError = "lid.error"
+
+        // 켜진 채로 종료하려 할 때의 경고
+        case quitTitle = "quit.title"
+        case quitBody = "quit.body"
+        case quitStopAndQuit = "quit.stopAndQuit"
+        case quitAnyway = "quit.anyway"
+        case quitCancel = "quit.cancel"
 
         case progressScreenOff = "progress.screenOff"
         case progressRemaining = "progress.remaining"

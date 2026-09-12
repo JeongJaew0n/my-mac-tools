@@ -34,3 +34,22 @@
 "toggle.keepScreenOff" = "화면 계속 끄기";
 "progress.reblank" = "%d초 후 화면을 다시 끕니다";
 "status.keepOffFailed" = "화면을 계속 끌 수 없습니다";
+
+/* 덮개 닫아도 작업 진행 */
+"lid.title" = "덮개 닫아도 작업 진행";
+"lid.statusOn" = "켜짐 — 덮개를 닫아도 계속 동작";
+"lid.statusOff" = "꺼짐";
+"lid.cautionTitle" = "시작 전 확인하세요";
+"lid.caution.power" = "AC 전원을 연결하세요. 배터리로 덮개를 닫으면 방전되어 강제 종료됩니다.";
+"lid.caution.heat" = "닫은 채 장시간 무거운 작업은 피하세요. 키보드 상판이 주 방열면입니다.";
+"lid.caution.surface" = "침대·쿠션 위에 두지 마세요. 통풍이 막힙니다.";
+"lid.caution.stop" = "다 쓰면 반드시 중지하세요. 켜진 동안엔 덮개를 열어두어도 맥이 잠들지 않습니다.";
+"lid.error" = "변경하지 못했습니다: %@";
+"caption.sleepBlockedByLid" = "‘덮개 닫아도 작업 진행’이 켜져 있는 동안에는 잠자기로 전환할 수 없습니다";
+
+/* 켜진 채로 종료하려 할 때 */
+"quit.title" = "‘덮개 닫아도 작업 진행’이 켜져 있습니다";
+"quit.body" = "이대로 종료하면 맥이 계속 잠들지 않습니다. 이 설정은 재부팅해도 남습니다. 나중에 이 앱을 다시 열거나, 터미널에서 sudo pmset -a disablesleep 0 으로 끌 수 있습니다.";
+"quit.stopAndQuit" = "중지하고 종료";
+"quit.anyway" = "그대로 종료";
+"quit.cancel" = "취소";
