@@ -2,12 +2,13 @@ import Foundation
 import Combine
 import CoreGraphics
 
-/// 지정한 시간 동안 화면만 끈 채 작업을 계속 돌린다.
+/// 지정한 시간 동안 시스템 잠자기를 막아 작업을 계속 돌린다.
 ///
 /// - 시스템 유휴 잠자기는 `caffeinate -i` 로 막는다.
-///   `-d`(디스플레이 슬립 방지)는 화면을 끄려는 목적과 정반대라 절대 쓰지 않는다.
-/// - 화면은 지연 시간이 지난 뒤 `pmset displaysleepnow` 로 끈다.
-/// - `keepScreenOff` 를 켜면 입력으로 화면이 깨어나도 유예 시간 뒤에 다시 끈다.
+///   `-d`(디스플레이 슬립 방지)는 쓰지 않는다. 화면은 시스템 설정대로 꺼지게 둔다.
+/// - **화면 끄기는 기본 동작이 아니다.** `keepScreenOff` 를 켰을 때만 지연 시간이 지난 뒤
+///   `pmset displaysleepnow` 로 끄고, 입력으로 깨어나면 유예 시간 뒤에 다시 끈다.
+///   꺼두지 않으면 화면은 그냥 켜져 있다가 시스템의 디스플레이 슬립 시간에 맞춰 꺼진다.
 final class BlackWorkManager: ObservableObject {
     /// 화면 끄기 유지 단계.
     enum ScreenPhase: Equatable {
@@ -37,7 +38,10 @@ final class BlackWorkManager: ObservableObject {
     @Published var hours = 0
     @Published var minutes = 0
     @Published var displayDelaySeconds = 5
-    /// 입력으로 화면이 깨어나도 계속 꺼둘지 여부.
+    /// 화면을 끈 상태로 유지할지 여부.
+    ///
+    /// 끄면 화면에 아무 짓도 하지 않는다. 켜면 지연 시간 뒤에 한 번 끄고,
+    /// 입력으로 깨어날 때마다 유예를 두고 다시 끈다.
     @Published var keepScreenOff = false
     /// 유지 시간이 끝나면 잠자기로 보낼지 여부. 무제한(0h 00m)이면 의미 없다.
     @Published var sleepWhenDone = false
@@ -70,7 +74,7 @@ final class BlackWorkManager: ObservableObject {
         return total == 0 ? nil : total
     }
 
-    /// 세션 시작 — caffeinate 를 띄우고 화면 끄기 카운트다운을 건다.
+    /// 세션 시작 — caffeinate 를 띄운다. 화면 끄기 카운트다운은 `keepScreenOff` 일 때만 건다.
     func start() {
         guard !isRunning else { return }
 
@@ -98,14 +102,15 @@ final class BlackWorkManager: ObservableObject {
 
         process = proc
         isRunning = true
-        displayCountdown = displayDelaySeconds
+        // 화면 끄기는 옵션이다. 꺼져 있으면 화면을 건드리지 않고 시스템 설정에 맡긴다.
+        displayCountdown = keepScreenOff ? displayDelaySeconds : nil
         if let seconds = durationSeconds {
             endDate = Date().addingTimeInterval(TimeInterval(seconds))
         }
         startTicker()
     }
 
-    /// 세션 정지 — caffeinate 를 끄고 아직 안 꺼진 화면 예약도 취소한다.
+    /// 세션 정지 — caffeinate 를 끄고 아직 안 꺼진 화면 예약이 있으면 취소한다.
     /// 수동 정지이므로 `sleepWhenDone` 이 켜져 있어도 잠자기로 보내지 않는다.
     func stop() {
         let running = process

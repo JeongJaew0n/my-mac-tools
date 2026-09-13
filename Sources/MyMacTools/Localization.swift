@@ -36,6 +36,7 @@ final class L10n: ObservableObject {
         case tabLid = "tab.lid"
 
         case statusWorking = "status.working"
+        case statusWorkingScreenOn = "status.workingScreenOn"
         case statusIdle = "status.idle"
 
         case labelKeepWorking = "label.keepWorking"

@@ -128,9 +128,15 @@ struct ContentView: View {
             Circle()
                 .fill(manager.isRunning ? .green : .gray)
                 .frame(width: 10, height: 10)
-            Text(l10n(manager.isRunning ? .statusWorking : .statusIdle))
+            Text(l10n(statusKey))
                 .font(.body)
         }
+    }
+
+    /// 화면을 끄지 않는 모드에서는 "화면 꺼짐" 이 거짓이므로 문구를 갈라 쓴다.
+    private var statusKey: L10n.Key {
+        guard manager.isRunning else { return .statusIdle }
+        return manager.keepScreenOff ? .statusWorking : .statusWorkingScreenOn
     }
 
     private var settings: some View {
@@ -158,6 +164,10 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
+            // 화면 끄기는 옵션이다. 끄면 화면을 건드리지 않고 시스템 설정대로 꺼지게 둔다.
+            Toggle(l10n(.toggleKeepScreenOff), isOn: $manager.keepScreenOff)
+
+            // 지연 시간은 화면을 끌 때만 의미가 있다.
             HStack(spacing: 8) {
                 Text(l10n(.labelScreenOffIn))
                 Spacer(minLength: 4)
@@ -171,8 +181,7 @@ struct ContentView: View {
                 Text(l10n(.unitSecond))
                     .foregroundStyle(.secondary)
             }
-
-            Toggle(l10n(.toggleKeepScreenOff), isOn: $manager.keepScreenOff)
+            .disabled(!manager.keepScreenOff)
 
             // 덮개 기능이 켜져 있으면 `pmset sleepnow` 가 kIOReturnNotPermitted 로 거부된다.
             // 눌러도 아무 일이 없으므로 아예 잠가두고 caption 으로 이유를 알린다.

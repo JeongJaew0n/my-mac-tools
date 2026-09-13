@@ -31,7 +31,7 @@
 "language.system" = "System";
 
 /* Keep screen off */
-"toggle.keepScreenOff" = "Keep screen off";
+"toggle.keepScreenOff" = "Keep the screen off";
 "progress.reblank" = "Screen goes off again in %ds";
 "status.keepOffFailed" = "Could not keep the screen off";
 
@@ -55,5 +55,6 @@
 "lid.autoStopFailed" = "Time is up but it could not be turned off automatically. Press Stop yourself.";
 
 /* Tabs */
-"tab.screenOff" = "Screen off";
+"tab.screenOff" = "Prevent sleep";
 "tab.lid" = "Lid closed";
+"status.workingScreenOn" = "Preventing sleep — screen on";

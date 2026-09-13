@@ -31,7 +31,7 @@
 "language.system" = "시스템 설정";
 
 /* Keep screen off */
-"toggle.keepScreenOff" = "화면 계속 끄기";
+"toggle.keepScreenOff" = "화면 끈 상태로 유지";
 "progress.reblank" = "%d초 후 화면을 다시 끕니다";
 "status.keepOffFailed" = "화면을 계속 끌 수 없습니다";
 
@@ -55,5 +55,6 @@
 "lid.autoStopFailed" = "시간이 끝났지만 자동으로 끄지 못했습니다. 직접 정지를 눌러주세요.";
 
 /* 상단 탭 */
-"tab.screenOff" = "화면 끄기";
-"tab.lid" = "덮개 유지";
+"tab.screenOff" = "잠자기 방지";
+"tab.lid" = "덮어도 작업";
+"status.workingScreenOn" = "잠자기 방지 중 — 화면 켜짐";
