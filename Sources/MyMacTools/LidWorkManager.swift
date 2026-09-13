@@ -72,6 +72,14 @@ final class LidWorkManager: ObservableObject {
     /// 잔류시킨 것이든, 다른 수단으로 켜진 것이든 구분하지 않고 실제 상태를 그대로 보여준다.
     func refreshFromSystem() {
         isRunning = Self.readSleepDisabled() ?? false
+
+        // 밖에서 꺼졌으면(터미널에서 pmset 을 돌렸다거나) 남아 있던 카운트다운도 함께
+        // 정리한다. 이걸 안 하면 상태는 "꺼짐"인데 남은 시간만 계속 줄어드는,
+        // 화면이 거짓말을 하는 상태가 된다. 소유권도 더는 우리 것이 아니다.
+        if !isRunning && ticker != nil {
+            clearCountdown()
+            turnedOnByThisProcess = false
+        }
     }
 
     @discardableResult
@@ -155,13 +163,19 @@ final class LidWorkManager: ObservableObject {
 
     // MARK: - 유지 시간
 
-    /// 유지 시간이 지정돼 있으면 1초 티커를 건다. 무제한이면 아무것도 하지 않는다.
+    /// 1초 티커를 건다. 유지 시간이 없어도 건다.
+    ///
+    /// 카운트다운만을 위한 것이 아니다. 이 값은 앱 밖에서도 바뀔 수 있으므로
+    /// 티커가 매 초 커널을 읽어 표시를 현실과 맞추는 역할을 겸한다.
+    /// IOKit 조회는 프로세스 기동보다 훨씬 싸서 1초 간격이 부담되지 않는다 —
+    /// `BlackWorkManager` 가 `CGDisplayIsAsleep` 을 같은 이유로 매 초 읽는다.
     private func startCountdownIfNeeded() {
         clearCountdown()
-        guard let seconds = durationSeconds else { return }
 
-        endDate = Date().addingTimeInterval(TimeInterval(seconds))
-        remaining = TimeInterval(seconds)
+        if let seconds = durationSeconds {
+            endDate = Date().addingTimeInterval(TimeInterval(seconds))
+            remaining = TimeInterval(seconds)
+        }
 
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
@@ -178,7 +192,9 @@ final class LidWorkManager: ObservableObject {
     }
 
     private func tick() {
-        guard let endDate else { return }
+        // 먼저 현실과 맞춘다. 밖에서 꺼졌다면 여기서 카운트다운이 정리되고 티커도 멈춘다.
+        refreshFromSystem()
+        guard isRunning, let endDate else { return }
 
         let left = endDate.timeIntervalSinceNow
         guard left <= 0 else {
