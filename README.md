@@ -97,6 +97,8 @@ sudo bash scripts/install-sudoers.sh --uninstall  # 제거
 원복은 앱에서 중지하면 되고, 앱 없이 끄려면 `sudo pmset -a disablesleep 0` 입니다.
 이 값은 **재부팅해도 남습니다.**
 
+이 기능을 만지다 물린 것들은 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) 에 있습니다.
+
 ### 언어
 
 한국어 · English · 日本語 를 지원합니다. 화면 위쪽 **메뉴바 → 언어(Language)** 에서 고릅니다.
