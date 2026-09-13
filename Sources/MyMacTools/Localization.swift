@@ -31,6 +31,10 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 /// 자세한 근거는 `docs/i18n-design.md`.
 final class L10n: ObservableObject {
     enum Key: String, CaseIterable {
+        // 상단 탭
+        case tabScreenOff = "tab.screenOff"
+        case tabLid = "tab.lid"
+
         case statusWorking = "status.working"
         case statusIdle = "status.idle"
 
@@ -53,7 +57,6 @@ final class L10n: ObservableObject {
         case captionSleepBlockedByLid = "caption.sleepBlockedByLid"
 
         // 덮개 닫아도 작업 진행
-        case lidTitle = "lid.title"
         case lidStatusOn = "lid.statusOn"
         case lidStatusOff = "lid.statusOff"
         case lidCautionTitle = "lid.cautionTitle"

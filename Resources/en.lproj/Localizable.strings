@@ -36,7 +36,6 @@
 "status.keepOffFailed" = "Could not keep the screen off";
 
 /* Keep working with the lid closed */
-"lid.title" = "Keep working with the lid closed";
 "lid.statusOn" = "On — keeps running with the lid closed";
 "lid.statusOff" = "Off";
 "lid.cautionTitle" = "Before you start";
@@ -54,3 +53,7 @@
 "quit.anyway" = "Quit Anyway";
 "quit.cancel" = "Cancel";
 "lid.autoStopFailed" = "Time is up but it could not be turned off automatically. Press Stop yourself.";
+
+/* Tabs */
+"tab.screenOff" = "Screen off";
+"tab.lid" = "Lid closed";

@@ -36,7 +36,6 @@
 "status.keepOffFailed" = "화면을 계속 끌 수 없습니다";
 
 /* 덮개 닫아도 작업 진행 */
-"lid.title" = "덮개 닫아도 작업 진행";
 "lid.statusOn" = "켜짐 — 덮개를 닫아도 계속 동작";
 "lid.statusOff" = "꺼짐";
 "lid.cautionTitle" = "시작 전 확인하세요";
@@ -54,3 +53,7 @@
 "quit.anyway" = "그대로 종료";
 "quit.cancel" = "취소";
 "lid.autoStopFailed" = "시간이 끝났지만 자동으로 끄지 못했습니다. 직접 정지를 눌러주세요.";
+
+/* 상단 탭 */
+"tab.screenOff" = "화면 끄기";
+"tab.lid" = "덮개 유지";

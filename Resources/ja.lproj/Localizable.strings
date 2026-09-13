@@ -36,7 +36,6 @@
 "status.keepOffFailed" = "画面をオフのままにできませんでした";
 
 /* ふたを閉じても作業を継続 */
-"lid.title" = "ふたを閉じても作業を継続";
 "lid.statusOn" = "オン — ふたを閉じても動作します";
 "lid.statusOff" = "オフ";
 "lid.cautionTitle" = "開始する前に確認してください";
@@ -54,3 +53,7 @@
 "quit.anyway" = "このまま終了";
 "quit.cancel" = "キャンセル";
 "lid.autoStopFailed" = "時間が終わりましたが自動で解除できませんでした。手動で停止してください。";
+
+/* タブ */
+"tab.screenOff" = "画面オフ";
+"tab.lid" = "ふた閉じ";

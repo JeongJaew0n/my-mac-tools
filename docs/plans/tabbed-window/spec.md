@@ -64,9 +64,18 @@
 - [ ] 기존 두 기능의 동작에 회귀가 없다
 - [ ] 탭 이름이 ko/en/ja 3개 언어로 모두 나온다
 
-## 비고 / 확인 필요
-- `Button(.accessoryBar)` 로 선택 상태가 충분히 구분되는지 실물로 확인한다.
-  부족하면 선택된 탭에 배경을 직접 그린다.
-- 창 타이틀바 제목은 `WindowGroup` 에 명시하지 않으면 `CFBundleName` 을 쓴다고 보고 있다.
-  실제로 그런지 구현 중 확인한다. 아니면 `.navigationTitle` 로 명시한다.
-- 고정 높이는 두 탭 중 긴 쪽을 실측해 정한다. 주의사항 4줄이 있는 덮개 탭이 더 길 것으로 본다.
+## 구현 중 확정된 것 (2026-09-13)
+
+- **선택 표시**: `.accessoryBar` 에 맡기지 않고 `.buttonStyle(.plain)` + 직접 그린
+  `RoundedRectangle(.quaternary)` 배경 + 선택된 탭 semibold. 렌더링이 확실하다.
+- **창 타이틀**: `WindowGroup` 에 아무것도 명시하지 않아도 타이틀바에 `MyMacTools` 가 나온다.
+  `CFBundleName` 기본값으로 충분해 `.navigationTitle` 은 넣지 않았다.
+- **높이 실측**: 화면 끄기 탭 325, 덮개 탭 368 (창 프레임 기준, 타이틀바 제외).
+  창 높이 380 으로 고정 → 실제 창 412 (내용 380 + 타이틀바 32). 두 탭 모두 412 로 동일.
+- **`minHeight` 로는 안 된다**: `.windowResizability(.contentSize)` 는 내용의 *ideal* 크기를
+  쓰므로 최소치를 줘도 창이 커지지 않는다. 실측으로 확인했다(325/368 그대로).
+  높이를 고정하고 내용을 `ScrollView` 로 감싸, 오류 문구가 늘어나도 잘리지 않게 했다.
+- **`Spacer(minLength: 0)` 금지**: 상단 정렬용으로 넣었더니 창이 632 까지 부풀었다.
+  `.frame(alignment: .top)` 만으로 충분하다.
+- **`lid.title` 제거**: 기능 이름을 탭 라벨이 지니므로 섹션 안의 제목이 중복이 됐다.
+  enum 과 3개 `.strings` 에서 함께 지웠다.
