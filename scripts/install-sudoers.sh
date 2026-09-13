@@ -13,6 +13,9 @@
 set -eu
 
 RULE_PATH="/etc/sudoers.d/mymactools"
+# 안내 문구에 상대 경로를 찍으면 다른 디렉터리에서 그대로 복사해 실행했을 때
+# "No such file or directory" 로 실패한다. 절대 경로로 바꿔 둔다.
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 
 [ "$(id -u)" -eq 0 ] || { echo "sudo 로 실행하세요."; exit 1; }
 
@@ -85,4 +88,4 @@ else
 fi
 
 echo
-echo "제거하려면: sudo bash scripts/install-sudoers.sh --uninstall"
+echo "제거하려면: sudo bash \"$SCRIPT_PATH\" --uninstall"
