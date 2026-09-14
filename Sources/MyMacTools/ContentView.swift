@@ -264,6 +264,8 @@ struct ContentView: View {
     /// 대신 위 탭과 같은 모양의 상태 줄로 시작한다.
     private var lidTab: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // 이 VStack 은 주의사항 목록 때문에 leading 정렬이다. 상태 줄만은 잠자기 방지
+            // 탭과 같게 가운데에 두어야 해서 폭을 끝까지 펴고 그 안에서 가운데 정렬한다.
             HStack {
                 Circle()
                     .fill(lid.isRunning ? .green : .gray)
@@ -271,6 +273,7 @@ struct ContentView: View {
                 Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
                     .font(.body)
             }
+            .frame(maxWidth: .infinity)
 
             // 유지 시간. 켜져 있는 동안에는 못 바꾼다.
             HStack(spacing: 8) {
