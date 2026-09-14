@@ -112,6 +112,7 @@ sudo bash scripts/install-sudoers.sh --uninstall  # 제거
 이 값은 **재부팅해도 남습니다.**
 
 이 기능을 만지다 물린 것들은 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) 에 있습니다.
+UI 규칙은 [`docs/DESIGN.md`](docs/DESIGN.md) 에 정리돼 있습니다.
 
 ### 언어
 

@@ -24,26 +24,12 @@ struct ContentView: View {
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
     @AppStorage("selectedTab") private var selection: Tab = .screenOff
 
-    /// 창 내용 높이. 탭마다 높이가 달라 그대로 두면 전환할 때마다 창이 튄다.
-    ///
-    /// **실측값은 창 높이가 아니라 내용 높이다.** 창 높이에는 타이틀바 32pt 가 포함돼 있어,
-    /// 창 높이를 그대로 여기에 넣으면 그만큼이 통째로 빈 여백이 된다(한 번 그랬다).
-    ///
-    /// 실측(2026-09-15, `ScrollView` 와 고정 높이를 모두 뺀 상태):
-    /// 잠자기 방지 탭 내용 300, 덮어도 작업 탭 내용 336. 긴 쪽에 정확히 맞춘다.
-    /// 여유를 더하지 않는다 — 더한 만큼 두 탭 모두에서 아래가 빈다.
-    ///
-    /// `minHeight` 로는 안 된다: `.windowResizability(.contentSize)` 는 내용의 *ideal*
-    /// 크기를 쓰므로 최소치를 줘도 창이 커지지 않는다. 그래서 높이를 고정하고,
-    /// 대신 내용을 `ScrollView` 로 감싸 오류 문구가 늘어나도 잘리지 않게 한다.
-    private static let windowHeight: CGFloat = 336
-
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: Design.Spacing.none) {
             tabBar
-                .padding(.horizontal, 12)
-                .padding(.top, 10)
-                .padding(.bottom, 8)
+                .padding(.horizontal, Design.Padding.tabBarHorizontal)
+                .padding(.top, Design.Padding.tabBarTop)
+                .padding(.bottom, Design.Padding.tabBarBottom)
 
             Divider()
 
@@ -54,12 +40,12 @@ struct ContentView: View {
                     case .lid: lidTab
                     }
                 }
-                .padding(20)
+                .padding(Design.Padding.content)
             }
             // 내용이 창에 들어가면 스크롤바도 바운스도 없다. 넘칠 때만 스크롤된다.
             .scrollBounceBehavior(.basedOnSize)
         }
-        .frame(width: 320, height: Self.windowHeight, alignment: .top)
+        .frame(width: Design.Size.windowWidth, height: Design.Size.windowContentHeight, alignment: .top)
         // 값이 재부팅·강제 종료 뒤에도 남으므로, 창이 다시 앞으로 나올 때마다
         // 앱이 기억한 상태가 아니라 커널의 실제 값으로 맞춘다.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -77,20 +63,20 @@ struct ContentView: View {
     /// 탭 뒤에 숨겨버리면 켜둔 사실이 화면 어디에도 없게 되므로, 어느 탭에 있든 보이게 한다.
     /// 점은 매니저의 `isRunning` 을 그대로 따라간다. 따로 기억하지 않는다.
     private var tabBar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Design.Spacing.tabItem) {
             ForEach(Tab.allCases) { tab in
                 Button {
                     selection = tab
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: Design.Spacing.dotToLabel) {
                         Circle()
                             .fill(isRunning(tab) ? .green : .gray)
-                            .frame(width: 8, height: 8)
+                            .frame(width: Design.Size.tabDot, height: Design.Size.tabDot)
                         Text(l10n(tab.titleKey))
                             .fontWeight(selection == tab ? .semibold : .regular)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .padding(.vertical, Design.Padding.tabItemVertical)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -98,7 +84,7 @@ struct ContentView: View {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
                     if selection == tab {
-                        RoundedRectangle(cornerRadius: 6).fill(.quaternary)
+                        RoundedRectangle(cornerRadius: Design.Size.tabCornerRadius).fill(.quaternary)
                     }
                 }
             }
@@ -115,7 +101,7 @@ struct ContentView: View {
     // MARK: - 화면 끄고 작업
 
     private var screenOffTab: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Design.Spacing.sleepBlock) {
             statusRow
 
             settings
@@ -133,7 +119,7 @@ struct ContentView: View {
         HStack {
             Circle()
                 .fill(manager.isRunning ? .green : .gray)
-                .frame(width: 10, height: 10)
+                .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
             Text(l10n(statusKey))
                 .font(.body)
         }
@@ -151,8 +137,8 @@ struct ContentView: View {
     }
 
     private var settings: some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(spacing: Design.Spacing.settingsRow) {
+            HStack(spacing: Design.Spacing.inRow) {
                 Text(l10n(.labelKeepWorking))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.hours) {
@@ -177,7 +163,7 @@ struct ContentView: View {
 
             // 셋이 서로 배타적이라 체크박스 여러 개가 아니라 목록 하나로 둔다.
             // 체크박스였다면 "끈 상태로 유지 + 계속 켜두기" 같은 모순 조합이 가능해진다.
-            HStack(spacing: 8) {
+            HStack(spacing: Design.Spacing.inRow) {
                 Text(l10n(.labelScreenMode))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.screenMode) {
@@ -190,7 +176,7 @@ struct ContentView: View {
             }
 
             // 지연 시간은 화면을 끌 때만 의미가 있다.
-            HStack(spacing: 8) {
+            HStack(spacing: Design.Spacing.inRow) {
                 Text(l10n(.labelScreenOffIn))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.displayDelaySeconds) {
@@ -263,20 +249,20 @@ struct ContentView: View {
     /// 기능 이름은 탭 라벨이 지니므로 여기서 다시 제목을 달지 않는다.
     /// 대신 위 탭과 같은 모양의 상태 줄로 시작한다.
     private var lidTab: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.lidBlock) {
             // 이 VStack 은 주의사항 목록 때문에 leading 정렬이다. 상태 줄만은 잠자기 방지
             // 탭과 같게 가운데에 두어야 해서 폭을 끝까지 펴고 그 안에서 가운데 정렬한다.
             HStack {
                 Circle()
                     .fill(lid.isRunning ? .green : .gray)
-                    .frame(width: 10, height: 10)
+                    .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
                 Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
                     .font(.body)
             }
             .frame(maxWidth: .infinity)
 
             // 유지 시간. 켜져 있는 동안에는 못 바꾼다.
-            HStack(spacing: 8) {
+            HStack(spacing: Design.Spacing.inRow) {
                 Text(l10n(.labelKeepWorking))
                 Spacer(minLength: 4)
                 Picker("", selection: $lid.hours) {
@@ -353,15 +339,15 @@ struct ContentView: View {
     ]
 
     private var cautions: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: Design.Spacing.listRow) {
+            HStack(spacing: Design.Spacing.tabItem) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                 Text(l10n(.lidCautionTitle))
                     .fontWeight(.medium)
             }
             ForEach(Self.cautionKeys, id: \.self) { key in
-                HStack(alignment: .top, spacing: 5) {
+                HStack(alignment: .top, spacing: Design.Spacing.listRow) {
                     Text("•")
                     Text(l10n(key))
                         .fixedSize(horizontal: false, vertical: true)
