@@ -58,7 +58,7 @@
 "tab.lid" = "ふた閉じ作業";
 "status.workingScreenOn" = "スリープ防止中 — 画面オンのまま";
 "label.screenMode" = "画面";
-"screenMode.system" = "そのままにする";
+"screenMode.system" = "Macの既定設定のまま";
 "screenMode.keepOff" = "オフのまま維持";
 "screenMode.keepOn" = "オンのまま維持";
 "status.workingPlain" = "スリープ防止中";

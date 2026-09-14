@@ -58,7 +58,7 @@
 "tab.lid" = "Lid closed";
 "status.workingScreenOn" = "Preventing sleep — screen stays on";
 "label.screenMode" = "Display";
-"screenMode.system" = "Leave it alone";
+"screenMode.system" = "Mac's default";
 "screenMode.keepOff" = "Keep it off";
 "screenMode.keepOn" = "Keep it on";
 "status.workingPlain" = "Preventing sleep";

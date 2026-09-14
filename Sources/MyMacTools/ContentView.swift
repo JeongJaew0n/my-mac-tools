@@ -134,7 +134,7 @@ struct ContentView: View {
     }
 
     /// 화면 모드마다 사실이 다르다. "화면 꺼짐" 은 끄는 모드에서만 참이고,
-    /// 시스템 설정대로 두는 모드는 언젠가 꺼지므로 "계속 켜짐" 이라고 할 수도 없다.
+    /// 맥북 기본설정대로 두는 모드는 언젠가 꺼지므로 "계속 켜짐" 이라고 할 수도 없다.
     private var statusKey: L10n.Key {
         guard manager.isRunning else { return .statusIdle }
         switch manager.screenMode {
