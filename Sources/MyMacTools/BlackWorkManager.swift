@@ -4,15 +4,32 @@ import CoreGraphics
 
 /// 지정한 시간 동안 시스템 잠자기를 막아 작업을 계속 돌린다.
 ///
-/// - 시스템 유휴 잠자기는 `caffeinate -i` 로 막는다.
-///   `-d`(디스플레이 슬립 방지)는 쓰지 않는다. 화면은 시스템 설정대로 꺼지게 둔다.
-/// - **화면 끄기는 기본 동작이 아니다.** `keepScreenOff` 를 켰을 때만 지연 시간이 지난 뒤
-///   `pmset displaysleepnow` 로 끄고, 입력으로 깨어나면 유예 시간 뒤에 다시 끈다.
-///   꺼두지 않으면 화면은 그냥 켜져 있다가 시스템의 디스플레이 슬립 시간에 맞춰 꺼진다.
+/// 시스템 유휴 잠자기는 `caffeinate -i` 로 막는다. 화면을 어떻게 할지는 `screenMode` 가
+/// 정하며, 세 가지가 서로 배타적이라 불리언 여러 개가 아니라 열거형 하나로 둔다.
 final class BlackWorkManager: ObservableObject {
+    /// 세션 동안 화면을 어떻게 할지. 셋은 서로 배타적이다.
+    enum ScreenMode: String, CaseIterable, Identifiable {
+        /// 화면에 아무 짓도 하지 않는다. 시스템의 디스플레이 슬립 시간에 맞춰 알아서 꺼진다.
+        case system
+        /// 지연 시간 뒤에 끄고, 입력으로 깨어날 때마다 유예를 두고 다시 끈다.
+        case keepOff
+        /// `caffeinate -d` 로 디스플레이 슬립 자체를 막아 계속 켜둔다.
+        case keepOn
+
+        var id: String { rawValue }
+
+        var titleKey: L10n.Key {
+            switch self {
+            case .system: return .screenModeSystem
+            case .keepOff: return .screenModeKeepOff
+            case .keepOn: return .screenModeKeepOn
+            }
+        }
+    }
+
     /// 화면 끄기 유지 단계.
     enum ScreenPhase: Equatable {
-        /// 관리하지 않음 (아직 안 껐거나 `keepScreenOff` 가 꺼져 있음)
+        /// 관리하지 않음 (아직 안 껐거나 끄는 모드가 아님)
         case idle
         /// 방금 껐다. 다음 틱에 실제로 꺼졌는지 확인한다.
         case verifying
@@ -38,11 +55,7 @@ final class BlackWorkManager: ObservableObject {
     @Published var hours = 0
     @Published var minutes = 0
     @Published var displayDelaySeconds = 5
-    /// 화면을 끈 상태로 유지할지 여부.
-    ///
-    /// 끄면 화면에 아무 짓도 하지 않는다. 켜면 지연 시간 뒤에 한 번 끄고,
-    /// 입력으로 깨어날 때마다 유예를 두고 다시 끈다.
-    @Published var keepScreenOff = false
+    @Published var screenMode: ScreenMode = .system
     /// 유지 시간이 끝나면 잠자기로 보낼지 여부. 무제한(0h 00m)이면 의미 없다.
     @Published var sleepWhenDone = false
 
@@ -74,14 +87,16 @@ final class BlackWorkManager: ObservableObject {
         return total == 0 ? nil : total
     }
 
-    /// 세션 시작 — caffeinate 를 띄운다. 화면 끄기 카운트다운은 `keepScreenOff` 일 때만 건다.
+    /// 세션 시작 — caffeinate 를 띄운다. 화면 끄기 카운트다운은 `keepOff` 모드에서만 건다.
     func start() {
         guard !isRunning else { return }
 
         let proc = Process()
         proc.executableURL = URL(fileURLWithPath: "/usr/bin/caffeinate")
 
-        var arguments = ["-i"]
+        // `-d` 는 디스플레이 슬립 방지다. 화면을 끄려는 모드와는 정반대이므로
+        // `keepOn` 일 때만 붙인다.
+        var arguments = [screenMode == .keepOn ? "-di" : "-i"]
         if let seconds = durationSeconds {
             arguments += ["-t", String(seconds)]
         }
@@ -102,8 +117,8 @@ final class BlackWorkManager: ObservableObject {
 
         process = proc
         isRunning = true
-        // 화면 끄기는 옵션이다. 꺼져 있으면 화면을 건드리지 않고 시스템 설정에 맡긴다.
-        displayCountdown = keepScreenOff ? displayDelaySeconds : nil
+        // 화면 끄기 카운트다운은 끄는 모드에서만 건다.
+        displayCountdown = screenMode == .keepOff ? displayDelaySeconds : nil
         if let seconds = durationSeconds {
             endDate = Date().addingTimeInterval(TimeInterval(seconds))
         }
@@ -181,7 +196,7 @@ final class BlackWorkManager: ObservableObject {
             if next <= 0 {
                 displayCountdown = nil
                 turnOffDisplay()
-                screenPhase = keepScreenOff ? .verifying : .idle
+                screenPhase = screenMode == .keepOff ? .verifying : .idle
             } else {
                 displayCountdown = next
             }

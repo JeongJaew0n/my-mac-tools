@@ -31,7 +31,6 @@
 "language.system" = "System";
 
 /* Keep screen off */
-"toggle.keepScreenOff" = "Keep the screen off";
 "progress.reblank" = "Screen goes off again in %ds";
 "status.keepOffFailed" = "Could not keep the screen off";
 
@@ -57,4 +56,9 @@
 /* Tabs */
 "tab.screenOff" = "Prevent sleep";
 "tab.lid" = "Lid closed";
-"status.workingScreenOn" = "Preventing sleep — screen on";
+"status.workingScreenOn" = "Preventing sleep — screen stays on";
+"label.screenMode" = "Display";
+"screenMode.system" = "Follow system";
+"screenMode.keepOff" = "Keep it off";
+"screenMode.keepOn" = "Keep it on";
+"status.workingPlain" = "Preventing sleep";

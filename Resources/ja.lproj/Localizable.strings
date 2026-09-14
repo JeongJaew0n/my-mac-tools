@@ -31,7 +31,6 @@
 "language.system" = "システム設定";
 
 /* Keep screen off */
-"toggle.keepScreenOff" = "画面をオフのまま維持";
 "progress.reblank" = "%d秒後に画面を再びオフにします";
 "status.keepOffFailed" = "画面をオフのままにできませんでした";
 
@@ -57,4 +56,9 @@
 /* タブ */
 "tab.screenOff" = "スリープ防止";
 "tab.lid" = "ふた閉じ作業";
-"status.workingScreenOn" = "スリープ防止中 — 画面オン";
+"status.workingScreenOn" = "スリープ防止中 — 画面オンのまま";
+"label.screenMode" = "画面";
+"screenMode.system" = "システム設定のまま";
+"screenMode.keepOff" = "オフのまま維持";
+"screenMode.keepOn" = "オンのまま維持";
+"status.workingPlain" = "スリープ防止中";

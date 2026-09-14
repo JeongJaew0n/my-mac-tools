@@ -37,6 +37,7 @@ final class L10n: ObservableObject {
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
+        case statusWorkingPlain = "status.workingPlain"
         case statusIdle = "status.idle"
 
         case labelKeepWorking = "label.keepWorking"
@@ -48,7 +49,10 @@ final class L10n: ObservableObject {
         case unitSecond = "unit.second"
 
         case toggleSleepWhenDone = "toggle.sleepWhenDone"
-        case toggleKeepScreenOff = "toggle.keepScreenOff"
+        case labelScreenMode = "label.screenMode"
+        case screenModeSystem = "screenMode.system"
+        case screenModeKeepOff = "screenMode.keepOff"
+        case screenModeKeepOn = "screenMode.keepOn"
         case buttonStart = "button.start"
         case buttonStop = "button.stop"
 

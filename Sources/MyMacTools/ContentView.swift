@@ -133,10 +133,15 @@ struct ContentView: View {
         }
     }
 
-    /// 화면을 끄지 않는 모드에서는 "화면 꺼짐" 이 거짓이므로 문구를 갈라 쓴다.
+    /// 화면 모드마다 사실이 다르다. "화면 꺼짐" 은 끄는 모드에서만 참이고,
+    /// 시스템 설정대로 두는 모드는 언젠가 꺼지므로 "계속 켜짐" 이라고 할 수도 없다.
     private var statusKey: L10n.Key {
         guard manager.isRunning else { return .statusIdle }
-        return manager.keepScreenOff ? .statusWorking : .statusWorkingScreenOn
+        switch manager.screenMode {
+        case .keepOff: return .statusWorking
+        case .keepOn:  return .statusWorkingScreenOn
+        case .system:  return .statusWorkingPlain
+        }
     }
 
     private var settings: some View {
@@ -164,8 +169,19 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            // 화면 끄기는 옵션이다. 끄면 화면을 건드리지 않고 시스템 설정대로 꺼지게 둔다.
-            Toggle(l10n(.toggleKeepScreenOff), isOn: $manager.keepScreenOff)
+            // 셋이 서로 배타적이라 체크박스 여러 개가 아니라 목록 하나로 둔다.
+            // 체크박스였다면 "끈 상태로 유지 + 계속 켜두기" 같은 모순 조합이 가능해진다.
+            HStack(spacing: 8) {
+                Text(l10n(.labelScreenMode))
+                Spacer(minLength: 4)
+                Picker("", selection: $manager.screenMode) {
+                    ForEach(BlackWorkManager.ScreenMode.allCases) { mode in
+                        Text(l10n(mode.titleKey)).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+            }
 
             // 지연 시간은 화면을 끌 때만 의미가 있다.
             HStack(spacing: 8) {
@@ -181,7 +197,7 @@ struct ContentView: View {
                 Text(l10n(.unitSecond))
                     .foregroundStyle(.secondary)
             }
-            .disabled(!manager.keepScreenOff)
+            .disabled(manager.screenMode != .keepOff)
 
             // 덮개 기능이 켜져 있으면 `pmset sleepnow` 가 kIOReturnNotPermitted 로 거부된다.
             // 눌러도 아무 일이 없으므로 아예 잠가두고 caption 으로 이유를 알린다.
