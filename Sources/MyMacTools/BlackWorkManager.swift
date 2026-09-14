@@ -9,7 +9,7 @@ import CoreGraphics
 final class BlackWorkManager: ObservableObject {
     /// 세션 동안 화면을 어떻게 할지. 셋은 서로 배타적이다.
     enum ScreenMode: String, CaseIterable, Identifiable {
-        /// 화면에 아무 짓도 하지 않는다. 시스템의 디스플레이 슬립 시간에 맞춰 알아서 꺼진다.
+        /// 화면에 아무 짓도 하지 않는다. 평소처럼 두었을 때와 똑같이 동작한다.
         case system
         /// 지연 시간 뒤에 끄고, 입력으로 깨어날 때마다 유예를 두고 다시 끈다.
         case keepOff
