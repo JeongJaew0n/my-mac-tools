@@ -24,13 +24,19 @@ struct ContentView: View {
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
     @AppStorage("selectedTab") private var selection: Tab = .screenOff
 
-    /// 창 높이. 탭마다 내용 높이가 달라 그대로 두면 전환할 때마다 창이 튄다.
+    /// 창 내용 높이. 탭마다 높이가 달라 그대로 두면 전환할 때마다 창이 튄다.
     ///
-    /// 실측(2026-09-13): 화면 끄기 탭 325, 덮개 탭 368. 긴 쪽에 여유를 더해 잡았다.
-    /// `minHeight` 로는 안 된다 — `.windowResizability(.contentSize)` 는 내용의 *ideal*
+    /// **실측값은 창 높이가 아니라 내용 높이다.** 창 높이에는 타이틀바 32pt 가 포함돼 있어,
+    /// 창 높이를 그대로 여기에 넣으면 그만큼이 통째로 빈 여백이 된다(한 번 그랬다).
+    ///
+    /// 실측(2026-09-15, `ScrollView` 와 고정 높이를 모두 뺀 상태):
+    /// 잠자기 방지 탭 내용 300, 덮어도 작업 탭 내용 336. 긴 쪽에 정확히 맞춘다.
+    /// 여유를 더하지 않는다 — 더한 만큼 두 탭 모두에서 아래가 빈다.
+    ///
+    /// `minHeight` 로는 안 된다: `.windowResizability(.contentSize)` 는 내용의 *ideal*
     /// 크기를 쓰므로 최소치를 줘도 창이 커지지 않는다. 그래서 높이를 고정하고,
     /// 대신 내용을 `ScrollView` 로 감싸 오류 문구가 늘어나도 잘리지 않게 한다.
-    private static let windowHeight: CGFloat = 380
+    private static let windowHeight: CGFloat = 336
 
     var body: some View {
         VStack(spacing: 0) {
