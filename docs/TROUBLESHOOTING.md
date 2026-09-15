@@ -213,3 +213,70 @@ pmset -g log | grep -i lidopen | tail -3
 ```bash
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 ```
+
+---
+
+## cmux 알림이 안 온다 — 집중 모드부터 확인할 것
+
+**증상** — Claude Code 턴이 끝나도 배너가 안 뜬다. 다른 앱을 보고 있어도 안 뜬다.
+시스템 설정 > 알림에 cmux 는 등록돼 있고 켜져 있다.
+
+**원인** — macOS **집중 모드**가 켜져 있었다. cmux·훅·알림 파이프라인은 전부 정상이었다.
+
+**확인법** — 셸에서는 확인할 수 없다. `~/Library/DoNotDisturb/DB/` 는 TCC 로 막혀 있고
+(`Operation not permitted`), `defaults read com.apple.ncprefs` 는 이 머신에서 도메인이 없다고 나온다.
+제어 센터를 눈으로 봐야 한다.
+
+**대응** — cmux 알림 문제는 이 순서로 좁힌다.
+
+1. **집중 모드** 켜져 있는지 (제어 센터)
+2. 시스템 설정 > 알림 > cmux 의 **알림 스타일이 "없음"이 아닌지**.
+   허용만 켜져 있고 스타일이 "없음"이면 소리·배지만 오고 배너는 안 뜬다.
+3. 표시 경로 생존 확인 — **비포커스** 워크스페이스로 쏜다. 포커스된 pane 으로 보내면
+   정상 동작으로도 회수되어 판정이 안 된다.
+   ```bash
+   cmux list-workspaces
+   cmux notify --workspace workspace:N --title TEST --body "표시 경로 확인"
+   sleep 1; cmux list-notifications | head -3
+   ```
+4. 실제 조건 배너 확인 — 지연 발송하고 **다른 앱으로 전환한 뒤** 본다.
+   cmux 가 최전면이면 macOS 가 배너를 억제하므로 포그라운드 테스트는 무의미하다.
+   ```bash
+   sleep 15; cmux notify --title "Claude Code" --subtitle Waiting --body "실제 조건 테스트"
+   ```
+
+1·2 번은 도구로 확인이 안 된다는 이유로 뒤로 미루면 안 된다. 그 바람에 3·4 번과 훅 계측까지
+전부 하고 나서야 원인에 도달했다.
+
+---
+
+## cmux 알림 진단에서 하지 말 것
+
+**증상** — 알림이 안 뜨는 걸 고치려다 더 나빠졌다.
+
+**원인·대응** — 세 가지를 물렸다.
+
+- **`osascript` 로 대체 배너를 띄우려 하지 마라.** `display notification` 은 "스크립트 편집기"
+  이름으로 뜨는데 그 앱에 알림 권한이 없으면 **exit 0 으로 조용히 아무것도 안 한다.**
+  알림 훅에서 `desktop:false` 로 cmux 정품 배너까지 끄고 이걸로 대체하면 알림이 완전히 사라진다.
+  cmux 는 이미 권한이 있으니 cmux 경로를 살려야 한다.
+- **`cmux set-app-focus inactive` 로 배너 유무를 판정하지 마라.** cmux 내부 판단만 흉내 낼 뿐
+  실제 macOS 배너 전달에는 영향이 없다. 이걸로 "고쳐졌다"고 결론내면 틀린다.
+- **`cmux hooks claude notification` 을 손으로 쏴서 판정하지 마라.** 세션이 Running 인 동안에는
+  드롭돼서 `OK` 만 나오고 알림이 안 생긴다. 결론을 낼 수 없다.
+
+**참고** — 포커스된 pane 의 알림 기록이 사라지는 건 정상이다. 확인하러 cmux 로 돌아와
+그 pane 에 포커스를 주는 순간 회수된다. 버그로 오판하지 말 것.
+
+알아두면 되는 cmux 설정 (`~/.config/cmux/cmux.json`):
+
+| 키 | 기본값 | 의미 |
+|---|---|---|
+| `notifications.suppressOnlyFocusedSurface` | `false` | `false` 면 **워크스페이스가 화면에 보이기만 해도** 배너를 회수한다. cmux 가 백그라운드여도 그렇다. 에이전트를 여러 pane 에 띄우면 옆 pane 알림을 놓치므로 `true` 권장 |
+| `notifications.agentTurnComplete` | `whenIdle` | 백그라운드 작업이 남으면 미룬다. 매 턴 끝마다 원하면 `always` |
+| `notifications.agentIdleReminder` | `true` | 턴 종료 약 60초 후 "입력 대기" 알림 |
+| `notifications.agentPermissionPrompt` | `true` | 권한 대기 알림. `--dangerously-skip-permissions` 세션에는 해당 없음 |
+
+`--dangerously-skip-permissions` 세션은 "Permission" 알림이 원천적으로 안 온다.
+Claude Code 훅은 cmux 래퍼(`/Applications/cmux.app/Contents/Resources/bin/claude`)가 `--settings`
+로 주입하므로 `~/.claude/settings.json` 에 훅이 없어도 정상이다.
