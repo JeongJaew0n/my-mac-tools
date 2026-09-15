@@ -211,3 +211,11 @@ cp -r .build/MyMacTools.app /Applications/
 - Swift 5.9+
 
 개발과 검증은 macOS 26.3.1 / Apple M3 Pro 에서 했습니다. 그 아래 버전은 확인되지 않았습니다.
+
+## 문서
+
+- `docs/plans/` — 작업 계획
+- `docs/glossary/` — 도메인 용어
+- `docs/troubleshootings/` — 오류와 해결 기록 (`reusable/` · `project-specific/`)
+- `docs/DESIGN.md` — 디자인 시스템
+- `docs/TROUBLESHOOTING.md` — 잠자기·덮개 관련 기존 기록
