@@ -72,14 +72,14 @@ final class LidWorkManager: ObservableObject {
     /// 잔류시킨 것이든, 다른 수단으로 켜진 것이든 구분하지 않고 실제 상태를 그대로 보여준다.
     func refreshFromSystem() {
         isRunning = Self.readSleepDisabled() ?? false
+        guard !isRunning else { return }
 
-        // 밖에서 꺼졌으면(터미널에서 pmset 을 돌렸다거나) 남아 있던 카운트다운도 함께
-        // 정리한다. 이걸 안 하면 상태는 "꺼짐"인데 남은 시간만 계속 줄어드는,
-        // 화면이 거짓말을 하는 상태가 된다. 소유권도 더는 우리 것이 아니다.
-        if !isRunning && ticker != nil {
-            clearCountdown()
-            turnedOnByThisProcess = false
-        }
+        // 꺼져 있으면 켜져 있을 때만 의미가 있는 것들을 전부 내려놓는다.
+        // 하나라도 남으면 화면이 거짓말을 한다 — 상태는 "꺼짐"인데 남은 시간이 줄어든다거나,
+        // 이미 껐는데 "직접 정지를 눌러주세요" 가 계속 떠 있다거나.
+        if ticker != nil { clearCountdown() }
+        autoStopFailed = false
+        turnedOnByThisProcess = false
     }
 
     @discardableResult
@@ -206,9 +206,11 @@ final class LidWorkManager: ObservableObject {
         // 전형이라 아무도 암호를 칠 수 없고, 창만 떠 있는 채로 맥이 계속 깨어 있게 된다.
         // 조용히 끌 수 없으면 끄지 못했다고 알리기만 하고 켜진 상태를 유지한다.
         if !revertWithoutPrompting() {
+            // 실제 값을 먼저 확인한다. 못 껐으면 여전히 켜져 있으므로 아래 플래그가 살아남고,
+            // 어쩌다 꺼져 있었다면 refreshFromSystem 이 알아서 정리한다.
+            refreshFromSystem()
             clearCountdown()
             autoStopFailed = true
-            refreshFromSystem()
         }
     }
 
