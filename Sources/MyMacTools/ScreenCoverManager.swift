@@ -38,11 +38,15 @@ final class ScreenCoverManager: ObservableObject {
         }
     }
 
-    /// `Enter` 를 두 번 누른 것으로 볼 최대 간격.
+    /// 두 번 누른 것으로 볼 최대 간격.
     /// 상한이 없으면 몇 시간 전에 눌린 한 번이 살아 있게 된다.
-    static let enterDoubleInterval: TimeInterval = 1.5
-    /// `Esc` 를 눌러야 하는 시간.
-    static let escapeHoldSeconds: TimeInterval = 3
+    static let doublePressInterval: TimeInterval = 1.5
+
+    /// 두 번 눌러 해제하는 키. 키패드 `Enter` 는 본 `Enter` 와 같은 것으로 센다.
+    private enum DismissKey {
+        case enter
+        case escape
+    }
 
     private static let imagePathKey = "coverImagePath"
     private static let shortcutKey = "coverShortcut"
@@ -51,8 +55,6 @@ final class ScreenCoverManager: ObservableObject {
     @Published private(set) var isCovering = false
     @Published private(set) var imagePath: String?
     @Published private(set) var lastError: String?
-    /// `Esc` 를 누르고 있는 진행도(0...1). 진행이 안 보이면 반응 없는 줄 알고 손을 뗀다.
-    @Published private(set) var escapeProgress: Double = 0
     /// 화면을 덮는 전역 단축키. 지정하지 않으면 `nil`.
     @Published private(set) var shortcut: Shortcut?
 
@@ -69,9 +71,7 @@ final class ScreenCoverManager: ObservableObject {
     private var hasAssertion = false
     private var screenObserver: NSObjectProtocol?
     private var keyMonitor: Any?
-    private var lastEnterAt: Date?
-    private var escapeStartedAt: Date?
-    private var escapeTicker: Timer?
+    private var lastPressAt: [DismissKey: Date] = [:]
     private var l10n: L10n?
 
     init() {
@@ -174,8 +174,7 @@ final class ScreenCoverManager: ObservableObject {
         stopObservingScreenChanges()
         tearDownWindows()
         releaseAssertion()
-        resetEscape()
-        lastEnterAt = nil
+        lastPressAt.removeAll()
         isCovering = false
     }
 
@@ -202,8 +201,7 @@ final class ScreenCoverManager: ObservableObject {
                 fillMode: fillMode,
                 dismissTitle: text(.coverDismiss),
                 hint: text(.coverHint),
-                onDismiss: { [weak self] in self?.stop() },
-                manager: self)
+                onDismiss: { [weak self] in self?.stop() })
             window.contentView = NSHostingView(rootView: view)
             window.setFrame(screen.frame, display: true)
             window.orderFrontRegardless()
@@ -245,7 +243,7 @@ final class ScreenCoverManager: ObservableObject {
 
     // MARK: - 키로 해제
 
-    /// `Enter` 두 번과 `Esc` 3초. 셋(버튼 포함) 다 같은 `stop()` 으로 모인다.
+    /// `Enter` 두 번과 `Esc` 두 번. 셋(버튼 포함) 다 같은 `stop()` 으로 모인다.
     private func startKeyMonitor() {
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp]) { [weak self] event in
             guard let self, self.isCovering else { return event }
@@ -273,23 +271,14 @@ final class ScreenCoverManager: ObservableObject {
 
         switch (event.type, event.keyCode) {
         case (.keyDown, enter), (.keyDown, keypadEnter):
+            // 누르고 있으면 keyDown 이 반복해서 온다. 반복은 두 번째로 치지 않는다.
             guard !event.isARepeat else { return true }
-            let now = Date()
-            if let last = lastEnterAt, now.timeIntervalSince(last) <= Self.enterDoubleInterval {
-                stop()
-            } else {
-                lastEnterAt = now
-            }
+            registerPress(.enter)
             return true
 
         case (.keyDown, escape):
-            // 누르고 있으면 keyDown 이 반복해서 온다. 첫 번째만 시작으로 친다.
-            guard !event.isARepeat, escapeStartedAt == nil else { return true }
-            beginEscapeHold()
-            return true
-
-        case (.keyUp, escape):
-            resetEscape()
+            guard !event.isARepeat else { return true }
+            registerPress(.escape)
             return true
 
         default:
@@ -298,31 +287,16 @@ final class ScreenCoverManager: ObservableObject {
         }
     }
 
-    private func beginEscapeHold() {
-        escapeStartedAt = Date()
-        escapeProgress = 0
-        let timer = Timer(timeInterval: 1.0 / 30, repeats: true) { [weak self] _ in
-            self?.tickEscape()
-        }
-        RunLoop.main.add(timer, forMode: .common)
-        escapeTicker = timer
-    }
-
-    private func tickEscape() {
-        guard let startedAt = escapeStartedAt else { return }
-        let elapsed = Date().timeIntervalSince(startedAt)
-        escapeProgress = min(1, elapsed / Self.escapeHoldSeconds)
-        if escapeProgress >= 1 {
+    /// 같은 키를 간격 안에 두 번 누르면 해제한다. 키마다 따로 센다.
+    private func registerPress(_ key: DismissKey) {
+        let now = Date()
+        if let last = lastPressAt[key], now.timeIntervalSince(last) <= Self.doublePressInterval {
             stop()
+        } else {
+            lastPressAt[key] = now
         }
     }
 
-    private func resetEscape() {
-        escapeTicker?.invalidate()
-        escapeTicker = nil
-        escapeStartedAt = nil
-        escapeProgress = 0
-    }
 
     // MARK: - 디스플레이 슬립 차단
 

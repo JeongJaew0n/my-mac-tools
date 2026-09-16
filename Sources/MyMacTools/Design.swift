@@ -54,8 +54,6 @@ enum Design {
         static let panelPadding: CGFloat = 16
         /// 조작 판 모서리.
         static let panelCornerRadius: CGFloat = 12
-        /// `Esc` 를 누르고 있는 동안의 진행 막대 너비.
-        static let escapeBarWidth: CGFloat = 200
     }
 
     /// 크기.

@@ -74,7 +74,7 @@
 "cover.fillMode.fill" = "全体に広げる";
 "cover.fillMode.fit" = "全体を表示";
 "cover.dismiss" = "解除";
-"cover.hint" = "解除 — ボタンをクリック · Enter を 2 回 · Esc を 3 秒長押し";
+"cover.hint" = "解除 — ボタンをクリック · Enter を 2 回 · Esc を 2 回";
 "cover.notALock" = "これはロックではありません。少し席を外すときの目隠しなので、誰でも解除できます。";
 "cover.imageError" = "写真を読み込めません: %@";
 "cover.labelShortcut" = "ショートカット";

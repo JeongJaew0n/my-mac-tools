@@ -74,7 +74,7 @@
 "cover.fillMode.fill" = "꽉 채우기";
 "cover.fillMode.fit" = "맞추기";
 "cover.dismiss" = "해제";
-"cover.hint" = "해제 — 버튼 클릭 · Enter 두 번 · Esc 3초 길게";
+"cover.hint" = "해제 — 버튼 클릭 · Enter 두 번 · Esc 두 번";
 "cover.notALock" = "잠금이 아닙니다. 잠깐 자리를 비울 때 쓰는 가림막이라 누구나 해제할 수 있습니다.";
 "cover.imageError" = "사진을 읽을 수 없습니다: %@";
 "cover.labelShortcut" = "단축키";

@@ -10,7 +10,6 @@ struct CoverView: View {
     let dismissTitle: String
     let hint: String
     let onDismiss: () -> Void
-    @ObservedObject var manager: ScreenCoverManager
 
     var body: some View {
         ZStack {
@@ -37,12 +36,6 @@ struct CoverView: View {
     /// 사진이 무엇이든 읽히도록 반투명 판 위에 올린다.
     private var controls: some View {
         VStack(spacing: Design.Cover.controlsSpacing) {
-            if manager.escapeProgress > 0 {
-                ProgressView(value: manager.escapeProgress)
-                    .progressViewStyle(.linear)
-                    .frame(width: Design.Cover.escapeBarWidth)
-            }
-
             Text(hint)
                 .font(.callout)
                 .foregroundStyle(.secondary)
