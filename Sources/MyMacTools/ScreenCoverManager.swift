@@ -45,6 +45,7 @@ final class ScreenCoverManager: ObservableObject {
     static let escapeHoldSeconds: TimeInterval = 3
 
     private static let imagePathKey = "coverImagePath"
+    private static let shortcutKey = "coverShortcut"
     private static let fillModeKey = "coverFillMode"
 
     @Published private(set) var isCovering = false
@@ -52,6 +53,8 @@ final class ScreenCoverManager: ObservableObject {
     @Published private(set) var lastError: String?
     /// `Esc` 를 누르고 있는 진행도(0...1). 진행이 안 보이면 반응 없는 줄 알고 손을 뗀다.
     @Published private(set) var escapeProgress: Double = 0
+    /// 화면을 덮는 전역 단축키. 지정하지 않으면 `nil`.
+    @Published private(set) var shortcut: Shortcut?
 
     @Published var fillMode: FillMode {
         didSet {
@@ -76,6 +79,42 @@ final class ScreenCoverManager: ObservableObject {
         imagePath = defaults.string(forKey: Self.imagePathKey)
         fillMode = defaults.string(forKey: Self.fillModeKey)
             .flatMap(FillMode.init(rawValue:)) ?? .fill
+        shortcut = defaults.data(forKey: Self.shortcutKey)
+            .flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
+        applyShortcut()
+    }
+
+    // MARK: - 단축키
+
+    /// `nil` 을 주면 지운다.
+    func setShortcut(_ value: Shortcut?) {
+        shortcut = value
+        let defaults = UserDefaults.standard
+        if let value, let data = try? JSONEncoder().encode(value) {
+            defaults.set(data, forKey: Self.shortcutKey)
+        } else {
+            defaults.removeObject(forKey: Self.shortcutKey)
+        }
+        applyShortcut()
+    }
+
+    /// 단축키는 **덮기만** 한다. 해제는 화면에 떠 있는 세 가지로 한다.
+    /// 덮고 나서 같은 키를 눌러 풀리게 하면, 커버가 키를 삼키는 동작과 얽혀
+    /// 조합에 따라 되기도 안 되기도 하는 동작이 된다.
+    private func applyShortcut() {
+        guard let shortcut else {
+            HotKeyCenter.shared.unregister()
+            return
+        }
+        HotKeyCenter.shared.register(shortcut) { [weak self] in
+            guard let self, !self.isCovering else { return }
+            self.start()
+            // 사진이 없거나 못 읽으면 덮이지 않는다. 그때는 창을 앞으로 내보내
+            // 사용자가 이유를 볼 수 있게 한다. 아무 일도 안 일어나면 고장으로 보인다.
+            if !self.isCovering {
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        }
     }
 
     /// 커버 화면의 문구를 위해 현재 언어를 넘겨받는다.

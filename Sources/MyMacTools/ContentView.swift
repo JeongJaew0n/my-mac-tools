@@ -405,6 +405,22 @@ struct ContentView: View {
                     .fixedSize()
                 }
 
+                HStack(spacing: Design.Spacing.inRow) {
+                    Text(l10n(.coverLabelShortcut))
+                    Spacer(minLength: 4)
+                    ShortcutRecorder(
+                        shortcut: cover.shortcut,
+                        placeholder: l10n(.coverShortcutNone),
+                        recordingLabel: l10n(.coverShortcutRecording),
+                        onChange: cover.setShortcut)
+                }
+
+                Text(l10n(.coverShortcutHint))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Text(l10n(.coverNotALock))
                     .font(.caption)
                     .foregroundStyle(.secondary)

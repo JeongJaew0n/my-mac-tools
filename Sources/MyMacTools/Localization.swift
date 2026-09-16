@@ -99,6 +99,10 @@ final class L10n: ObservableObject {
         case coverHint = "cover.hint"
         case coverNotALock = "cover.notALock"
         case coverImageError = "cover.imageError"
+        case coverLabelShortcut = "cover.labelShortcut"
+        case coverShortcutNone = "cover.shortcutNone"
+        case coverShortcutRecording = "cover.shortcutRecording"
+        case coverShortcutHint = "cover.shortcutHint"
 
         case languageSystem = "language.system"
     }
