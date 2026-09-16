@@ -111,7 +111,7 @@ sudo bash scripts/install-sudoers.sh --uninstall  # 제거
 원복은 앱에서 중지하면 되고, 앱 없이 끄려면 `sudo pmset -a disablesleep 0` 입니다.
 이 값은 **재부팅해도 남습니다.**
 
-이 기능을 만지다 물린 것들은 [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) 에 있습니다.
+이 기능을 만지다 물린 것들은 [`docs/troubleshootings/`](docs/troubleshootings/) 에 있습니다.
 UI 규칙은 [`docs/DESIGN.md`](docs/DESIGN.md) 에 정리돼 있습니다.
 
 ### 언어
@@ -218,4 +218,3 @@ cp -r .build/MyMacTools.app /Applications/
 - `docs/glossary/` — 도메인 용어
 - `docs/troubleshootings/` — 오류와 해결 기록 (`reusable/` · `project-specific/`)
 - `docs/DESIGN.md` — 디자인 시스템
-- `docs/TROUBLESHOOTING.md` — 잠자기·덮개 관련 기존 기록

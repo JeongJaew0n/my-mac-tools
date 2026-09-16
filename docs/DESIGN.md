@@ -19,7 +19,7 @@ MyMacTools UI 에서 **실제로 쓰이고 있는 규칙을 뽑아낸 문서**�
 - 어긋날 수 있는 최대 시간은 1초다. 티커가 매 초 실제 값을 다시 읽는다.
 
 이 원칙을 어겨서 실제로 버그가 났다 — 상태는 "꺼짐" 인데 카운트다운만 계속 돌았다.
-경위는 [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) 첫 항목에 있다.
+경위는 [`troubleshootings/project-specific/status-off-but-countdown-keeps-running.md`](troubleshootings/project-specific/status-off-but-countdown-keeps-running.md) 에 있다.
 
 ### 돌고 있는 것은 어느 화면에서도 보인다
 

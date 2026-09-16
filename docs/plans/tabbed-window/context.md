@@ -38,5 +38,6 @@
   언어 `CommandMenu`, 종료 가로채기 `AppDelegate`.
 - `Sources/MyMacTools/Localization.swift` — `UserDefaults` 저장 선례(`appLanguage`)와
   `L10n.Key` 추가 방식.
-- `docs/TROUBLESHOOTING.md` — "화면에 보이는 모든 값은 커널에서 파생돼야 한다" 원칙.
+- `docs/troubleshootings/project-specific/status-off-but-countdown-keeps-running.md`
+  — "화면에 보이는 모든 값은 커널에서 파생돼야 한다" 원칙.
   탭 라벨의 상태 점도 매니저의 `isRunning` 을 그대로 따라가야 하며 별도로 기억하지 않는다.
