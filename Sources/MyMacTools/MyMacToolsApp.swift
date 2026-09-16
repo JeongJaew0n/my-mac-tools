@@ -54,14 +54,17 @@ struct MyMacToolsApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var manager = BlackWorkManager()
     @StateObject private var lid = LidWorkManager()
+    @StateObject private var cover = ScreenCoverManager()
     @StateObject private var l10n = L10n()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(manager: manager, lid: lid, l10n: l10n)
+            ContentView(manager: manager, lid: lid, cover: cover, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
+                    // 커버 화면의 문구도 선택한 언어를 따라야 한다.
+                    cover.use(l10n)
                 }
                 .onDisappear {
                     // 창을 닫으면 화면 끄기 세션만 정리한다. 덮개 기능은 시스템 설정이라

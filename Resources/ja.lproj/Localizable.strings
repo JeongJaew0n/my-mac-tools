@@ -62,3 +62,18 @@
 "screenMode.keepOff" = "オフのまま維持";
 "screenMode.keepOn" = "オンのまま維持";
 "status.workingPlain" = "スリープ防止中";
+
+/* 画面カバー */
+"tab.cover" = "画面カバー";
+"cover.statusOn" = "カバー中";
+"cover.statusOff" = "待機中";
+"cover.labelImage" = "写真";
+"cover.chooseImage" = "写真を選択…";
+"cover.noImage" = "写真が未選択";
+"cover.labelFillMode" = "表示方法";
+"cover.fillMode.fill" = "全体に広げる";
+"cover.fillMode.fit" = "全体を表示";
+"cover.dismiss" = "解除";
+"cover.hint" = "解除 — ボタンをクリック · Enter を 2 回 · Esc を 3 秒長押し";
+"cover.notALock" = "これはロックではありません。少し席を外すときの目隠しなので、誰でも解除できます。";
+"cover.imageError" = "写真を読み込めません: %@";

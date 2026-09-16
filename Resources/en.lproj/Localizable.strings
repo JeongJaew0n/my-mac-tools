@@ -62,3 +62,18 @@
 "screenMode.keepOff" = "Keep it off";
 "screenMode.keepOn" = "Keep it on";
 "status.workingPlain" = "Preventing sleep";
+
+/* Screen cover */
+"tab.cover" = "Cover";
+"cover.statusOn" = "Covering";
+"cover.statusOff" = "Idle";
+"cover.labelImage" = "Photo";
+"cover.chooseImage" = "Choose Photo…";
+"cover.noImage" = "No photo selected";
+"cover.labelFillMode" = "Scaling";
+"cover.fillMode.fill" = "Fill";
+"cover.fillMode.fit" = "Fit";
+"cover.dismiss" = "Dismiss";
+"cover.hint" = "To dismiss — click the button, press Enter twice, or hold Esc for 3 seconds";
+"cover.notALock" = "This is not a lock. It is a curtain for stepping away briefly, and anyone can dismiss it.";
+"cover.imageError" = "Could not read the photo: %@";

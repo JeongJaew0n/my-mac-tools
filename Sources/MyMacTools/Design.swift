@@ -44,6 +44,20 @@ enum Design {
         static let tabItemVertical: CGFloat = 6
     }
 
+    /// 화면을 덮는 커버. 전체 화면이라 창 안의 수치와 자릿수가 다르다.
+    enum Cover {
+        /// 조작 판과 화면 가장자리 사이.
+        static let controlsPadding: CGFloat = 40
+        /// 조작 판 안의 줄 사이.
+        static let controlsSpacing: CGFloat = 12
+        /// 조작 판 둘레.
+        static let panelPadding: CGFloat = 16
+        /// 조작 판 모서리.
+        static let panelCornerRadius: CGFloat = 12
+        /// `Esc` 를 누르고 있는 동안의 진행 막대 너비.
+        static let escapeBarWidth: CGFloat = 200
+    }
+
     /// 크기.
     enum Size {
         /// 창 폭. 고정이다.

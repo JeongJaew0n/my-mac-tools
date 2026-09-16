@@ -34,6 +34,7 @@ final class L10n: ObservableObject {
         // 상단 탭
         case tabScreenOff = "tab.screenOff"
         case tabLid = "tab.lid"
+        case tabCover = "tab.cover"
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
@@ -84,6 +85,20 @@ final class L10n: ObservableObject {
         case progressNoLimit = "progress.noLimit"
         case progressReblank = "progress.reblank"
         case statusKeepOffFailed = "status.keepOffFailed"
+
+        // 화면 가리기
+        case coverStatusOn = "cover.statusOn"
+        case coverStatusOff = "cover.statusOff"
+        case coverLabelImage = "cover.labelImage"
+        case coverChooseImage = "cover.chooseImage"
+        case coverNoImage = "cover.noImage"
+        case coverLabelFillMode = "cover.labelFillMode"
+        case coverFillModeFill = "cover.fillMode.fill"
+        case coverFillModeFit = "cover.fillMode.fit"
+        case coverDismiss = "cover.dismiss"
+        case coverHint = "cover.hint"
+        case coverNotALock = "cover.notALock"
+        case coverImageError = "cover.imageError"
 
         case languageSystem = "language.system"
     }

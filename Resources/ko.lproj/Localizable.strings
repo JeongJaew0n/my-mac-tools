@@ -62,3 +62,18 @@
 "screenMode.keepOff" = "끈 상태로 유지";
 "screenMode.keepOn" = "계속 켜두기";
 "status.workingPlain" = "잠자기 방지 중";
+
+/* 화면 가리기 */
+"tab.cover" = "화면 가리기";
+"cover.statusOn" = "가리는 중";
+"cover.statusOff" = "대기 중";
+"cover.labelImage" = "사진";
+"cover.chooseImage" = "사진 선택…";
+"cover.noImage" = "선택된 사진 없음";
+"cover.labelFillMode" = "채우기";
+"cover.fillMode.fill" = "꽉 채우기";
+"cover.fillMode.fit" = "맞추기";
+"cover.dismiss" = "해제";
+"cover.hint" = "해제 — 버튼 클릭 · Enter 두 번 · Esc 3초 길게";
+"cover.notALock" = "잠금이 아닙니다. 잠깐 자리를 비울 때 쓰는 가림막이라 누구나 해제할 수 있습니다.";
+"cover.imageError" = "사진을 읽을 수 없습니다: %@";

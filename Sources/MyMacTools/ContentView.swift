@@ -1,9 +1,12 @@
 import SwiftUI
+import UniformTypeIdentifiers
+import AppKit
 
 /// 상단 탭. 한 번에 한 기능만 보여준다.
 enum Tab: String, CaseIterable, Identifiable {
     case screenOff
     case lid
+    case cover
 
     var id: String { rawValue }
 
@@ -11,6 +14,7 @@ enum Tab: String, CaseIterable, Identifiable {
         switch self {
         case .screenOff: return .tabScreenOff
         case .lid: return .tabLid
+        case .cover: return .tabCover
         }
     }
 }
@@ -18,6 +22,7 @@ enum Tab: String, CaseIterable, Identifiable {
 struct ContentView: View {
     @ObservedObject var manager: BlackWorkManager
     @ObservedObject var lid: LidWorkManager
+    @ObservedObject var cover: ScreenCoverManager
     @ObservedObject var l10n: L10n
 
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
@@ -38,6 +43,7 @@ struct ContentView: View {
                     switch selection {
                     case .screenOff: screenOffTab
                     case .lid: lidTab
+                    case .cover: coverTab
                     }
                 }
                 .padding(Design.Padding.content)
@@ -95,6 +101,7 @@ struct ContentView: View {
         switch tab {
         case .screenOff: return manager.isRunning
         case .lid: return lid.isRunning
+        case .cover: return cover.isCovering
         }
     }
 
@@ -356,6 +363,77 @@ struct ContentView: View {
         }
         .font(.caption)
         .foregroundStyle(.secondary)
+    }
+
+    // MARK: - 화면 가리기
+
+    /// 잠금이 아니라는 것을 화면에서도 읽히게 둔다. 인증이 없는 것이 결함이 아니라
+    /// 용도라는 점이 안 보이면, 자리를 비우는 보안 수단으로 잘못 쓰게 된다.
+    private var coverTab: some View {
+        VStack(spacing: Design.Spacing.sleepBlock) {
+            HStack {
+                Circle()
+                    .fill(cover.isCovering ? .green : .gray)
+                    .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                Text(l10n(cover.isCovering ? .coverStatusOn : .coverStatusOff))
+                    .font(.body)
+            }
+
+            VStack(spacing: Design.Spacing.settingsRow) {
+                HStack(spacing: Design.Spacing.inRow) {
+                    Text(l10n(.coverLabelImage))
+                    Spacer(minLength: 4)
+                    Button(l10n(.coverChooseImage), action: chooseImage)
+                }
+
+                // 고른 사진이 무엇인지 보이게 둔다. 전체 경로는 창 폭을 넘기므로 파일명만.
+                Text(cover.imagePath.map { ($0 as NSString).lastPathComponent } ?? l10n(.coverNoImage))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+
+                HStack(spacing: Design.Spacing.inRow) {
+                    Text(l10n(.coverLabelFillMode))
+                    Spacer(minLength: 4)
+                    Picker("", selection: $cover.fillMode) {
+                        ForEach(ScreenCoverManager.FillMode.allCases) { mode in
+                            Text(l10n(mode.titleKey)).tag(mode)
+                        }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                }
+
+                Text(l10n(.coverNotALock))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let path = cover.lastError {
+                    Text(l10n(.coverImageError, (path as NSString).lastPathComponent))
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            // 사진이 없으면 덮을 것이 없다.
+            Button(l10n(cover.isCovering ? .buttonStop : .buttonStart)) {
+                cover.toggle()
+            }
+            .disabled(cover.imagePath == nil)
+        }
+    }
+
+    private func chooseImage() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        cover.setImage(path: url.path)
     }
 
     /// 남은 시간을 H:MM:SS 로 표시한다.
