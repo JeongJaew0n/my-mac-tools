@@ -49,7 +49,7 @@ struct Shortcut: Equatable, Codable {
     }
 }
 
-/// 전역 단축키를 하나만 등록해 쓴다.
+/// 전역 단축키를 등록한다. 기능마다 하나씩, 여러 개를 동시에 들 수 있다.
 ///
 /// Carbon 의 `RegisterEventHotKey` 를 쓴다. `NSEvent` 의 전역 모니터와 달리
 /// **손쉬운 사용 권한이 필요 없고**(권한 없는 상태에서 `noErr` 로 등록되는 것을 확인했다),
@@ -57,49 +57,55 @@ struct Shortcut: Equatable, Codable {
 final class HotKeyCenter {
     static let shared = HotKeyCenter()
 
+    /// 단축키를 쓰는 기능. 등록을 구분하는 id 이기도 하다.
+    enum Slot: UInt32, CaseIterable {
+        case screenCover = 1
+        case pathCopy = 2
+    }
+
     private static let signature: OSType = 0x4D4D5448  // 'MMTH'
 
-    private var hotKey: EventHotKeyRef?
+    private struct Entry {
+        let ref: EventHotKeyRef
+        let action: () -> Void
+    }
+
+    private var entries: [UInt32: Entry] = [:]
     private var handler: EventHandlerRef?
-    private var action: (() -> Void)?
 
     private init() {}
 
     /// 등록에 성공하면 `true`.
     ///
-    /// 같은 조합을 이미 **시스템이** 쓰고 있어도 `noErr` 가 돌아온다. 예컨대 `⌘Space` 를
+    /// **이미 다른 기능이 같은 조합을 쓰고 있으면 실패한다.** 실패를 삼키면 사용자는
+    /// 지정한 키가 왜 안 먹는지 알 수 없으므로 호출한 쪽에서 알려야 한다.
+    ///
+    /// 반대로 같은 조합을 **시스템이** 쓰고 있으면 `noErr` 가 돌아온다. 예컨대 `⌘Space` 를
     /// 등록해도 성공으로 보고되지만 실제로는 Spotlight 이 먼저 먹는다. 그래서 등록 성공이
     /// 곧 "이 키가 눌리면 우리가 받는다" 를 뜻하지는 않는다. 사용자에게 알려줄 방법이 없어
     /// 그대로 둔다.
     @discardableResult
-    func register(_ shortcut: Shortcut, action: @escaping () -> Void) -> Bool {
-        unregister()
+    func register(_ shortcut: Shortcut, slot: Slot, action: @escaping () -> Void) -> Bool {
+        unregister(slot)
         installHandlerIfNeeded()
-        self.action = action
 
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(
             UInt32(shortcut.keyCode),
             shortcut.carbonModifiers,
-            EventHotKeyID(signature: Self.signature, id: 1),
+            EventHotKeyID(signature: Self.signature, id: slot.rawValue),
             GetEventDispatcherTarget(),
             0,
             &ref)
 
-        guard status == noErr, let ref else {
-            self.action = nil
-            return false
-        }
-        hotKey = ref
+        guard status == noErr, let ref else { return false }
+        entries[slot.rawValue] = Entry(ref: ref, action: action)
         return true
     }
 
-    func unregister() {
-        if let hotKey {
-            UnregisterEventHotKey(hotKey)
-        }
-        hotKey = nil
-        action = nil
+    func unregister(_ slot: Slot) {
+        guard let entry = entries.removeValue(forKey: slot.rawValue) else { return }
+        UnregisterEventHotKey(entry.ref)
     }
 
     private func installHandlerIfNeeded() {
@@ -109,10 +115,17 @@ final class HotKeyCenter {
             eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(
             GetEventDispatcherTarget(),
-            { _, _, userData in
-                guard let userData else { return noErr }
+            { _, event, userData in
+                guard let userData, let event else { return noErr }
+                // 어느 기능의 단축키가 눌렸는지는 이벤트에 실려 온다.
+                var id = EventHotKeyID()
+                let status = GetEventParameter(
+                    event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+                    nil, MemoryLayout<EventHotKeyID>.size, nil, &id)
+                guard status == noErr else { return noErr }
+
                 let center = Unmanaged<HotKeyCenter>.fromOpaque(userData).takeUnretainedValue()
-                DispatchQueue.main.async { center.action?() }
+                DispatchQueue.main.async { center.entries[id.id]?.action() }
                 return noErr
             },
             1,

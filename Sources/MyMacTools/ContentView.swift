@@ -7,6 +7,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case screenOff
     case lid
     case cover
+    case pathCopy
 
     var id: String { rawValue }
 
@@ -15,6 +16,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .screenOff: return .tabScreenOff
         case .lid: return .tabLid
         case .cover: return .tabCover
+        case .pathCopy: return .tabPathCopy
         }
     }
 }
@@ -23,6 +25,7 @@ struct ContentView: View {
     @ObservedObject var manager: BlackWorkManager
     @ObservedObject var lid: LidWorkManager
     @ObservedObject var cover: ScreenCoverManager
+    @ObservedObject var pathCopy: PathCopyManager
     @ObservedObject var l10n: L10n
 
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
@@ -44,6 +47,7 @@ struct ContentView: View {
                     case .screenOff: screenOffTab
                     case .lid: lidTab
                     case .cover: coverTab
+                    case .pathCopy: pathCopyTab
                     }
                 }
                 .padding(Design.Padding.content)
@@ -102,6 +106,7 @@ struct ContentView: View {
         case .screenOff: return manager.isRunning
         case .lid: return lid.isRunning
         case .cover: return cover.isCovering
+        case .pathCopy: return false
         }
     }
 
@@ -406,13 +411,20 @@ struct ContentView: View {
                 }
 
                 HStack(spacing: Design.Spacing.inRow) {
-                    Text(l10n(.coverLabelShortcut))
+                    Text(l10n(.labelShortcut))
                     Spacer(minLength: 4)
                     ShortcutRecorder(
                         shortcut: cover.shortcut,
-                        placeholder: l10n(.coverShortcutNone),
-                        recordingLabel: l10n(.coverShortcutRecording),
+                        placeholder: l10n(.shortcutNone),
+                        recordingLabel: l10n(.shortcutRecording),
                         onChange: cover.setShortcut)
+                }
+
+                if !cover.shortcutRegistered {
+                    Text(l10n(.shortcutConflict))
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Text(l10n(.coverShortcutHint))
@@ -440,6 +452,68 @@ struct ContentView: View {
                 cover.toggle()
             }
             .disabled(cover.imagePath == nil)
+        }
+    }
+
+    // MARK: - Finder 경로 복사
+
+    private var pathCopyTab: some View {
+        VStack(spacing: Design.Spacing.sleepBlock) {
+            Text(l10n(.pathCopyDescription))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: Design.Spacing.inRow) {
+                Text(l10n(.labelShortcut))
+                Spacer(minLength: 4)
+                ShortcutRecorder(
+                    shortcut: pathCopy.shortcut,
+                    placeholder: l10n(.shortcutNone),
+                    recordingLabel: l10n(.shortcutRecording),
+                    onChange: pathCopy.setShortcut)
+            }
+
+            if !pathCopy.shortcutRegistered {
+                Text(l10n(.shortcutConflict))
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // 단축키를 안 지정해도 쓸 수 있어야 하고, 권한을 처음 받는 자리이기도 하다.
+            Button(l10n(.pathCopyButton)) {
+                pathCopy.copyNow()
+            }
+
+            // 단축키는 앱이 안 보일 때 눌린다. 창을 열었을 때 직전에 무슨 일이 있었는지
+            // 알 수 있도록 마지막 결과를 남겨둔다.
+            if let outcome = pathCopy.lastOutcome {
+                Text(text(for: outcome))
+                    .font(.caption)
+                    .foregroundStyle(color(for: outcome))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func text(for outcome: PathCopyManager.Outcome) -> String {
+        switch outcome {
+        case .copied(let count):   return l10n(.pathCopyCopied, count)
+        case .nothingSelected:     return l10n(.pathCopyNothingSelected)
+        case .notAuthorized:       return l10n(.pathCopyNotAuthorized)
+        case .failed(let message): return l10n(.pathCopyFailed, message)
+        }
+    }
+
+    private func color(for outcome: PathCopyManager.Outcome) -> Color {
+        switch outcome {
+        case .copied:          return .secondary
+        case .nothingSelected: return .secondary
+        case .notAuthorized,
+             .failed:          return .red
         }
     }
 

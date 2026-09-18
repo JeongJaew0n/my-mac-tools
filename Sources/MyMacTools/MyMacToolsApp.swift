@@ -55,11 +55,12 @@ struct MyMacToolsApp: App {
     @StateObject private var manager = BlackWorkManager()
     @StateObject private var lid = LidWorkManager()
     @StateObject private var cover = ScreenCoverManager()
+    @StateObject private var pathCopy = PathCopyManager()
     @StateObject private var l10n = L10n()
 
     var body: some Scene {
         WindowGroup {
-            ContentView(manager: manager, lid: lid, cover: cover, l10n: l10n)
+            ContentView(manager: manager, lid: lid, cover: cover, pathCopy: pathCopy, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n

@@ -77,7 +77,17 @@
 "cover.hint" = "解除 — ボタンをクリック · Enter を 2 回 · Esc を 2 回";
 "cover.notALock" = "これはロックではありません。少し席を外すときの目隠しなので、誰でも解除できます。";
 "cover.imageError" = "写真を読み込めません: %@";
-"cover.labelShortcut" = "ショートカット";
-"cover.shortcutNone" = "なし";
-"cover.shortcutRecording" = "キーを押してください…";
+"label.shortcut" = "ショートカット";
+"shortcut.none" = "なし";
+"shortcut.recording" = "キーを押してください…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ のいずれかを含める。カバーのみ。Delete で消去。";
+
+/* Finder パスコピー */
+"shortcut.conflict" = "他の機能が同じ組み合わせを使っているため登録されませんでした。";
+"tab.pathCopy" = "パスをコピー";
+"pathCopy.description" = "Finder で選択した項目の絶対パスをクリップボードにコピーします。複数選択すると改行区切りですべてコピーします。";
+"pathCopy.button" = "今すぐコピー";
+"pathCopy.copied" = "%d 件のパスをコピーしました";
+"pathCopy.nothingSelected" = "Finder で選択されている項目がありません";
+"pathCopy.notAuthorized" = "Finder を制御する権限がありません。システム設定 → プライバシーとセキュリティ → オートメーション で MyMacTools の Finder をオンにしてください。";
+"pathCopy.failed" = "コピーできませんでした: %@";

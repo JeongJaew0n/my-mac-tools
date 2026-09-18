@@ -77,7 +77,17 @@
 "cover.hint" = "To dismiss — click the button, press Enter twice, or press Esc twice";
 "cover.notALock" = "This is not a lock. It is a curtain for stepping away briefly, and anyone can dismiss it.";
 "cover.imageError" = "Could not read the photo: %@";
-"cover.labelShortcut" = "Shortcut";
-"cover.shortcutNone" = "None";
-"cover.shortcutRecording" = "Press a key…";
+"label.shortcut" = "Shortcut";
+"shortcut.none" = "None";
+"shortcut.recording" = "Press a key…";
 "cover.shortcutHint" = "Must include ⌘, ⌥ or ⌃. Covers only. Delete clears it.";
+
+/* Finder path copy */
+"shortcut.conflict" = "Not registered — another feature already uses this combination.";
+"tab.pathCopy" = "Copy Path";
+"pathCopy.description" = "Copies the absolute path of the items selected in Finder. Select several and all of them are copied, one per line.";
+"pathCopy.button" = "Copy Now";
+"pathCopy.copied" = "Copied %d path(s)";
+"pathCopy.nothingSelected" = "Nothing is selected in Finder";
+"pathCopy.notAuthorized" = "No permission to control Finder. Turn on Finder for MyMacTools in System Settings → Privacy & Security → Automation.";
+"pathCopy.failed" = "Could not copy: %@";
