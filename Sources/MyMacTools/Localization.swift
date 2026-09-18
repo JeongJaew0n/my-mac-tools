@@ -99,22 +99,10 @@ final class L10n: ObservableObject {
         case coverHint = "cover.hint"
         case coverNotALock = "cover.notALock"
         case coverImageError = "cover.imageError"
+        case coverLabelShortcut = "cover.labelShortcut"
+        case coverShortcutNone = "cover.shortcutNone"
+        case coverShortcutRecording = "cover.shortcutRecording"
         case coverShortcutHint = "cover.shortcutHint"
-
-        // 단축키 — 여러 기능이 함께 쓴다
-        case labelShortcut = "label.shortcut"
-        case shortcutNone = "shortcut.none"
-        case shortcutRecording = "shortcut.recording"
-        case shortcutConflict = "shortcut.conflict"
-
-        // Finder 경로 복사
-        case tabPathCopy = "tab.pathCopy"
-        case pathCopyDescription = "pathCopy.description"
-        case pathCopyButton = "pathCopy.button"
-        case pathCopyCopied = "pathCopy.copied"
-        case pathCopyNothingSelected = "pathCopy.nothingSelected"
-        case pathCopyNotAuthorized = "pathCopy.notAuthorized"
-        case pathCopyFailed = "pathCopy.failed"
 
         case languageSystem = "language.system"
     }
