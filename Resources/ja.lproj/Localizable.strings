@@ -18,7 +18,7 @@
 "button.stop" = "停止";
 
 /* Captions */
-"caption.unlimited" = "0時間00分 = Stop を押すまで継続";
+"caption.unlimited" = "0時間00分 = 停止を押すまで継続";
 "caption.willSleep" = "終了時にスリープします";
 "caption.normalSleep" = "終了時に通常の省エネ動作に戻ります";
 

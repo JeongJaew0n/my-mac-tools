@@ -18,7 +18,7 @@
 "button.stop" = "정지";
 
 /* Captions */
-"caption.unlimited" = "0시간 00분 = Stop 을 누를 때까지 계속";
+"caption.unlimited" = "0시간 00분 = 정지를 누를 때까지 계속";
 "caption.willSleep" = "시간이 끝나면 잠자기로 전환됩니다";
 "caption.normalSleep" = "시간이 끝나면 평소 절전 동작으로 돌아갑니다";
 

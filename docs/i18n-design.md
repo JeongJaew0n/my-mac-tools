@@ -162,7 +162,7 @@ final class L10n: ObservableObject {
 | `unit.minute` | m | 분 | 分 |
 | `unit.second` | sec | 초 | 秒 |
 | `toggle.sleepWhenDone` | Sleep when time is up | 끝나면 Mac잠자기 모드 | 終了時にスリープ |
-| `caption.unlimited` | 0h 00m = keep going until you press Stop | 0시간 00분 = Stop 을 누를 때까지 계속 | 0時間00分 = Stop を押すまで継続 |
+| `caption.unlimited` | 0h 00m = keep going until you press Stop | 0시간 00분 = 정지를 누를 때까지 계속 | 0時間00分 = 停止を押すまで継続 |
 | `caption.willSleep` | The Mac sleeps when the time is up | 시간이 끝나면 잠자기로 전환됩니다 | 終了時にスリープします |
 | `caption.normalSleep` | Sleep behaviour returns to normal when the time is up | 시간이 끝나면 평소 절전 동작으로 돌아갑니다 | 終了時に通常の省エネ動作に戻ります |
 | `button.start` | Start | 시작 | 開始 |
