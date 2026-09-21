@@ -65,6 +65,22 @@ struct MyMacToolsApp: App {
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
     static let mainWindowID = "main"
 
+    /// 툴팁이 뜨기까지의 지연(밀리초).
+    ///
+    /// AppKit 기본값은 공개돼 있지 않아 코드로 읽을 수 없다. 문서에 적힌 1초의 절반으로
+    /// 잡았다. 카페인 목록의 옵션 칩처럼 **여러 개를 훑어보는** 자리에서는 기본 지연이
+    /// 길어, 칩 하나하나 확인하려면 매번 기다려야 한다.
+    private static let toolTipDelayMilliseconds = 500
+
+    init() {
+        // 등록 도메인은 우선순위가 가장 낮다. 사용자가
+        // `defaults write com.jjw.mymactools NSInitialToolTipDelay <값>` 으로 덮어쓰면
+        // 그 값이 이긴다.
+        UserDefaults.standard.register(defaults: [
+            "NSInitialToolTipDelay": Self.toolTipDelayMilliseconds
+        ])
+    }
+
     /// 상태 막대 항목을 한 번만 만든다.
     ///
     /// `openWindow` 는 SwiftUI 환경 값이라 뷰 안에서만 꺼낼 수 있다. 여기서 클로저로
