@@ -21,7 +21,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         }
     }
 
-    private static let dotSize: CGFloat = 6
+    /// 글리프 높이. 메뉴바가 22pt 라 그보다 작아야 위아래가 안 잘린다.
+    /// `SymbolConfiguration` 의 `pointSize` 만으로는 실제 크기가 예측되지 않아
+    /// (16pt 로 잡았더니 22pt 짜리가 나왔다) 결과 이미지 크기를 직접 못 박는다.
+    private static let glyphHeight: CGFloat = 16
+    private static let dotSize: CGFloat = 5
     private static let glyphName = "wrench.and.screwdriver"
 
     private let manager: BlackWorkManager
@@ -60,9 +64,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         statusItem = item
         guard let button = item.button else { return }
 
-        let configuration = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        guard let glyph = NSImage(systemSymbolName: Self.glyphName, accessibilityDescription: nil)?
-            .withSymbolConfiguration(configuration) else { return }
+        guard let glyph = NSImage(systemSymbolName: Self.glyphName, accessibilityDescription: nil) else {
+            return
+        }
+        // 가로세로 비를 지키며 높이를 맞춘다.
+        let ratio = glyph.size.width / glyph.size.height
+        glyph.size = NSSize(width: Self.glyphHeight * ratio, height: Self.glyphHeight)
         // template 이어야 메뉴바가 배경에 맞춰 밝기를 잡아준다.
         glyph.isTemplate = true
         button.image = glyph
