@@ -9,10 +9,11 @@ import AppKit
 // 임계값은 **최종 표시 픽셀 크기에서** 적용한다. 큰 마스크를 만들어 줄이면 가장자리가
 // 전부 반투명 회색이 되고, 메뉴바의 반투명 틴트와 곱해져 글리프가 흐릿하게 뜬다.
 //
-// 원본은 `Resources/MenuBarSource.png` — 앱 아이콘과 달리 **사과가 외곽선이고 공구
-// 둘레의 틈이 넓은** 그림이다. 앱 아이콘(속이 꽉 찬 사과)은 이 크기에서 덩어리가 된다.
+// 원본은 앱 아이콘과 같은 `Resources/AppIcon.png` 를 쓴다. **사과가 외곽선이고 공구
+// 둘레의 틈이 넓어** 20pt 에서도 구분된다. 속이 꽉 찬 그림으로 바꾸면 이 크기에서
+// 덩어리가 되므로, 아이콘을 교체할 때는 반드시 이 스크립트를 돌려 결과를 눈으로 본다.
 //
-//   swift scripts/make-menubar-icon.swift Resources/MenuBarSource.png Resources/MenuBarIcon.png
+//   swift scripts/make-menubar-icon.swift Resources/AppIcon.png Resources/MenuBarIcon.png
 
 let base = 20         // 메뉴바 표시 높이(pt). 메뉴바는 22pt 라 여백이 위아래 1pt 씩 남는다.
 let threshold = 0.60  // 이보다 어두우면 그림으로 본다

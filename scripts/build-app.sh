@@ -41,7 +41,7 @@ if [ -f "${ICON_SRC}" ]; then
 fi
 
 # 메뉴바 아이콘. `scripts/make-menubar-icon.swift` 산출물이다.
-# 원본(Resources/MenuBarSource.png)을 바꾸면 그 스크립트를 다시 돌려 갱신한다.
+# 앱 아이콘과 원본이 같으므로, AppIcon.png 를 바꾸면 그 스크립트도 다시 돌린다.
 for icon in Resources/MenuBarIcon.png Resources/MenuBarIcon@2x.png; do
     [ -f "${icon}" ] || continue
     cp "${icon}" "${RESOURCES}/$(basename "${icon}")"
