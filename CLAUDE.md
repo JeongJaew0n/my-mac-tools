@@ -14,12 +14,14 @@ Sources/MyMacTools/
 ├── LocalhostManager.swift   Tool: 로컬호스트 (libproc 으로 LISTEN 소켓)
 ├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
 ├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
+├── APIServer.swift          에이전트용 유닉스 소켓 서버
+├── APIHandler.swift         API 메서드 처리 (docs/api.md 와 함께 고친다)
 ├── StatusItemController.swift  메뉴바 항목
 ├── Actions.swift            메뉴바와 창이 함께 쓰는 동작
 ├── Localization.swift       L10n.Key 와 언어 전환
 └── Design.swift             디자인 토큰 (Padding/Spacing/Size/Color)
 Resources/                   Info.plist, 아이콘, ko/en/ja lproj
-scripts/                     build-app.sh, install-sudoers.sh
+scripts/                     build-app.sh, install-sudoers.sh, mymactools (API 클라이언트)
 docs/                        계획·용어·트러블슈팅 (아래 docs 규칙 참고)
 ```
 

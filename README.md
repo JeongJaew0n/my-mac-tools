@@ -281,6 +281,25 @@ cp -r .build/MyMacTools.app /Applications/
 > 때문입니다. root 데몬이 잡은 포트는 나오지 않습니다. `lsof` 를 `sudo` 없이 돌렸을 때와
 > 같은 범위입니다.
 
+### 에이전트용 API
+
+Claude Code 같은 에이전트가 셸에서 이 앱의 기능을 쓸 수 있습니다.
+
+```bash
+scripts/mymactools status
+scripts/mymactools ports.list category=system
+scripts/mymactools sleep.start hours=1 screenMode=keepOn
+```
+
+유닉스 도메인 소켓(`~/Library/Application Support/MyMacTools/api.sock`, 권한 `0600`)으로
+줄 단위 JSON 을 주고받습니다. 포트를 열지 않으므로 토큰이 필요 없습니다 — 소켓 파일을
+열 수 있는 것은 이 사용자뿐입니다.
+
+관리자 인증이 필요한 덮개 Tool 과 시스템 구성요소 중지는 **API 로는 하지 않습니다.**
+사람의 확인을 받아야 하는 일인데 호출자에게는 물어볼 화면이 없기 때문입니다.
+
+메서드 표와 예시는 `docs/api.md` 에 있습니다.
+
 ### 언어
 
 메뉴바 → **언어(Language)** 에서 한국어 · English · 日本語 중에 고릅니다.
@@ -296,5 +315,6 @@ cp -r .build/MyMacTools.app /Applications/
 
 - `docs/plans/` — 작업 계획
 - `docs/glossary/` — 도메인 용어
+- `docs/api.md` — 에이전트용 API
 - `docs/troubleshootings/` — 오류와 해결 기록 (`reusable/` · `project-specific/`)
 - `docs/DESIGN.md` — 디자인 시스템

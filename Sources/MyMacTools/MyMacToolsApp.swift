@@ -15,6 +15,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var l10n: L10n?
     /// 상태 막대 항목. 창이 닫혀도 살아 있어야 하므로 델리게이트가 들고 있는다.
     var statusItem: StatusItemController?
+    /// API 소켓 서버. 같은 이유로 여기에 둔다.
+    var api: APIServer?
+
+    /// 종료할 때 소켓 파일을 치운다. 남겨두면 다음 실행이 낡은 파일 위에 bind 하려 한다.
+    func applicationWillTerminate(_ notification: Notification) {
+        api?.stop()
+    }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let lid, let l10n else { return .terminateNow }
@@ -94,6 +101,20 @@ struct MyMacToolsApp: App {
             openWindow: { openWindowAction(id: Self.mainWindowID) })
     }
 
+    /// API 서버를 한 번만 띄운다.
+    ///
+    /// 창이 닫혀도 살아 있어야 하므로 델리게이트가 들고 있는다. 에이전트가 부르는 시점에
+    /// 창이 열려 있을 이유가 없다.
+    @MainActor
+    private func installAPIServer() {
+        guard appDelegate.api == nil else { return }
+        let handler = APIHandler(sleep: manager, lid: lid, cover: cover,
+                                 caffeine: caffeine, localhost: localhost)
+        let server = APIServer(handler: handler)
+        server.start()
+        appDelegate.api = server
+    }
+
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
             ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
@@ -104,6 +125,7 @@ struct MyMacToolsApp: App {
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
                     installStatusItem()
+                    installAPIServer()
                 }
         }
         .windowResizability(.contentSize)

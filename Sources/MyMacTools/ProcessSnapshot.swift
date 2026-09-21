@@ -91,8 +91,11 @@ enum ProcessSnapshot {
                 staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &raw) == errSecSuccess,
               let info = raw as? [String: Any] else { return nil }
 
+        // adhoc 서명은 식별자가 `-` 다. 화면과 API 에 그대로 내보내면 뜻 없는 값이
+        // 이름 자리에 앉는다. 없는 것으로 다룬다.
+        let identifier = info[kSecCodeInfoIdentifier as String] as? String
         return SigningInfo(
-            identifier: info[kSecCodeInfoIdentifier as String] as? String,
+            identifier: identifier == "-" ? nil : identifier,
             team: info[kSecCodeInfoTeamIdentifier as String] as? String,
             // 플랫폼 식별자가 붙어 있으면 Apple 이 시스템 구성요소로 서명한 것이다.
             isPlatformBinary: info[kSecCodeInfoPlatformIdentifier as String] != nil)

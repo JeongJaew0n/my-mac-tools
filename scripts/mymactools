@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""MyMacTools API 클라이언트.
+
+돌고 있는 MyMacTools 에 유닉스 도메인 소켓으로 요청 한 줄을 보내고 응답 한 줄을 받는다.
+프로토콜과 메서드 표는 docs/api.md 에 있다.
+
+    mymactools status
+    mymactools ports.list category=system
+    mymactools sleep.start hours=1 screenMode=keepOn
+    mymactools ports.stop pid=12345
+
+의존성이 없다. macOS 기본 python3 로 돈다.
+"""
+
+import json
+import os
+import socket
+import sys
+
+SOCKET_PATH = os.path.expanduser(
+    "~/Library/Application Support/MyMacTools/api.sock"
+)
+
+USAGE = """사용법: mymactools <메서드> [키=값 ...] [--raw]
+
+읽기   status · sleep.get · lid.get · cover.get · caffeinate.list · ports.list
+쓰기   sleep.start · sleep.stop · cover.start · cover.stop
+       caffeinate.stop pid=N · ports.stop pid=N · ports.open port=N
+
+예시
+  mymactools status
+  mymactools ports.list category=system
+  mymactools ports.list search=8501
+  mymactools sleep.start hours=1 screenMode=keepOn sleepWhenDone=true
+  mymactools ports.stop pid=12345
+
+--raw 를 주면 응답 JSON 을 그대로 낸다.
+메서드 표와 오류 코드는 docs/api.md 를 보라."""
+
+
+def parse_value(raw):
+    """키=값 의 값을 JSON 스칼라로 바꾼다. 서버가 형을 보고 거르므로 여기서 맞춰준다."""
+    if raw in ("true", "false"):
+        return raw == "true"
+    if raw == "null":
+        return None
+    try:
+        return int(raw)
+    except ValueError:
+        pass
+    try:
+        return float(raw)
+    except ValueError:
+        return raw
+
+
+def send(request):
+    if not os.path.exists(SOCKET_PATH):
+        sys.exit(
+            "MyMacTools 가 떠 있지 않습니다 (소켓이 없습니다).\n"
+            "  open -a MyMacTools\n"
+            f"  소켓 자리: {SOCKET_PATH}"
+        )
+
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client.settimeout(10)
+    try:
+        client.connect(SOCKET_PATH)
+    except OSError as error:
+        sys.exit(f"소켓에 붙지 못했습니다: {error}\n앱이 방금 종료되었을 수 있습니다.")
+
+    client.sendall((json.dumps(request) + "\n").encode())
+
+    chunks = []
+    while True:
+        chunk = client.recv(65536)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        if chunk.endswith(b"\n"):
+            break
+    client.close()
+
+    body = b"".join(chunks).decode().strip()
+    if not body:
+        sys.exit("응답이 비었습니다.")
+    return json.loads(body)
+
+
+def main():
+    argv = [a for a in sys.argv[1:] if a != "--raw"]
+    raw = "--raw" in sys.argv
+
+    if not argv or argv[0] in ("-h", "--help", "help"):
+        print(USAGE)
+        return 0
+
+    method = argv[0]
+    params = {}
+    for pair in argv[1:]:
+        if "=" not in pair:
+            sys.exit(f"파라미터는 키=값 모양이어야 합니다: {pair}")
+        key, value = pair.split("=", 1)
+        params[key] = parse_value(value)
+
+    request = {"method": method}
+    if params:
+        request["params"] = params
+
+    response = send(request)
+
+    if raw:
+        print(json.dumps(response, ensure_ascii=False, indent=2, sort_keys=True))
+    elif response.get("ok"):
+        print(json.dumps(response.get("result"), ensure_ascii=False, indent=2, sort_keys=True))
+    else:
+        error = response.get("error", {})
+        # 종료 코드로 갈라낼 수 있게 한다. 에이전트가 stdout 을 파싱하지 않아도 된다.
+        print(f"[{error.get('code', '?')}] {error.get('message', '')}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
