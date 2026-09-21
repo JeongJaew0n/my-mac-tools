@@ -85,3 +85,20 @@
 /* メニューバー */
 "menu.openWindow" = "ウインドウを開く";
 "menu.quit" = "終了";
+
+/* 実行中の caffeinate */
+"caffeine.sectionTitle" = "実行中の caffeinate";
+"caffeine.empty" = "実行中のものはありません";
+"caffeine.stop" = "停止";
+"caffeine.owner.thisApp" = "このアプリ";
+"caffeine.argsUnreadable" = "オプションを読み取れません (権限)";
+"caffeine.stopDenied" = "他のユーザーが起動したものは停止できません";
+"caffeine.stopFailed" = "停止できませんでした: %@";
+"caffeine.utility" = "実行中のコマンド: %@";
+"caffeine.flag.d" = "ディスプレイがスリープしないようにします";
+"caffeine.flag.i" = "システムがアイドルスリープしないようにします";
+"caffeine.flag.m" = "ディスクがアイドルスリープしないようにします";
+"caffeine.flag.s" = "システムがスリープしないようにします。AC電源接続時のみ有効です";
+"caffeine.flag.u" = "ユーザーがアクティブであると宣言します。画面が消えていれば点灯させます";
+"caffeine.flag.t" = "指定した秒数が過ぎると解除されます";
+"caffeine.flag.w" = "そのPIDのプロセスが終了すると解除されます";

@@ -23,7 +23,11 @@ struct ContentView: View {
     @ObservedObject var manager: BlackWorkManager
     @ObservedObject var lid: LidWorkManager
     @ObservedObject var cover: ScreenCoverManager
+    @ObservedObject var caffeine: CaffeinateScanner
     @ObservedObject var l10n: L10n
+
+    /// 중지에 실패한 이유. 성공하면 비운다.
+    @State private var caffeineError: String?
 
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
@@ -59,6 +63,10 @@ struct ContentView: View {
         }
         // 창을 닫았다 다시 열면 앱이 활성화된 뒤에 뷰가 만들어져 위 알림을 놓칠 수 있다.
         .onAppear { lid.refreshFromSystem() }
+        // 카페인 목록은 **창이 보이는 동안만** 훑는다. 앱 생존에 묶으면, 창을 닫아도
+        // 세션이 유지되게 바뀐 뒤로는 며칠 띄워둔 동안 계속 훑게 된다.
+        .onAppear { caffeine.startPolling() }
+        .onDisappear { caffeine.stopPolling() }
     }
 
     // MARK: - 탭바
@@ -119,7 +127,132 @@ struct ContentView: View {
             .keyboardShortcut(.defaultAction)
 
             progress
+
+            Divider()
+
+            caffeineSection
         }
+    }
+
+    // MARK: - 현재 실행중인 카페인
+
+    /// 시스템에서 돌고 있는 `caffeinate` 를 전부 보여준다. 내가 켠 것만이 아니다.
+    ///
+    /// 내가 켠 것은 이미 상태행이 보여주므로, 이 목록의 값어치는 **모르게 돌고 있는 것**을
+    /// 드러내는 데 있다. 그래서 부모 프로세스를 함께 그린다 — 부모를 숨기면 어느 앱이
+    /// 띄운 것인지 알 수 없어, 이 기능을 만들게 된 오해를 그대로 반복한다.
+    /// 근거는 `docs/plans/caffeinate-list/context.md`.
+    private var caffeineSection: some View {
+        DisclosureGroup(isExpanded: $caffeine.isExpanded) {
+            VStack(alignment: .leading, spacing: Design.Spacing.caffeineItem) {
+                if caffeine.processes.isEmpty {
+                    Text(l10n(.caffeineEmpty))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(caffeine.processes) { process in
+                        caffeineRow(process)
+                    }
+                }
+
+                if let caffeineError {
+                    Text(l10n(.caffeineStopFailed, caffeineError))
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, Design.Spacing.caffeineItem)
+        } label: {
+            HStack(spacing: Design.Spacing.dotToLabel) {
+                Text(l10n(.caffeineSectionTitle))
+                    .font(.callout)
+                // 접혀 있어도 몇 개가 돌고 있는지 보여야 목적을 달성한다.
+                if !caffeine.processes.isEmpty {
+                    Text("\(caffeine.processes.count)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func caffeineRow(_ process: CaffeinateProcess) -> some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.caffeineItemRow) {
+            HStack(spacing: Design.Spacing.inRow) {
+                Text("pid \(process.pid)")
+                    .font(.caption.monospacedDigit())
+                Spacer(minLength: 4)
+                Text(elapsed(since: process.started))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+
+            if process.argsUnreadable {
+                Text(l10n(.caffeineArgsUnreadable))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: Design.Spacing.caffeineChip) {
+                    ForEach(process.flags) { flag in
+                        caffeineChip(flag)
+                    }
+                }
+            }
+
+            if !process.utility.isEmpty {
+                Text(l10n(.caffeineUtility, process.utility.joined(separator: " ")))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+
+            // 짧은 이름은 16자로 잘려 주인을 못 알려준다. 경로를 가운데서 줄이고
+            // 전체는 툴팁으로 남긴다.
+            Text(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentLabel)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .help(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentLabel)
+        }
+        .padding(Design.Padding.caffeineItem)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: Design.Size.caffeineItemCornerRadius)
+                .fill(Color.primary.opacity(0.05)))
+        .contextMenu {
+            Button(l10n(.caffeineStop)) {
+                caffeineError = caffeine.stop(process, manager: manager)
+            }
+            .disabled(!process.canStop)
+
+            if !process.canStop {
+                Text(l10n(.caffeineStopDenied))
+            }
+        }
+    }
+
+    private func caffeineChip(_ flag: CaffeinateFlag) -> some View {
+        Text(flag.label)
+            .font(.caption2.monospaced())
+            .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
+            .padding(.vertical, Design.Padding.caffeineChipVertical)
+            .background(
+                RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
+                    .fill(Color.primary.opacity(0.1)))
+            // 모르는 플래그는 설명을 달지 않는다. 지어낸 설명이 빈 칸보다 나쁘다.
+            .help(flag.explanation.map { l10n($0) } ?? "")
+    }
+
+    private func elapsed(since start: Date) -> String {
+        let seconds = max(0, Int(Date().timeIntervalSince(start)))
+        if seconds < 60 { return "\(seconds)\(l10n(.unitSecond))" }
+        if seconds < 3600 {
+            return "\(seconds / 60)\(l10n(.unitMinute)) \(seconds % 60)\(l10n(.unitSecond))"
+        }
+        return "\(seconds / 3600)\(l10n(.unitHour)) \(seconds % 3600 / 60)\(l10n(.unitMinute))"
     }
 
     private var statusRow: some View {

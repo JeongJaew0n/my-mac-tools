@@ -85,3 +85,20 @@
 /* 메뉴바 */
 "menu.openWindow" = "창 열기";
 "menu.quit" = "종료";
+
+/* 현재 실행중인 카페인 */
+"caffeine.sectionTitle" = "현재 실행중인 카페인";
+"caffeine.empty" = "돌고 있는 것이 없습니다";
+"caffeine.stop" = "중지하기";
+"caffeine.owner.thisApp" = "이 앱";
+"caffeine.argsUnreadable" = "옵션을 읽을 수 없습니다 (권한)";
+"caffeine.stopDenied" = "다른 사용자가 띄운 것은 중지할 수 없습니다";
+"caffeine.stopFailed" = "중지하지 못했습니다: %@";
+"caffeine.utility" = "실행 중인 명령: %@";
+"caffeine.flag.d" = "디스플레이가 잠들지 않게 막습니다";
+"caffeine.flag.i" = "시스템이 유휴 잠자기에 들지 않게 막습니다";
+"caffeine.flag.m" = "디스크가 유휴 잠자기에 들지 않게 막습니다";
+"caffeine.flag.s" = "시스템이 잠들지 않게 막습니다. AC 전원에서만 유효합니다";
+"caffeine.flag.u" = "사용자가 활동 중이라고 선언합니다. 화면이 꺼져 있으면 켭니다";
+"caffeine.flag.t" = "지정한 초가 지나면 해제됩니다";
+"caffeine.flag.w" = "그 PID 의 프로세스가 끝나면 해제됩니다";

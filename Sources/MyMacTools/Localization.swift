@@ -104,6 +104,23 @@ final class L10n: ObservableObject {
         case coverShortcutRecording = "cover.shortcutRecording"
         case coverShortcutHint = "cover.shortcutHint"
 
+        // 현재 실행중인 카페인
+        case caffeineSectionTitle = "caffeine.sectionTitle"
+        case caffeineEmpty = "caffeine.empty"
+        case caffeineStop = "caffeine.stop"
+        case caffeineOwnerThisApp = "caffeine.owner.thisApp"
+        case caffeineArgsUnreadable = "caffeine.argsUnreadable"
+        case caffeineStopDenied = "caffeine.stopDenied"
+        case caffeineStopFailed = "caffeine.stopFailed"
+        case caffeineUtility = "caffeine.utility"
+        case caffeineFlagD = "caffeine.flag.d"
+        case caffeineFlagI = "caffeine.flag.i"
+        case caffeineFlagM = "caffeine.flag.m"
+        case caffeineFlagS = "caffeine.flag.s"
+        case caffeineFlagU = "caffeine.flag.u"
+        case caffeineFlagT = "caffeine.flag.t"
+        case caffeineFlagW = "caffeine.flag.w"
+
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"
         case menuQuit = "menu.quit"

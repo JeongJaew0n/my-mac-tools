@@ -28,6 +28,12 @@ enum Design {
         static let lidBlock: CGFloat = 12
         /// 잠자기 방지 탭의 블록 사이.
         static let sleepBlock: CGFloat = 16
+        /// 카페인 목록의 항목 사이.
+        static let caffeineItem: CGFloat = 8
+        /// 카페인 항목 안의 줄 사이. 한 항목으로 읽히게 항목 사이보다 좁게 둔다.
+        static let caffeineItemRow: CGFloat = 3
+        /// 옵션 칩 사이.
+        static let caffeineChip: CGFloat = 4
     }
 
     /// 여백.
@@ -42,6 +48,12 @@ enum Design {
         static let tabBarBottom: CGFloat = 8
         /// 탭 항목의 위아래. 눌리는 영역을 키운다.
         static let tabItemVertical: CGFloat = 6
+        /// 카페인 항목 둘레.
+        static let caffeineItem: CGFloat = 8
+        /// 옵션 칩의 좌우.
+        static let caffeineChipHorizontal: CGFloat = 5
+        /// 옵션 칩의 위아래.
+        static let caffeineChipVertical: CGFloat = 1
     }
 
     /// 화면을 덮는 커버. 전체 화면이라 창 안의 수치와 자릿수가 다르다.
@@ -70,5 +82,9 @@ enum Design {
         static let tabDot: CGFloat = 8
         /// 선택된 탭 배경의 모서리.
         static let tabCornerRadius: CGFloat = 6
+        /// 카페인 항목 배경의 모서리.
+        static let caffeineItemCornerRadius: CGFloat = 6
+        /// 옵션 칩의 모서리. 항목보다 작게 두어 안에 든 것으로 읽히게 한다.
+        static let caffeineChipCornerRadius: CGFloat = 3
     }
 }

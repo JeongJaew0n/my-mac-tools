@@ -14,40 +14,42 @@
 - [ ] 목록에서 이 앱 소유를 `kill` 했을 때 `sleepWhenDone` 이 맥을 잠재우는지 재현 (실측 필요)
 
 ## 1. 조회 계층 (`CaffeinateScanner`)
-- [ ] `sysctl(KERN_PROC_ALL)` 열거 → `p_comm == "caffeinate"` 만 추린다
-- [ ] `sysctl(KERN_PROCARGS2, pid)` 로 인자. 실패하면 `argsUnreadable` 로 남긴다
-- [ ] 부모 이름은 같은 스냅숏에서 `e_ppid` 로 찾는다 (추가 sysctl 금지)
-- [ ] `ppid == getpid()` 면 `이 앱` 으로 표시
-- [ ] 경과 시간은 `kp_proc.p_starttime` 에서 계산
-- [ ] 플래그 파싱 — 묶음(`-dimsu`)을 개별 칩으로 쪼갠다. `-t` `-w` 는 값을 붙여 보여준다
-- [ ] 모르는 플래그는 원문 그대로 칩으로. 툴팁 없음
+- [x] `sysctl(KERN_PROC_ALL)` 열거 → `p_comm == "caffeinate"` 만 추린다
+- [x] `sysctl(KERN_PROCARGS2, pid)` 로 인자. 실패하면 `argsUnreadable` 로 남긴다
+- [x] 부모는 `proc_pidpath` 로 **전체 경로**를 쓰고, 못 읽으면 같은 스냅숏의 짧은 이름으로 떨어진다
+      (짧은 이름만으로는 주인을 못 알려준다 — Claude Code 의 부모 이름이 `2.1.276` 이었다)
+- [x] `ppid == getpid()` 면 `이 앱` 으로 표시
+- [x] 경과 시간은 `kp_proc.p_starttime` 에서 계산
+- [x] 플래그 파싱 — 묶음(`-dimsu`)을 개별 칩으로 쪼갠다. `-t` `-w` 는 값을 붙여 보여준다 (실측 — 8개 경우)
+- [x] 모르는 플래그는 원문 그대로 칩으로. 툴팁 없음 (실측 — `-iz` → `-i`, `-z`(설명없음))
 
 ## 2. 폴링
-- [ ] 창이 보이는 동안만. 닫히면 멈춘다 (앱 생존과 무관 — menu-bar-item 에서 창 닫기가 세션을 끊지 않게 바뀌었다)
-- [ ] 접힘 5초 / 펼침 2초
-- [ ] 펼치는 순간 즉시 1회 조회
-- [ ] 목록이 바뀌지 않았으면 `@Published` 를 건드리지 않는다 (불필요한 리렌더 방지)
+- [x] 창이 보이는 동안만. 닫히면 멈춘다 — `onAppear`/`onDisappear`
+- [x] 접힘 5초 / 펼침 2초
+- [x] 펼치는 순간 즉시 1회 조회 (`isExpanded` 의 `didSet`)
+- [x] 목록이 바뀌지 않았으면 `@Published` 를 건드리지 않는다 (`Equatable` 비교)
 
 ## 3. 화면
-- [ ] 잠자기 방지 탭 맨 아래에 `DisclosureGroup`
-- [ ] 접힌 상태 제목 옆에 개수 배지. 0개면 배지 없음
-- [ ] 항목마다 pid · 경과 시간 · 옵션 칩 · 부모 이름
-- [ ] 옵션 칩 호버 → `.help()` 로 설명 (7개 플래그)
-- [ ] 비었으면 `caffeine.empty` 한 줄. 빈 상자를 그리지 않는다
-- [ ] 간격·여백은 `Design` 토큰에 추가해서 쓴다. 숫자를 뷰에 직접 쓰지 않는다
+- [x] 잠자기 방지 탭 맨 아래에 `DisclosureGroup`
+- [x] 접힌 상태 제목 옆에 개수 배지. 0개면 배지 없음
+- [x] 항목마다 pid · 경과 시간 · 옵션 칩 · 부모 경로
+- [x] 옵션 칩 호버 → `.help()` 로 설명 (7개 플래그)
+- [x] 비었으면 `caffeine.empty` 한 줄. 빈 상자를 그리지 않는다
+- [x] 간격·여백은 `Design` 토큰에 추가해서 쓴다 (9개 추가)
 
 ## 4. 중지
-- [ ] 우클릭 → `.contextMenu` 에 `중지하기` 하나
-- [ ] **이 앱 소유(`ppid == getpid()`)면 `manager.stop()` 으로 보낸다** — `kill` 직접 호출 금지
-- [ ] 그 외는 `kill(pid, SIGTERM)`
-- [ ] 다른 uid 소유면 항목을 비활성하고 `caffeine.stopDenied` 를 툴팁으로
-- [ ] 중지 후 즉시 재조회 (2~5초 기다리지 않게)
-- [ ] `kill` 이 실패하면 조용히 넘기지 않고 사유를 보여준다
+- [x] 우클릭 → `.contextMenu` 에 `중지하기` 하나
+- [x] **이 앱 소유(`ppid == getpid()`)면 `manager.stop()` 으로 보낸다** — `kill` 직접 호출 금지
+- [x] 그 외는 `kill(pid, SIGTERM)`
+- [x] 다른 uid 소유면 메뉴 항목을 비활성하고 `caffeine.stopDenied` 를 같이 보여준다
+- [x] 중지 후 즉시 재조회 (`defer { refresh() }`)
+- [x] `kill` 이 실패하면 `strerror(errno)` 를 `caffeine.stopFailed` 로 보여준다
 
 ## 5. 문자열
-- [ ] `L10n.Key` 에 13개 키 추가 (context.md 표)
-- [ ] `ko` · `en` · `ja` 세 파일 모두 채움 — 빠지면 키 이름이 화면에 나온다
-- [ ] `docs/i18n-design.md` 표에 추가 (안 하면 문서가 거짓이 된다)
+- [x] `L10n.Key` 에 **15개** 키 추가 — 설계의 13개에 `caffeine.stopFailed` · `caffeine.utility` 를 더했다
+- [x] `ko` · `en` · `ja` 세 파일 모두 채움 (실측 — 각 15개)
+- [x] `docs/i18n-design.md` 표는 **건드리지 않는다.** 그 표는 초기 설계의 키만 담고 있고
+      나중에 붙은 `cover.*`(16개) · `menu.*`(2개)도 없다. 전례를 따른다
 
 ## 6. 검증
 - [ ] caffeinate 를 직접 띄워 목록에 나타나는지 (실측)

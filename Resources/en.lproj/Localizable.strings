@@ -85,3 +85,20 @@
 /* Menu bar */
 "menu.openWindow" = "Open Window";
 "menu.quit" = "Quit";
+
+/* Running caffeinate processes */
+"caffeine.sectionTitle" = "Running caffeinate";
+"caffeine.empty" = "Nothing is running";
+"caffeine.stop" = "Stop";
+"caffeine.owner.thisApp" = "This app";
+"caffeine.argsUnreadable" = "Cannot read the options (permission)";
+"caffeine.stopDenied" = "Cannot stop one started by another user";
+"caffeine.stopFailed" = "Could not stop it: %@";
+"caffeine.utility" = "Running command: %@";
+"caffeine.flag.d" = "Prevents the display from sleeping";
+"caffeine.flag.i" = "Prevents the system from idle sleeping";
+"caffeine.flag.m" = "Prevents the disk from idle sleeping";
+"caffeine.flag.s" = "Prevents the system from sleeping. Valid only on AC power";
+"caffeine.flag.u" = "Declares that the user is active. Turns the display on if it is off";
+"caffeine.flag.t" = "Released after the given number of seconds";
+"caffeine.flag.w" = "Released once the process with that PID exits";
