@@ -24,9 +24,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     /// 글리프 높이. 메뉴바가 22pt 라 그보다 작아야 위아래가 안 잘린다.
     /// `SymbolConfiguration` 의 `pointSize` 만으로는 실제 크기가 예측되지 않아
     /// (16pt 로 잡았더니 22pt 짜리가 나왔다) 결과 이미지 크기를 직접 못 박는다.
-    private static let glyphHeight: CGFloat = 16
+    private static let glyphHeight: CGFloat = 20
     private static let dotSize: CGFloat = 5
-    private static let glyphName = "wrench.and.screwdriver"
+    /// 앱 로고에서 구운 template 이미지. `scripts/make-menubar-icon.swift` 산출물.
+    private static let glyphResource = "MenuBarIcon"
 
     private let manager: BlackWorkManager
     private let lid: LidWorkManager
@@ -64,9 +65,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         statusItem = item
         guard let button = item.button else { return }
 
-        guard let glyph = NSImage(systemSymbolName: Self.glyphName, accessibilityDescription: nil) else {
-            return
-        }
+        // `NSImage(named:)` 가 화면 배율에 맞춰 @2x 를 고른다.
+        guard let glyph = NSImage(named: Self.glyphResource) else { return }
         // 가로세로 비를 지키며 높이를 맞춘다.
         let ratio = glyph.size.width / glyph.size.height
         glyph.size = NSSize(width: Self.glyphHeight * ratio, height: Self.glyphHeight)

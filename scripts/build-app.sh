@@ -40,6 +40,14 @@ if [ -f "${ICON_SRC}" ]; then
     cp "${ICON_CACHE}" "${RESOURCES}/AppIcon.icns"
 fi
 
+# 메뉴바 아이콘. `scripts/make-menubar-icon.swift` 산출물이다.
+# 원본(Resources/MenuBarSource.png)을 바꾸면 그 스크립트를 다시 돌려 갱신한다.
+for icon in Resources/MenuBarIcon.png Resources/MenuBarIcon@2x.png; do
+    [ -f "${icon}" ] || continue
+    cp "${icon}" "${RESOURCES}/$(basename "${icon}")"
+    echo "  + $(basename "${icon}")"
+done
+
 # 다국어 리소스. Bundle.main 이 Contents/Resources 를 보므로 lproj 를 그대로 옮긴다.
 # (SwiftPM resources/Bundle.module 을 쓰지 않는 이유는 docs/i18n-design.md 참고)
 mkdir -p "${RESOURCES}"
