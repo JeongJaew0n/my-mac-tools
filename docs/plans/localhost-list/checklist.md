@@ -1,0 +1,63 @@
+# checklist — localhost-list
+
+`(확인)` 은 사용자가 직접 써보고 확인해준 것, `(실측)` 은 명령·캡처로 확인한 것이다.
+
+## 0. 조사
+- [x] `libproc` 로 LISTEN 소켓을 권한 없이 읽을 수 있는지 (실측 — `lsof` 와 20개 일치)
+- [x] 전수 조회 비용 (실측 — 5ms 미만)
+- [x] 내 uid 것만 보이는 제약 (실측 — 188개 거부)
+- [x] `proc_pidpath` 가 실패하는 프로세스가 있는지 (실측 — pid 11100)
+- [x] UDP · UNIX 소켓이 얼마나 섞여 있는지 (실측 — UNIX 437 · UDP 30)
+- [x] `research.md` 작성, 결정 축 확정, `spec.md` 작성
+
+## 1. 공용으로 빼기
+- [x] `ProcessSnapshot` — `all` · `shortName` · `executablePath` · `startDate` · `friendlyName`
+- [x] `CaffeinateScanner` 가 그것을 쓰게 바꿈 (340 → 254줄)
+
+## 2. 조회 계층 (`LocalhostManager`)
+- [x] `PROC_PIDLISTFDS` → `PROC_PIDFDSOCKETINFO` → `SOCKINFO_TCP` + `TSI_S_LISTEN`
+- [x] 주소·포트·주소군을 `insi_laddr` · `insi_lport` · `insi_vflag` 에서 뽑는다
+- [x] `127.0.0.1` · `::1` · `0.0.0.0` · `::` 만 남긴다
+- [x] 같은 `(pid, 포트)` 를 한 줄로 합치고 주소군을 모은다 (실측 — `5000 0.0.0.0,:: IPv4,IPv6` 한 줄)
+- [x] 포트 오름차순 정렬
+- [x] 폴링 — 창이 보이는 동안 2초. 목록이 그대로면 `@Published` 를 건드리지 않는다
+- [x] `isRunning` — 하나라도 있으면 true
+
+## 3. 네 번째 탭
+- [x] `enum Tab` 에 `localhost` 추가
+- [x] `ContentView` 에 `localhostTab`
+- [x] 줄마다 포트(크게) · 이름(pid) · 주소 칩 · 주소군 칩 · `열기`
+- [x] 내 uid 것만 보인다는 안내 한 줄
+- [x] 비었으면 한 줄만. 빈 상자를 그리지 않는다
+- [x] 간격·여백은 `Design` 토큰으로 (3개 추가)
+- [ ] 창 높이(`windowContentHeight` 336 고정)를 넘치면 스크롤되는지 확인
+
+## 4. 동작
+- [x] `열기` → `NSWorkspace.open(http://localhost:<포트>)`
+- [x] 우클릭 → `중지하기` → `kill(pid, SIGTERM)`
+- [x] 중지 후 즉시 재조회 (`defer { refresh() }`)
+- [x] 실패하면 `strerror(errno)` 를 보여준다
+- [x] **이 앱 자신이 목록에 뜨면 중지를 막는다** — 화면에서 비활성, `stop()` 에서도 한 번 더 막는다
+
+## 5. 메뉴바
+- [x] **넣지 않는다.** 다른 셋은 토글이라 메뉴에서 켜고 끄는 값어치가 있지만 이것은
+      토글이 아니다. 개수를 메뉴에 띄우려면 창이 닫혀 있어도 계속 훑어야 해서,
+      "보이지 않는 것을 위해 훑지 않는다" 는 규칙과 정면으로 어긋난다
+
+## 6. 문자열 · 문서
+- [x] `L10n.Key` 9개 추가, ko · en · ja 세 파일 채움 (실측 — 각 9개)
+- [x] `docs/glossary/README.md` 의 `Tool` 항목을 넷으로 맞춤 (`cover` 가 빠져 있던 것도 채움)
+- [x] `CLAUDE.md` 구조 절을 실제 파일 목록과 맞춤
+- [x] `CLAUDE.md` 의 규칙을 `<Tool>Manager` 로 고침 — `ScreenCoverManager` 가 이미
+      `Work` 를 안 써서 규칙이 코드와 어긋나 있었다
+- [x] `README.md` 기능 절에 추가
+
+## 7. 검증
+- [x] 목록이 `lsof` 결과와 일치 (실측 — 동시에 찍어 `pid:port` 21개 완전 일치)
+- [x] IPv4·IPv6 중복이 한 줄로 합쳐지는지 (실측 — `7000 0.0.0.0,:: IPv4,IPv6`)
+- [x] 개발 서버를 직접 띄워 나타나고, 끄면 사라지는지 (실측 — `python3 -m http.server 8765` 등장 후 소멸)
+- [ ] `열기` 가 브라우저를 띄우는지 (확인)
+- [ ] 우클릭 중지가 실제로 끄는지 (확인)
+- [ ] 탭 점이 초록으로 켜지는지 (확인)
+- [ ] 창을 닫으면 폴링이 멈추는지 (실측)
+- [ ] 세 언어 문구 (확인)

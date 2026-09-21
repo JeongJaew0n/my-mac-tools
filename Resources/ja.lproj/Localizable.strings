@@ -102,3 +102,14 @@
 "caffeine.flag.u" = "ユーザーがアクティブであると宣言します。画面が消えていれば点灯させます";
 "caffeine.flag.t" = "指定した秒数が過ぎると解除されます";
 "caffeine.flag.w" = "そのPIDのプロセスが終了すると解除されます";
+
+/* localhost */
+"tab.localhost" = "localhost";
+"localhost.statusCount" = "%d件がリッスン中";
+"localhost.statusNone" = "リッスン中のものはありません";
+"localhost.ownUserOnly" = "自分のアカウントが起動したものだけが表示されます";
+"localhost.empty" = "リッスン中のものはありません";
+"localhost.open" = "開く";
+"localhost.stop" = "停止";
+"localhost.stopFailed" = "停止できませんでした: %@";
+"localhost.self" = "このアプリ自身なので停止できません";

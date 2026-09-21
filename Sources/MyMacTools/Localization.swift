@@ -35,6 +35,7 @@ final class L10n: ObservableObject {
         case tabScreenOff = "tab.screenOff"
         case tabLid = "tab.lid"
         case tabCover = "tab.cover"
+        case tabLocalhost = "tab.localhost"
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
@@ -120,6 +121,16 @@ final class L10n: ObservableObject {
         case caffeineFlagU = "caffeine.flag.u"
         case caffeineFlagT = "caffeine.flag.t"
         case caffeineFlagW = "caffeine.flag.w"
+
+        // 로컬호스트
+        case localhostStatusCount = "localhost.statusCount"
+        case localhostStatusNone = "localhost.statusNone"
+        case localhostOwnUserOnly = "localhost.ownUserOnly"
+        case localhostEmpty = "localhost.empty"
+        case localhostOpen = "localhost.open"
+        case localhostStop = "localhost.stop"
+        case localhostStopFailed = "localhost.stopFailed"
+        case localhostSelf = "localhost.self"
 
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"

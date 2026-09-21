@@ -34,6 +34,12 @@ enum Design {
         static let caffeineItemRow: CGFloat = 3
         /// 옵션 칩 사이.
         static let caffeineChip: CGFloat = 4
+        /// 로컬호스트 목록의 항목 사이.
+        static let portItem: CGFloat = 8
+        /// 로컬호스트 항목 안의 줄 사이.
+        static let portItemRow: CGFloat = 3
+        /// 로컬호스트 탭의 블록 사이.
+        static let portBlock: CGFloat = 12
     }
 
     /// 여백.

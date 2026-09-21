@@ -102,3 +102,14 @@
 "caffeine.flag.u" = "Declares that the user is active. Turns the display on if it is off";
 "caffeine.flag.t" = "Released after the given number of seconds";
 "caffeine.flag.w" = "Released once the process with that PID exits";
+
+/* Localhost */
+"tab.localhost" = "Localhost";
+"localhost.statusCount" = "%d listening";
+"localhost.statusNone" = "Nothing listening";
+"localhost.ownUserOnly" = "Only what your account started is visible";
+"localhost.empty" = "Nothing is listening";
+"localhost.open" = "Open";
+"localhost.stop" = "Stop";
+"localhost.stopFailed" = "Could not stop it: %@";
+"localhost.self" = "This is this app, so it cannot be stopped";

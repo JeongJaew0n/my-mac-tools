@@ -10,6 +10,12 @@ Sources/MyMacTools/
 ├── ContentView.swift        탭 전환 + 각 Tool 의 화면. `enum Tab` 이 Tool 의 UI 표현이다
 ├── BlackWorkManager.swift   Tool: 잠자기 방지 (caffeinate, ScreenMode/ScreenPhase)
 ├── LidWorkManager.swift     Tool: 덮개 닫아도 작업 (pmset disablesleep)
+├── ScreenCoverManager.swift Tool: 화면 가리기 (+ CoverView, Shortcut, ShortcutRecorder)
+├── LocalhostManager.swift   Tool: 로컬호스트 (libproc 으로 LISTEN 소켓)
+├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
+├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
+├── StatusItemController.swift  메뉴바 항목
+├── Actions.swift            메뉴바와 창이 함께 쓰는 동작
 ├── Localization.swift       L10n.Key 와 언어 전환
 └── Design.swift             디자인 토큰 (Padding/Spacing/Size/Color)
 Resources/                   Info.plist, 아이콘, ko/en/ja lproj
@@ -18,7 +24,9 @@ docs/                        계획·용어·트러블슈팅 (아래 docs 규칙
 ```
 
 Tool 을 추가하면 `enum Tab` 에 case 를 넣고 전용 Manager 를 만든다.
-관리자 타입은 `<Tool>WorkManager` 로 이름을 맞춘다.
+관리자 타입은 `<Tool>Manager` 로 이름을 맞춘다. 가장 오래된 둘만 `<Tool>WorkManager`
+인데, 그것을 규칙으로 적어두면 코드와 어긋난다 — `ScreenCoverManager` ·
+`LocalhostManager` 가 이미 `Work` 를 쓰지 않는다.
 
 ## 프로젝트 규칙 (my-app-init, 2026-09-15 확정)
 

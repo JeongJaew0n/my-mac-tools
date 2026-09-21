@@ -7,6 +7,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case screenOff
     case lid
     case cover
+    case localhost
 
     var id: String { rawValue }
 
@@ -15,6 +16,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .screenOff: return .tabScreenOff
         case .lid: return .tabLid
         case .cover: return .tabCover
+        case .localhost: return .tabLocalhost
         }
     }
 }
@@ -24,6 +26,7 @@ struct ContentView: View {
     @ObservedObject var lid: LidWorkManager
     @ObservedObject var cover: ScreenCoverManager
     @ObservedObject var caffeine: CaffeinateScanner
+    @ObservedObject var localhost: LocalhostManager
     @ObservedObject var l10n: L10n
 
     /// 중지에 실패한 이유. 성공하면 비운다.
@@ -48,6 +51,7 @@ struct ContentView: View {
                     case .screenOff: screenOffTab
                     case .lid: lidTab
                     case .cover: coverTab
+                    case .localhost: localhostTab
                     }
                 }
                 .padding(Design.Padding.content)
@@ -67,6 +71,9 @@ struct ContentView: View {
         // 세션이 유지되게 바뀐 뒤로는 며칠 띄워둔 동안 계속 훑게 된다.
         .onAppear { caffeine.startPolling() }
         .onDisappear { caffeine.stopPolling() }
+        // 포트 목록도 같은 규칙을 쓴다. 규칙이 둘이 되지 않게 한다.
+        .onAppear { localhost.startPolling() }
+        .onDisappear { localhost.stopPolling() }
     }
 
     // MARK: - 탭바
@@ -110,6 +117,7 @@ struct ContentView: View {
         case .screenOff: return manager.isRunning
         case .lid: return lid.isRunning
         case .cover: return cover.isCovering
+        case .localhost: return localhost.isRunning
         }
     }
 
@@ -601,5 +609,106 @@ struct ContentView: View {
     private static func format(_ interval: TimeInterval) -> String {
         let total = Int(interval.rounded())
         return String(format: "%d:%02d:%02d", total / 3600, (total % 3600) / 60, total % 60)
+    }
+
+    // MARK: - 로컬호스트
+
+    /// 듣고 있는 localhost 포트를 보여준다.
+    ///
+    /// 다른 셋과 달리 **켜고 끄는 Tool 이 아니다.** 시작 버튼이 없고, 보여주는 것과
+    /// 여는 것·끄는 것만 있다. 그래서 상태행도 "켜짐/꺼짐" 이 아니라 개수를 말한다.
+    private var localhostTab: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.portBlock) {
+            VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
+                HStack(spacing: Design.Spacing.dotToLabel) {
+                    Circle()
+                        .fill(localhost.isRunning ? .green : .gray)
+                        .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                    Text(localhost.ports.isEmpty
+                         ? l10n(.localhostStatusNone)
+                         : l10n(.localhostStatusCount, localhost.ports.count))
+                        .font(.body)
+                }
+                // 커널이 다른 사용자의 fd 목록을 막는다. 안 보이는 것이 있다는 사실을
+                // 화면에서 밝힌다 — 목록이 전부라고 믿으면 틀린 결론을 낸다.
+                Text(l10n(.localhostOwnUserOnly))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if localhost.ports.isEmpty {
+                Text(l10n(.localhostEmpty))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: Design.Spacing.portItem) {
+                    ForEach(localhost.ports) { port in
+                        portRow(port)
+                    }
+                }
+            }
+
+            if let error = localhost.lastError {
+                Text(l10n(.localhostStopFailed, error))
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func portRow(_ port: LocalPort) -> some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
+            HStack(spacing: Design.Spacing.inRow) {
+                // 이 화면을 여는 이유가 "몇 번이 잡혀 있나" 라서 포트를 가장 크게 둔다.
+                Text("\(port.port)")
+                    .font(.title3.monospacedDigit())
+                Spacer(minLength: 4)
+                Button(l10n(.localhostOpen)) { localhost.open(port) }
+                    .controlSize(.small)
+            }
+
+            Text("\(port.processName) (pid \(port.pid))")
+                .font(.caption)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .contentShape(Rectangle())
+                .help(port.processPath.isEmpty ? port.processName : port.processPath)
+
+            HStack(spacing: Design.Spacing.caffeineChip) {
+                ForEach(port.addresses, id: \.self) { address in
+                    portChip(address)
+                }
+                ForEach(port.families, id: \.self) { family in
+                    portChip(family)
+                }
+            }
+        }
+        .padding(Design.Padding.caffeineItem)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: Design.Size.caffeineItemCornerRadius)
+                .fill(Color.primary.opacity(0.05)))
+        .contextMenu {
+            Button(l10n(.localhostStop)) {
+                localhost.lastError = localhost.stop(port)
+            }
+            // 자기 자신을 끄는 버튼이 되면 안 된다.
+            .disabled(port.isSelf)
+
+            if port.isSelf {
+                Text(l10n(.localhostSelf))
+            }
+        }
+    }
+
+    private func portChip(_ text: String) -> some View {
+        Text(text)
+            .font(.caption2.monospaced())
+            .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
+            .padding(.vertical, Design.Padding.caffeineChipVertical)
+            .background(
+                RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
+                    .fill(Color.primary.opacity(0.1)))
     }
 }

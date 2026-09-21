@@ -102,3 +102,14 @@
 "caffeine.flag.u" = "사용자가 활동 중이라고 선언합니다. 화면이 꺼져 있으면 켭니다";
 "caffeine.flag.t" = "지정한 초가 지나면 해제됩니다";
 "caffeine.flag.w" = "그 PID 의 프로세스가 끝나면 해제됩니다";
+
+/* 로컬호스트 */
+"tab.localhost" = "로컬호스트";
+"localhost.statusCount" = "%d개 듣고 있음";
+"localhost.statusNone" = "듣고 있는 것 없음";
+"localhost.ownUserOnly" = "내 계정이 띄운 것만 보입니다";
+"localhost.empty" = "듣고 있는 것이 없습니다";
+"localhost.open" = "열기";
+"localhost.stop" = "중지하기";
+"localhost.stopFailed" = "중지하지 못했습니다: %@";
+"localhost.self" = "이 앱이라 중지할 수 없습니다";

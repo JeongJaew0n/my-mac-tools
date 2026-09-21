@@ -60,6 +60,7 @@ struct MyMacToolsApp: App {
     @StateObject private var lid = LidWorkManager()
     @StateObject private var cover = ScreenCoverManager()
     @StateObject private var caffeine = CaffeinateScanner()
+    @StateObject private var localhost = LocalhostManager()
     @StateObject private var l10n = L10n()
 
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
@@ -95,7 +96,8 @@ struct MyMacToolsApp: App {
 
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
-            ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine, l10n: l10n)
+            ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
+                        localhost: localhost, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
