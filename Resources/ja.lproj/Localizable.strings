@@ -113,3 +113,13 @@
 "localhost.stop" = "停止";
 "localhost.stopFailed" = "停止できませんでした: %@";
 "localhost.self" = "このアプリ自身なので停止できません";
+"localhost.label.system" = "システム";
+"localhost.label.systemHelp" = "AppleがmacOSのシステム構成要素として署名したプログラムです。停止するとMacの機能が止まることがあります。";
+"localhost.label.terminal" = "自分のターミナル";
+"localhost.label.terminalHelp" = "制御端末を保持しているため、シェルから起動したことが確実です。この表示がないからといって自分で起動していないという意味ではありません — 自らバックグラウンドへ移るプログラムは端末を手放します。";
+"localhost.label.wellKnown" = "well-known";
+"localhost.label.wellKnownHelp" = "1024番未満の標準割り当て範囲です。多くはシステムやサービスが使います。";
+"localhost.confirmTitle" = "「%@」はmacOSのシステム構成要素です";
+"localhost.confirmBody" = "停止するとMacの機能が止まることがあります。通常はシステムが再度起動しますが、しない場合もあります。";
+"localhost.confirmStop" = "それでも停止";
+"localhost.confirmCancel" = "キャンセル";

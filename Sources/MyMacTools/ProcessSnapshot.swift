@@ -1,6 +1,7 @@
 import AppKit
 import Darwin
 import Foundation
+import Security
 
 /// 지금 돌고 있는 프로세스를 커널에서 한 번에 읽어온 스냅숏.
 ///
@@ -49,6 +50,52 @@ enum ProcessSnapshot {
     static func startDate(of entry: kinfo_proc) -> Date {
         let time = entry.kp_proc.p_starttime
         return Date(timeIntervalSince1970: Double(time.tv_sec) + Double(time.tv_usec) / 1_000_000)
+    }
+
+    /// 제어 터미널을 쥐고 있는가. 쥐고 있으면 **셸에서 띄운 것**이다.
+    ///
+    /// 한쪽으로만 확실한 신호다. 쥐고 있으면 사용자가 터미널에서 띄운 것이 맞지만,
+    /// 없다고 아닌 것은 아니다 — 스스로 daemonize 하면 터미널을 놓고 부모도 launchd 로
+    /// 바뀐다 (실측 — `adb`, gradle `java` 가 그렇다). 그래서 "내가 띄운 것" 을 부정하는
+    /// 근거로는 쓰지 않는다. 근거는 `docs/plans/localhost-list/research.md`.
+    static func hasControllingTerminal(_ entry: kinfo_proc) -> Bool {
+        entry.kp_eproc.e_tdev != -1
+    }
+
+    /// 코드 서명에서 읽은 것.
+    struct SigningInfo: Equatable {
+        /// 번들 식별자 또는 서명 식별자. `com.apple.controlcenter` 같은 것.
+        let identifier: String?
+        /// 개발자 팀 식별자. Apple 시스템 구성요소에는 없다.
+        let team: String?
+        /// Apple 이 **시스템 구성요소로** 서명한 것. 함부로 끄면 안 되는 것들이다.
+        let isPlatformBinary: Bool
+    }
+
+    /// 코드 서명 정보. 읽지 못하면 nil.
+    ///
+    /// **비싸다.** 17개 조회에 24~64ms 가 걸렸다(실측). 폴링마다 부르면 메인 스레드가
+    /// 걸리므로 부르는 쪽에서 pid 별로 캐시해야 한다. 살아 있는 pid 의 서명은 바뀌지 않는다.
+    static func signingInfo(of pid: pid_t) -> SigningInfo? {
+        var code: SecCode?
+        let attributes = [kSecGuestAttributePid: pid] as CFDictionary
+        guard SecCodeCopyGuestWithAttributes(nil, attributes, [], &code) == errSecSuccess,
+              let code else { return nil }
+
+        var staticCode: SecStaticCode?
+        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess,
+              let staticCode else { return nil }
+
+        var raw: CFDictionary?
+        guard SecCodeCopySigningInformation(
+                staticCode, SecCSFlags(rawValue: kSecCSSigningInformation), &raw) == errSecSuccess,
+              let info = raw as? [String: Any] else { return nil }
+
+        return SigningInfo(
+            identifier: info[kSecCodeInfoIdentifier as String] as? String,
+            team: info[kSecCodeInfoTeamIdentifier as String] as? String,
+            // 플랫폼 식별자가 붙어 있으면 Apple 이 시스템 구성요소로 서명한 것이다.
+            isPlatformBinary: info[kSecCodeInfoPlatformIdentifier as String] != nil)
     }
 
     /// 사람이 읽을 이름.

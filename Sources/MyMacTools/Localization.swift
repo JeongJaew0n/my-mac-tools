@@ -131,6 +131,16 @@ final class L10n: ObservableObject {
         case localhostStop = "localhost.stop"
         case localhostStopFailed = "localhost.stopFailed"
         case localhostSelf = "localhost.self"
+        case localhostLabelSystem = "localhost.label.system"
+        case localhostLabelSystemHelp = "localhost.label.systemHelp"
+        case localhostLabelTerminal = "localhost.label.terminal"
+        case localhostLabelTerminalHelp = "localhost.label.terminalHelp"
+        case localhostLabelWellKnown = "localhost.label.wellKnown"
+        case localhostLabelWellKnownHelp = "localhost.label.wellKnownHelp"
+        case localhostConfirmTitle = "localhost.confirmTitle"
+        case localhostConfirmBody = "localhost.confirmBody"
+        case localhostConfirmStop = "localhost.confirmStop"
+        case localhostConfirmCancel = "localhost.confirmCancel"
 
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"

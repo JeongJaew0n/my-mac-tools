@@ -121,3 +121,76 @@ UNIX 437개 · TCP 95개 · KERN_CTL 81개 · IN(UDP 등) 30개 · KERN_EVENT 1�
   못했다. 목록에 안 나오는 것이 얼마나 아쉬운지는 그 수를 봐야 판단된다.
 - **샌드박스.** 이 앱은 샌드박스가 아니라서 위 호출이 다 된다. 나중에 샌드박스를 켜면
   `PROC_PIDLISTFDS` 가 막힐 가능성이 크다. 켤 계획이 생기면 먼저 확인해야 한다.
+
+
+---
+
+# 추가 조사 — "함부로 끄면 안 되는 것" 을 표시할 수 있는가 (2026-09-21)
+
+## 원 요청
+
+> 근데 내가 띄운것과 진짜 맥에서 시스템이 필요한것, 어떤 프로그램이 필요에 의해서 띄운것,
+> well-known port등은 함부로 끄면 안되잖아. 이런거 표시 가능?
+
+## 결론 — 일부만 가능하다
+
+| 표시 | 근거 | 신뢰도 |
+|---|---|---|
+| **시스템(Apple)** | 코드 서명의 플랫폼 식별자 | **확실** |
+| **서명 주체** | 번들·팀 식별자 | **확실** |
+| **well-known 포트** | 포트 < 1024 (IANA) | **확실** |
+| **내 터미널에서 띄움** | 제어 터미널 보유 (`kp_eproc.e_tdev != -1`) | **있으면** 확실, 없으면 모름 |
+| ~~내가 띄운 것 vs 앱이 띄운 것~~ | — | **불가능** |
+
+## 되는 것 — 실측
+
+`SecCodeCopyGuestWithAttributes` → `SecCodeCopyStaticCode` → `SecCodeCopySigningInformation`.
+공개 API 이고 권한이 필요 없다.
+
+```
+/usr/libexec/rapportd                          com.apple.rapportd        플랫폼바이너리 true
+/System/…/ControlCenter.app/…/ControlCenter    com.apple.controlcenter   플랫폼바이너리 true
+/Applications/Raycast.app/…/Raycast            com.raycast.macos         팀 SY64MV22J9, false
+```
+
+제어 터미널도 읽힌다.
+
+```
+pid 13012 python3.12  제어 터미널 있음   사슬: zsh ← Code Helper ← Code ← launchd
+pid 758   ControlCenter  없음            사슬: launchd(1)
+```
+
+## 안 되는 것 — "누가 띄웠나"
+
+신호가 셋 다 우회된다.
+
+```
+pid 16872 adb   제어 터미널 없음  부모 launchd(1)  ← 내가 띄웠는데 못 알아낸다
+pid 11370 java  제어 터미널 없음  부모 launchd(1)  ← gradle 데몬. 같음
+```
+
+`adb` 와 gradle `java` 는 **사용자가 띄웠지만** 스스로 daemonize 해서 터미널을 놓고
+부모가 launchd 로 바뀐다. 시스템 데몬과 구별되지 않는다.
+
+**서명으로도 안 된다.** 테스트로 띄운 `python3 -m http.server` 가 `com.apple.python3` 로
+서명돼 있었다. 서명은 *누가 만들었나*이고 *누가 띄웠나*가 아니다.
+
+그래서 "내가 띄운 것 / 앱이 필요해서 띄운 것" 이라는 **단정은 앱이 뒷받침할 수 없다.**
+그 라벨을 달면 틀린 확신을 준다. 근거가 확실한 것만 라벨로 달고, 나머지는 번들 식별자를
+그대로 보여주어 판단을 사용자에게 남긴다.
+
+## 비용 — 캐시가 필요하다
+
+```
+서명 조회 17개:        24~64ms   ← 2초 폴링마다 부르면 메인 스레드가 걸린다
+pid 캐시 후 재조회 2회:  4.4ms
+```
+
+살아 있는 pid 의 서명은 바뀌지 않으므로 pid 별로 캐시한다. 못 읽은 것(nil)도 캐시해야
+매번 다시 두드리지 않는다. 죽은 pid 는 스캔마다 버린다.
+
+## 탐색하지 않은 것
+
+macOS 는 TCC 를 위해 프로세스의 **responsible pid** 를 따로 들고 있다. daemonize 뒤에도
+원래 띄운 주체를 가리킬 가능성이 있지만 사설 API 다. 공개 API 로 "누가 띄웠나" 를 알
+방법은 찾지 못했다.

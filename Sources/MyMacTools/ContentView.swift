@@ -675,13 +675,38 @@ struct ContentView: View {
                 .contentShape(Rectangle())
                 .help(port.processPath.isEmpty ? port.processName : port.processPath)
 
+            // 근거가 확실한 것만 라벨을 단다. "내가 띄운 것" 인지 "앱이 필요해서 띄운
+            // 것" 인지는 어떤 신호로도 가려낼 수 없어(daemonize 하면 부모도 터미널도
+            // 사라진다) 단정하지 않는다. 대신 번들 식별자를 그대로 보여주고 판단을
+            // 사용자에게 남긴다. 근거는 `docs/plans/localhost-list/research.md`.
             HStack(spacing: Design.Spacing.caffeineChip) {
+                if port.isSystem {
+                    portChip(l10n(.localhostLabelSystem), tint: .red,
+                             help: l10n(.localhostLabelSystemHelp))
+                }
+                if port.startedFromTerminal {
+                    portChip(l10n(.localhostLabelTerminal), tint: .green,
+                             help: l10n(.localhostLabelTerminalHelp))
+                }
+                if port.isWellKnown {
+                    portChip(l10n(.localhostLabelWellKnown), tint: .orange,
+                             help: l10n(.localhostLabelWellKnownHelp))
+                }
                 ForEach(port.addresses, id: \.self) { address in
                     portChip(address)
                 }
                 ForEach(port.families, id: \.self) { family in
                     portChip(family)
                 }
+            }
+
+            // 라벨을 붙일 근거가 없을 때 주인을 가늠할 유일한 단서다.
+            if let identifier = port.bundleIdentifier, !identifier.isEmpty {
+                Text(identifier)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
         }
         .padding(Design.Padding.caffeineItem)
@@ -691,7 +716,7 @@ struct ContentView: View {
                 .fill(Color.primary.opacity(0.05)))
         .contextMenu {
             Button(l10n(.localhostStop)) {
-                localhost.lastError = localhost.stop(port)
+                stopPort(port)
             }
             // 자기 자신을 끄는 버튼이 되면 안 된다.
             .disabled(port.isSelf)
@@ -702,13 +727,34 @@ struct ContentView: View {
         }
     }
 
-    private func portChip(_ text: String) -> some View {
+    private func portChip(_ text: String, tint: Color? = nil,
+                          help: String? = nil) -> some View {
         Text(text)
             .font(.caption2.monospaced())
+            .foregroundStyle(tint ?? .primary)
             .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
             .padding(.vertical, Design.Padding.caffeineChipVertical)
             .background(
                 RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
-                    .fill(Color.primary.opacity(0.1)))
+                    .fill((tint ?? Color.primary).opacity(0.1)))
+            .contentShape(Rectangle())
+            .help(help ?? "")
+    }
+
+    /// 중지. 시스템 구성요소는 한 번 더 묻는다.
+    ///
+    /// 끄는 것을 막지는 않는다 — 사용자 판단이고, 스스로는 못 하는 일을 앱이 가로막는
+    /// 것은 답답하다. 다만 실수로 누를 수는 없어야 한다.
+    private func stopPort(_ port: LocalPort) {
+        if port.isSystem {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = l10n(.localhostConfirmTitle, port.processName)
+            alert.informativeText = l10n(.localhostConfirmBody)
+            alert.addButton(withTitle: l10n(.localhostConfirmStop))
+            alert.addButton(withTitle: l10n(.localhostConfirmCancel))
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        }
+        localhost.lastError = localhost.stop(port)
     }
 }

@@ -18,8 +18,17 @@ struct LocalPort: Identifiable, Equatable {
     let addresses: [String]
     /// `IPv4` · `IPv6`.
     let families: [String]
+    /// Apple 이 시스템 구성요소로 서명한 것. 함부로 끄면 안 된다.
+    let isSystem: Bool
+    /// 제어 터미널을 쥐고 있다 = 셸에서 띄운 것. 없다고 아닌 것은 아니다.
+    let startedFromTerminal: Bool
+    /// 번들·서명 식별자. 라벨을 붙일 근거가 없을 때 이것만 보여준다.
+    let bundleIdentifier: String?
 
     var id: String { "\(pid):\(port)" }
+
+    /// 표준으로 배정된 대역. IANA 기준 0–1023 이다.
+    var isWellKnown: Bool { port < 1024 }
 
     /// 이 앱 자신인가. 자기를 끄는 버튼이 되면 안 되므로 중지를 막는다.
     var isSelf: Bool { pid == getpid() }
@@ -53,6 +62,13 @@ final class LocalhostManager: ObservableObject {
 
     private var timer: Timer?
 
+    /// pid 별 코드 서명 캐시.
+    ///
+    /// 서명 조회가 비싸다 — 17개에 24~64ms(실측). 2초 폴링마다 부르면 메인 스레드가
+    /// 걸린다. 살아 있는 pid 의 서명은 바뀌지 않으므로 한 번만 읽고 들고 있는다.
+    /// 값이 nil 인 것도 캐시한다. 못 읽는 프로세스를 매번 다시 두드리지 않게.
+    private var signingCache: [pid_t: ProcessSnapshot.SigningInfo?] = [:]
+
     /// 창이 보이는 동안만 훑는다. 카페인 목록과 같은 규칙이다.
     func startPolling() {
         refresh()
@@ -71,7 +87,7 @@ final class LocalhostManager: ObservableObject {
 
     /// 한 번 훑는다. 목록이 그대로면 `@Published` 를 건드리지 않는다.
     func refresh() {
-        let found = Self.scan()
+        let found = scan()
         guard found != ports else { return }
         ports = found
     }
@@ -106,7 +122,7 @@ final class LocalhostManager: ObservableObject {
         let family: String
     }
 
-    private static func scan() -> [LocalPort] {
+    private func scan() -> [LocalPort] {
         let all = ProcessSnapshot.all()
         var namesByPID: [pid_t: String] = [:]
         namesByPID.reserveCapacity(all.count)
@@ -115,11 +131,19 @@ final class LocalhostManager: ObservableObject {
         }
 
         var sockets: [Socket] = []
+        var hasTerminal: [pid_t: Bool] = [:]
         for entry in all {
             let pid = entry.kp_proc.p_pid
             guard pid > 0 else { continue }
-            sockets += listeningSockets(of: pid)
+            let found = Self.listeningSockets(of: pid)
+            guard !found.isEmpty else { continue }
+            sockets += found
+            hasTerminal[pid] = ProcessSnapshot.hasControllingTerminal(entry)
         }
+
+        // 죽은 pid 의 캐시는 버린다. 창을 오래 띄워두면 계속 쌓인다.
+        let alive = Set(sockets.map(\.pid))
+        signingCache = signingCache.filter { alive.contains($0.key) }
 
         // 같은 (pid, 포트) 를 한 줄로 합친다. 주소·주소군은 모아서 보여준다.
         let grouped = Dictionary(grouping: sockets) { "\($0.pid):\($0.port)" }
@@ -128,6 +152,11 @@ final class LocalhostManager: ObservableObject {
             guard let first = group.first else { return nil }
             let path = ProcessSnapshot.executablePath(of: first.pid)
 
+            let signing = signingCache[first.pid]
+                ?? { let read = ProcessSnapshot.signingInfo(of: first.pid)
+                     signingCache[first.pid] = read
+                     return read }()
+
             return LocalPort(
                 port: first.port,
                 pid: first.pid,
@@ -135,7 +164,10 @@ final class LocalhostManager: ObservableObject {
                     of: first.pid, path: path, shortName: namesByPID[first.pid] ?? ""),
                 processPath: path ?? "",
                 addresses: Array(Set(group.map(\.address))).sorted(),
-                families: Array(Set(group.map(\.family))).sorted())
+                families: Array(Set(group.map(\.family))).sorted(),
+                isSystem: signing?.isPlatformBinary ?? false,
+                startedFromTerminal: hasTerminal[first.pid] ?? false,
+                bundleIdentifier: signing?.identifier)
         }
         // 이 화면을 여는 이유가 "몇 번이 잡혀 있나" 라서 포트 순으로 둔다.
         // 시작 시각 순서는 여기서 쓸 데가 없다.
@@ -167,7 +199,7 @@ final class LocalhostManager: ObservableObject {
             let tcp = info.psi.soi_proto.pri_tcp
             guard tcp.tcpsi_state == TSI_S_LISTEN else { continue }
 
-            guard let socket = socket(of: pid, tcp.tcpsi_ini) else { continue }
+            guard let socket = Self.socket(of: pid, tcp.tcpsi_ini) else { continue }
             found.append(socket)
         }
         return found

@@ -113,3 +113,13 @@
 "localhost.stop" = "Stop";
 "localhost.stopFailed" = "Could not stop it: %@";
 "localhost.self" = "This is this app, so it cannot be stopped";
+"localhost.label.system" = "System";
+"localhost.label.systemHelp" = "Signed by Apple as a macOS system component. Stopping it can break part of the Mac.";
+"localhost.label.terminal" = "Your terminal";
+"localhost.label.terminalHelp" = "It holds a controlling terminal, so it was certainly started from a shell. The absence of this label does not mean you did not start it — a program that moves itself to the background gives up its terminal.";
+"localhost.label.wellKnown" = "well-known";
+"localhost.label.wellKnownHelp" = "Below port 1024, the range assigned by standard. Usually the system or a service.";
+"localhost.confirmTitle" = "“%@” is a macOS system component";
+"localhost.confirmBody" = "Stopping it can break part of the Mac. The system usually starts it again, but it may not.";
+"localhost.confirmStop" = "Stop Anyway";
+"localhost.confirmCancel" = "Cancel";
