@@ -81,3 +81,7 @@
 "cover.shortcutNone" = "None";
 "cover.shortcutRecording" = "Press a key…";
 "cover.shortcutHint" = "Must include ⌘, ⌥ or ⌃. Covers only. Delete clears it.";
+
+/* Menu bar */
+"menu.openWindow" = "Open Window";
+"menu.quit" = "Quit";

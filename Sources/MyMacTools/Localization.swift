@@ -104,6 +104,10 @@ final class L10n: ObservableObject {
         case coverShortcutRecording = "cover.shortcutRecording"
         case coverShortcutHint = "cover.shortcutHint"
 
+        // 메뉴바
+        case menuOpenWindow = "menu.openWindow"
+        case menuQuit = "menu.quit"
+
         case languageSystem = "language.system"
     }
 

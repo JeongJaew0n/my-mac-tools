@@ -57,8 +57,16 @@ struct MyMacToolsApp: App {
     @StateObject private var cover = ScreenCoverManager()
     @StateObject private var l10n = L10n()
 
+    /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
+    static let mainWindowID = "main"
+
+    /// 하나라도 돌고 있는가. 메뉴바 아이콘 모양을 이 값으로 바꾼다.
+    private var anyRunning: Bool {
+        manager.isRunning || lid.isRunning || cover.isCovering
+    }
+
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: Self.mainWindowID) {
             ContentView(manager: manager, lid: lid, cover: cover, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
@@ -66,13 +74,19 @@ struct MyMacToolsApp: App {
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
                 }
-                .onDisappear {
-                    // 창을 닫으면 화면 끄기 세션만 정리한다. 덮개 기능은 시스템 설정이라
-                    // 창 개폐와 수명을 같이하지 않는다 — 종료 시 경고로 처리한다.
-                    manager.stop()
-                }
         }
         .windowResizability(.contentSize)
+        // 상태 막대. 창을 열지 않고도 무엇이 돌고 있는지 보이고 켜고 끌 수 있다.
+        MenuBarExtra {
+            MenuBarContent(manager: manager, lid: lid, cover: cover, l10n: l10n)
+        } label: {
+            // 채워진 모양 = 무언가 돌고 있음. 덮개 기능은 앱을 꺼도 시스템에 남으므로
+            // 켜둔 것을 잊지 않게 하는 값어치가 크다.
+            Image(systemName: anyRunning
+                  ? "wrench.and.screwdriver.fill"
+                  : "wrench.and.screwdriver")
+        }
+        .menuBarExtraStyle(.menu)
         .commands {
             // 언어 선택은 메인 창이 아니라 상단 메뉴바에 둔다.
             CommandMenu(l10n(.labelLanguage)) {

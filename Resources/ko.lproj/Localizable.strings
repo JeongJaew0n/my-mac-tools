@@ -81,3 +81,7 @@
 "cover.shortcutNone" = "없음";
 "cover.shortcutRecording" = "키를 누르세요…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ 중 하나 포함. 덮기만 합니다. Delete 로 지움.";
+
+/* 메뉴바 */
+"menu.openWindow" = "창 열기";
+"menu.quit" = "종료";

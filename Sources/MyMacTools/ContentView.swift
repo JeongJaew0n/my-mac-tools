@@ -328,12 +328,7 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button(l10n(lid.isRunning ? .buttonStop : .buttonStart)) {
-                    if case .changed(true) = lid.toggle() {
-                        // 켜는 데 성공했으면 "끝나면 잠자기"를 끈다. 토글이 비활성화될 뿐
-                        // 값은 남아 있어서, 그대로 두면 만료 시 `pmset sleepnow` 가
-                        // kIOReturnNotPermitted 로 거부되고 아무 일도 없는 것처럼 보인다.
-                        manager.sleepWhenDone = false
-                    }
+                    Actions.toggleLid(lid, manager)
                 }
                 Spacer()
             }

@@ -81,3 +81,7 @@
 "cover.shortcutNone" = "なし";
 "cover.shortcutRecording" = "キーを押してください…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ のいずれかを含める。カバーのみ。Delete で消去。";
+
+/* メニューバー */
+"menu.openWindow" = "ウインドウを開く";
+"menu.quit" = "終了";
