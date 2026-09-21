@@ -10,13 +10,13 @@
 - [x] spec · context 작성
 
 ## 1. 메뉴바
-- [x] `MenuBarExtra` + `.menuBarExtraStyle(.menu)`
+- [x] `NSStatusItem` 직접 (`MenuBarExtra` 는 버튼을 못 내줘서 기각)
 - [x] 상태 막대에 아이콘이 뜬다 (실측 — 메뉴바 캡처로 확인)
-- [x] 돌고 있으면 채워진 모양, 아니면 외곽선
+- [x] 돌고 있으면 글리프 우측 하단에 초록 점, 아니면 아무것도 없음 (실측 — 켜고/끄고 캡처 비교)
 - [x] Dock 아이콘 유지 (`LSUIElement` 없음 확인)
 
 ## 2. 메뉴 내용
-- [x] 기능 3개를 `Toggle` 로 — 색 점은 메뉴 template 렌더링에 죽으므로 쓰지 않음
+- [x] 기능 3개를 체크마크(`NSMenuItem.state`)로 — 색 점은 메뉴 template 렌더링에 죽으므로 쓰지 않음
 - [x] 사진이 없으면 화면 가리기 항목 비활성
 - [x] `창 열기` — `WindowGroup` 에 id 부여 후 `openWindow`
 - [x] `종료` — `NSApp.terminate` 로 보내 덮개 경고를 거치게

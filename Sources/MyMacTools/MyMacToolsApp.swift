@@ -13,6 +13,8 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var lid: LidWorkManager?
     var l10n: L10n?
+    /// 상태 막대 항목. 창이 닫혀도 살아 있어야 하므로 델리게이트가 들고 있는다.
+    var statusItem: StatusItemController?
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let lid, let l10n else { return .terminateNow }
@@ -52,6 +54,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct MyMacToolsApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    /// 창이 닫힌 뒤에도 다시 열 수 있게 하는 SwiftUI 동작.
+    @Environment(\.openWindow) private var openWindowAction
     @StateObject private var manager = BlackWorkManager()
     @StateObject private var lid = LidWorkManager()
     @StateObject private var cover = ScreenCoverManager()
@@ -60,9 +64,16 @@ struct MyMacToolsApp: App {
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
     static let mainWindowID = "main"
 
-    /// 하나라도 돌고 있는가. 메뉴바 아이콘 모양을 이 값으로 바꾼다.
-    private var anyRunning: Bool {
-        manager.isRunning || lid.isRunning || cover.isCovering
+    /// 상태 막대 항목을 한 번만 만든다.
+    ///
+    /// `openWindow` 는 SwiftUI 환경 값이라 뷰 안에서만 꺼낼 수 있다. 여기서 클로저로
+    /// 잡아두면 **창이 닫힌 뒤에도** 메뉴의 `창 열기` 가 동작한다.
+    @MainActor
+    private func installStatusItem() {
+        guard appDelegate.statusItem == nil else { return }
+        appDelegate.statusItem = StatusItemController(
+            manager: manager, lid: lid, cover: cover, l10n: l10n,
+            openWindow: { openWindowAction(id: Self.mainWindowID) })
     }
 
     var body: some Scene {
@@ -73,20 +84,10 @@ struct MyMacToolsApp: App {
                     appDelegate.l10n = l10n
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
+                    installStatusItem()
                 }
         }
         .windowResizability(.contentSize)
-        // 상태 막대. 창을 열지 않고도 무엇이 돌고 있는지 보이고 켜고 끌 수 있다.
-        MenuBarExtra {
-            MenuBarContent(manager: manager, lid: lid, cover: cover, l10n: l10n)
-        } label: {
-            // 채워진 모양 = 무언가 돌고 있음. 덮개 기능은 앱을 꺼도 시스템에 남으므로
-            // 켜둔 것을 잊지 않게 하는 값어치가 크다.
-            Image(systemName: anyRunning
-                  ? "wrench.and.screwdriver.fill"
-                  : "wrench.and.screwdriver")
-        }
-        .menuBarExtraStyle(.menu)
         .commands {
             // 언어 선택은 메인 창이 아니라 상단 메뉴바에 둔다.
             CommandMenu(l10n(.labelLanguage)) {
