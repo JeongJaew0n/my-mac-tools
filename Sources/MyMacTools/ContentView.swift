@@ -173,7 +173,13 @@ struct ContentView: View {
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
+                // 글자 뒤 빈 자리까지 눌리게 한다. 제목 폭만 눌리면 어디를 눌러야
+                // 열리는지 눈으로 알 수 없다.
+                Spacer(minLength: 0)
             }
+            // `DisclosureGroup` 은 화살표만 눌린다. 제목을 눌러도 열고 닫히게 한다.
+            .contentShape(Rectangle())
+            .onTapGesture { caffeine.isExpanded.toggle() }
         }
     }
 
