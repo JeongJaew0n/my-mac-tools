@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Darwin
 import Foundation
@@ -7,8 +8,10 @@ struct CaffeinateProcess: Identifiable, Equatable {
     let pid: pid_t
     let ppid: pid_t
     let uid: uid_t
-    /// 부모의 실행 파일 경로. 못 읽으면 커널이 들고 있는 짧은 이름(최대 16자).
-    let parentLabel: String
+    /// 사람이 읽을 부모 이름. `MyMacTools`, `claude`, `zsh` 처럼.
+    let parentName: String
+    /// 부모의 실행 파일 전체 경로. 툴팁으로 보여준다. 못 읽으면 빈 문자열.
+    let parentPath: String
     let started: Date
     /// `argv` 에서 뽑은 플래그. 묶음(`-dimsu`)은 이미 쪼개져 있다.
     let flags: [CaffeinateFlag]
@@ -194,6 +197,7 @@ final class CaffeinateScanner: ObservableObject {
                 let pid = entry.kp_proc.p_pid
                 let ppid = entry.kp_eproc.e_ppid
                 let arguments = argumentsOf(pid)
+                let parentPath = executablePath(of: ppid)
                 // `argv[0]` 은 실행 파일 이름이라 플래그가 아니다.
                 let parsed = CaffeinateFlag.parse(Array((arguments ?? []).dropFirst()))
 
@@ -201,7 +205,10 @@ final class CaffeinateScanner: ObservableObject {
                     pid: pid,
                     ppid: ppid,
                     uid: entry.kp_eproc.e_ucred.cr_uid,
-                    parentLabel: executablePath(of: ppid) ?? namesByPID[ppid] ?? "",
+                    parentName: friendlyName(of: ppid,
+                                             path: parentPath,
+                                             shortName: namesByPID[ppid] ?? ""),
+                    parentPath: parentPath ?? "",
                     started: startDate(of: entry),
                     flags: parsed.flags,
                     utility: parsed.utility,
@@ -235,6 +242,51 @@ final class CaffeinateScanner: ObservableObject {
     private static func startDate(of entry: kinfo_proc) -> Date {
         let time = entry.kp_proc.p_starttime
         return Date(timeIntervalSince1970: Double(time.tv_sec) + Double(time.tv_usec) / 1_000_000)
+    }
+
+    /// 버전 번호처럼 생긴 경로 조각. `2.1.276`, `1.0`, `276` 같은 것.
+    private static func looksLikeVersion(_ component: String) -> Bool {
+        !component.isEmpty
+            && component.contains(where: \.isNumber)
+            && component.allSatisfy { $0.isNumber || $0 == "." || $0 == "-" || $0 == "_" }
+    }
+
+    /// 이름 구실을 못 하는 경로 조각. 어느 앱이든 같은 자리에 있는 것들이다.
+    private static let genericComponents: Set<String> = [
+        "versions", "version", "current", "bin", "sbin", "libexec", "MacOS",
+        "Contents", "Resources", "usr", "local", "share", "lib", "opt",
+    ]
+
+    /// 사람이 읽을 부모 이름.
+    ///
+    /// 경로의 마지막 조각을 그대로 쓰면 주인을 알 수 없는 경우가 있다. Claude Code 는
+    /// `/Users/…/share/claude/versions/2.1.276` 이라 `2.1.276` 만 보이고, 커널의 짧은
+    /// 이름도 똑같이 `2.1.276` 이다. 그래서 세 단계로 찾는다.
+    ///
+    /// 1. GUI 앱이면 `NSRunningApplication` 의 표시 이름 — 사용자가 Dock 에서 보는 그 이름이다
+    /// 2. `.app` 번들 안이면 번들 이름
+    /// 3. 그 외에는 경로를 뒤에서부터 훑어, 버전처럼 생긴 조각과 어느 앱에나 있는
+    ///    일반적인 폴더 이름을 건너뛴 첫 조각 (`…/claude/versions/2.1.276` → `claude`)
+    private static func friendlyName(of pid: pid_t, path: String?, shortName: String) -> String {
+        if let name = NSRunningApplication(processIdentifier: pid)?.localizedName, !name.isEmpty {
+            return name
+        }
+
+        guard let path, !path.isEmpty else { return shortName }
+
+        let components = path.split(separator: "/").map(String.init)
+
+        if let index = components.firstIndex(where: { $0.hasSuffix(".app") }) {
+            return String(components[index].dropLast(".app".count))
+        }
+
+        if let meaningful = components.reversed().first(where: {
+            !looksLikeVersion($0) && !genericComponents.contains($0)
+        }) {
+            return meaningful
+        }
+
+        return components.last ?? shortName
     }
 
     /// 실행 파일의 전체 경로. 다른 사용자 소유면 nil.

@@ -208,14 +208,14 @@ struct ContentView: View {
                     .truncationMode(.middle)
             }
 
-            // 짧은 이름은 16자로 잘려 주인을 못 알려준다. 경로를 가운데서 줄이고
-            // 전체는 툴팁으로 남긴다.
-            Text(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentLabel)
+            // 이름은 사람이 읽을 것으로, 전체 경로는 툴팁으로 남긴다.
+            Text(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentName)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .help(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentLabel)
+                .contentShape(Rectangle())
+                .help(process.parentPath.isEmpty ? process.parentName : process.parentPath)
         }
         .padding(Design.Padding.caffeineItem)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -234,16 +234,27 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
     private func caffeineChip(_ flag: CaffeinateFlag) -> some View {
-        Text(flag.label)
+        let chip = Text(flag.label)
             .font(.caption2.monospaced())
             .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
             .padding(.vertical, Design.Padding.caffeineChipVertical)
             .background(
                 RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
                     .fill(Color.primary.opacity(0.1)))
-            // 모르는 플래그는 설명을 달지 않는다. 지어낸 설명이 빈 칸보다 나쁘다.
-            .help(flag.explanation.map { l10n($0) } ?? "")
+
+        // 모르는 플래그는 설명을 달지 않는다. 지어낸 설명이 빈 칸보다 나쁘다.
+        // `.help("")` 를 주는 대신 아예 붙이지 않는다.
+        if let explanation = flag.explanation {
+            chip
+                // `Text` 의 히트 영역은 글자에 붙어 있어, 여백 위에서는 호버가 잡히지
+                // 않는다. 칩 전체를 호버 영역으로 만들어야 툴팁이 뜬다.
+                .contentShape(Rectangle())
+                .help(l10n(explanation))
+        } else {
+            chip
+        }
     }
 
     private func elapsed(since start: Date) -> String {
