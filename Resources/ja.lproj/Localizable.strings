@@ -123,3 +123,8 @@
 "localhost.confirmBody" = "停止するとMacの機能が止まることがあります。通常はシステムが再度起動しますが、しない場合もあります。";
 "localhost.confirmStop" = "それでも停止";
 "localhost.confirmCancel" = "キャンセル";
+"localhost.category.all" = "すべて";
+"localhost.category.other" = "その他";
+"localhost.searchPrompt" = "ポート番号";
+"localhost.noMatch" = "条件に合うものはありません";
+"localhost.showingCount" = "%2$d件中 %1$d件を表示";

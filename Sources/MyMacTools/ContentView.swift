@@ -636,13 +636,21 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
+            portFilters
+
             if localhost.ports.isEmpty {
                 Text(l10n(.localhostEmpty))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            } else if localhost.visiblePorts.isEmpty {
+                // 듣는 것이 없는 것과 필터에 걸러진 것은 다른 상태다. 같은 문구를
+                // 쓰면 포트를 놓쳤는지 필터 때문인지 알 수 없다.
+                Text(l10n(.localhostNoMatch))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             } else {
                 VStack(alignment: .leading, spacing: Design.Spacing.portItem) {
-                    ForEach(localhost.ports) { port in
+                    ForEach(localhost.visiblePorts) { port in
                         portRow(port)
                     }
                 }
@@ -655,6 +663,35 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// 범주 선택과 포트 검색.
+    private var portFilters: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
+            HStack(spacing: Design.Spacing.inRow) {
+                Picker("", selection: $localhost.category) {
+                    ForEach(PortCategory.allCases) { category in
+                        Text(l10n(category.titleKey)).tag(category)
+                    }
+                }
+                .labelsHidden()
+                .fixedSize()
+
+                // 숫자만 의미가 있다. 글자를 받아도 걸러내지만, 아예 숫자 자판이
+                // 뜨도록 힌트를 준다.
+                TextField(l10n(.localhostSearchPrompt), text: $localhost.search)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+            }
+
+            // 걸러낸 뒤 몇 개가 남았는지 알려준다. 필터를 걸어둔 것을 잊고 "포트가
+            // 사라졌다" 고 오해하지 않게 한다.
+            if localhost.isFiltered {
+                Text(l10n(.localhostShowingCount, localhost.visiblePorts.count, localhost.ports.count))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     private func portRow(_ port: LocalPort) -> some View {

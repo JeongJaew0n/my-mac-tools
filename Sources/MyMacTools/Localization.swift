@@ -141,6 +141,11 @@ final class L10n: ObservableObject {
         case localhostConfirmBody = "localhost.confirmBody"
         case localhostConfirmStop = "localhost.confirmStop"
         case localhostConfirmCancel = "localhost.confirmCancel"
+        case localhostCategoryAll = "localhost.category.all"
+        case localhostCategoryOther = "localhost.category.other"
+        case localhostSearchPrompt = "localhost.searchPrompt"
+        case localhostNoMatch = "localhost.noMatch"
+        case localhostShowingCount = "localhost.showingCount"
 
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"

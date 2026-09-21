@@ -123,3 +123,8 @@
 "localhost.confirmBody" = "Stopping it can break part of the Mac. The system usually starts it again, but it may not.";
 "localhost.confirmStop" = "Stop Anyway";
 "localhost.confirmCancel" = "Cancel";
+"localhost.category.all" = "All";
+"localhost.category.other" = "Other";
+"localhost.searchPrompt" = "Port number";
+"localhost.noMatch" = "Nothing matches";
+"localhost.showingCount" = "showing %1$d of %2$d";

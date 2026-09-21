@@ -38,6 +38,41 @@ struct LocalPort: Identifiable, Equatable {
     var url: URL? { URL(string: "http://localhost:\(port)") }
 }
 
+/// 목록을 좁히는 범주.
+///
+/// 라벨과 같은 축을 쓴다. 화면에 보이는 라벨과 고를 수 있는 범주가 어긋나면 무엇으로
+/// 걸러진 것인지 알 수 없다. `기타` 는 **라벨이 하나도 없는 것** 이다 — 근거가 없어
+/// 단정하지 않은 줄들이다.
+enum PortCategory: String, CaseIterable, Identifiable {
+    case all
+    case system
+    case wellKnown
+    case terminal
+    case other
+
+    var id: String { rawValue }
+
+    var titleKey: L10n.Key {
+        switch self {
+        case .all: return .localhostCategoryAll
+        case .system: return .localhostLabelSystem
+        case .wellKnown: return .localhostLabelWellKnown
+        case .terminal: return .localhostLabelTerminal
+        case .other: return .localhostCategoryOther
+        }
+    }
+
+    func matches(_ port: LocalPort) -> Bool {
+        switch self {
+        case .all: return true
+        case .system: return port.isSystem
+        case .wellKnown: return port.isWellKnown
+        case .terminal: return port.startedFromTerminal
+        case .other: return !port.isSystem && !port.isWellKnown && !port.startedFromTerminal
+        }
+    }
+}
+
 /// 듣고 있는 localhost 포트를 훑는다.
 ///
 /// `lsof` 를 띄우지 않고 `libproc` 을 직접 부른다. 실측으로 `lsof` 와 결과가 정확히
@@ -51,9 +86,27 @@ final class LocalhostManager: ObservableObject {
     @Published private(set) var ports: [LocalPort] = []
     /// 중지에 실패한 이유. 성공하면 비운다.
     @Published var lastError: String?
+    /// 고른 범주.
+    @Published var category: PortCategory = .all
+    /// 포트 검색어. 숫자만 쓴다.
+    @Published var search: String = ""
 
     /// 탭 점과 메뉴바가 보는 값. 듣고 있는 것이 하나라도 있으면 켜진 것으로 본다.
+    ///
+    /// **걸러낸 결과가 아니라 전체를 본다.** 필터를 걸어 아무것도 안 보이는 것과
+    /// 듣는 것이 없는 것은 다른 상태다.
     var isRunning: Bool { !ports.isEmpty }
+
+    /// 범주와 검색어를 적용한 결과. 화면은 이것만 그린다.
+    var visiblePorts: [LocalPort] {
+        let digits = search.filter(\.isNumber)
+        return ports
+            .filter { category.matches($0) }
+            .filter { digits.isEmpty || String($0.port).contains(digits) }
+    }
+
+    /// 필터가 걸려 있는가. 걸렸는데 결과가 비면 안내 문구가 달라야 한다.
+    var isFiltered: Bool { category != .all || !search.filter(\.isNumber).isEmpty }
 
     private static let interval: TimeInterval = 2
 
