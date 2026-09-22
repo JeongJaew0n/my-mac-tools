@@ -316,5 +316,6 @@ scripts/mymactools sleep.start hours=1 screenMode=keepOn
 - `docs/plans/` — 작업 계획
 - `docs/glossary/` — 도메인 용어
 - `docs/api.md` — 에이전트용 API
+- `docs/sharing.md` — 남에게 줄 때 무엇이 문제인가
 - `docs/troubleshootings/` — 오류와 해결 기록 (`reusable/` · `project-specific/`)
 - `docs/DESIGN.md` — 디자인 시스템
