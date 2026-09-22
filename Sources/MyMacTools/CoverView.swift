@@ -28,14 +28,14 @@ struct CoverView: View {
                 Spacer()
                 controls
             }
-            .padding(Design.Cover.controlsPadding)
+            .padding(Design.Inset.overlay)
         }
         .ignoresSafeArea()
     }
 
     /// 사진이 무엇이든 읽히도록 반투명 판 위에 올린다.
     private var controls: some View {
-        VStack(spacing: Design.Cover.controlsSpacing) {
+        VStack(spacing: Design.Space.overlayRow) {
             Text(hint)
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -45,7 +45,7 @@ struct CoverView: View {
             Button(dismissTitle, action: onDismiss)
                 .controlSize(.large)
         }
-        .padding(Design.Cover.panelPadding)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Design.Cover.panelCornerRadius))
+        .padding(Design.Inset.panel)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: Design.Radius.panel))
     }
 }

@@ -134,8 +134,8 @@ struct MyMacToolsApp: App {
         // `.contentMinSize` 로 바꾸면 뷰의 `idealWidth/Height` 가 무시되고 SwiftUI 기본
         // 900x450 으로 열린다. 처음 크기는 이쪽으로 지정해야 한다.
         // (창 위치·크기는 그 뒤 macOS 가 알아서 기억한다.)
-        .defaultSize(width: Design.Size.windowWidth,
-                     height: Design.Size.windowContentHeight + Design.Size.titleBarHeight)
+        .defaultSize(width: Design.Window.width,
+                     height: Design.Window.contentHeight + Design.Window.titleBarHeight)
         .commands {
             // 언어 선택은 메인 창이 아니라 상단 메뉴바에 둔다.
             CommandMenu(l10n(.labelLanguage)) {

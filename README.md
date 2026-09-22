@@ -351,7 +351,12 @@ scripts/mymactools sleep.start hours=1 screenMode=keepOn
 ```bash
 swift build -c release      # 바이너리만
 ./scripts/build-app.sh      # .app 번들 (아이콘·문자열 조립 + ad-hoc 서명)
+./scripts/build-tokens.py   # 디자인 토큰 → Design.swift, tokens.css
 ```
+
+`Sources/MyMacTools/Design.swift` 는 **생성물입니다.** 간격·모서리·크기를 바꾸려면
+`design/tokens.json` 을 고치고 위 스크립트를 돌리세요. 값만 갈아끼워 다른 디자인을
+입히는 방법은 [`docs/design-tokens.md`](docs/design-tokens.md) 에 있습니다.
 
 `scripts/build-app.sh` 의 `APP_NAME`, `Resources/Info.plist` 의
 `CFBundleExecutable`/`CFBundleName`, `Package.swift` 의 타깃명이 서로 맞아야 번들이
@@ -377,7 +382,8 @@ macOS 26 이 앱 아이콘에 스퀘어클 마스크와 그림자를 자동으�
 | --- | --- |
 | [`docs/api.md`](docs/api.md) | 에이전트용 API — 메서드 표와 예시 |
 | [`docs/sharing.md`](docs/sharing.md) | 남에게 줄 때 무엇이 문제인가 |
-| [`docs/DESIGN.md`](docs/DESIGN.md) | 디자인 시스템 |
+| [`docs/DESIGN.md`](docs/DESIGN.md) | 디자인 시스템 — UI 가 지키는 원칙 |
+| [`docs/design-tokens.md`](docs/design-tokens.md) | 디자인 토큰 — 값을 바꾸는 법, 다른 제품에서 쓰는 법 |
 | [`docs/i18n-design.md`](docs/i18n-design.md) | 다국어 설계 |
 | [`docs/glossary/`](docs/glossary/) | 이 프로젝트의 도메인 용어 |
 | [`docs/plans/`](docs/plans/) | 기능별 작업 계획 — 무엇을 왜 그렇게 정했는가 |

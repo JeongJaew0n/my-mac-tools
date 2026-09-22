@@ -19,9 +19,11 @@ Sources/MyMacTools/
 ├── StatusItemController.swift  메뉴바 항목
 ├── Actions.swift            메뉴바와 창이 함께 쓰는 동작
 ├── Localization.swift       L10n.Key 와 언어 전환
-└── Design.swift             디자인 토큰 (Padding/Spacing/Size/Color)
+└── Design.swift             디자인 토큰 — **생성물이다. 직접 고치지 않는다**
 Resources/                   Info.plist, 아이콘, ko/en/ja lproj
-scripts/                     build-app.sh, install-sudoers.sh, mymactools (API 클라이언트)
+design/                      디자인 토큰 출처 (tokens.json, themes/)
+scripts/                     build-app.sh, install-sudoers.sh, build-tokens.py,
+                             mymactools (API 클라이언트)
 docs/                        계획·용어·트러블슈팅 (아래 docs 규칙 참고)
 ```
 
@@ -48,6 +50,13 @@ Tool 을 추가하면 `enum Tab` 에 case 를 넣고 전용 Manager 를 만든�
   있으면 `project-specific/`.
 - 도메인 용어를 새로 만들거나 이름을 바꾸면 `docs/glossary/README.md` 를 먼저 고치고
   코드를 그 이름에 맞춘다. 코드만 바꾸면 용어집이 거짓말이 된다.
+
+### 디자인 수치
+- `Sources/MyMacTools/Design.swift` 는 **생성물**이다. 고치면 다음 생성에서 사라진다.
+  값을 바꾸려면 `design/tokens.json` 을 고치고 `scripts/build-tokens.py` 를 돌린다.
+- 새 수치가 필요하면 **역할 이름**을 먼저 정한다 (`listItem`, `labelGap`). 제품 이름
+  (`caffeine`, `port`)을 `semantic` 층에 넣지 않는다 — 그건 역할 이름을 잘못 고른 것이다.
+- 자세한 것은 `docs/design-tokens.md`.
 
 ### 설계
 - 기능 묶음 단위는 **Tool** 이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지

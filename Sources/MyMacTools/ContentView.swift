@@ -48,11 +48,11 @@ struct ContentView: View {
     @AppStorage("selectedTab") private var selection: Tab = .screenOff
 
     var body: some View {
-        VStack(spacing: Design.Spacing.none) {
+        VStack(spacing: Design.Space.none) {
             tabBar
-                .padding(.horizontal, Design.Padding.tabBarHorizontal)
-                .padding(.top, Design.Padding.tabBarTop)
-                .padding(.bottom, Design.Padding.tabBarBottom)
+                .padding(.horizontal, Design.Inset.navX)
+                .padding(.top, Design.Inset.navTop)
+                .padding(.bottom, Design.Inset.navBottom)
 
             Divider()
 
@@ -65,18 +65,18 @@ struct ContentView: View {
                     case .localhost: localhostTab
                     }
                 }
-                .padding(Design.Padding.content)
+                .padding(Design.Inset.screen)
             }
             // 내용이 창에 들어가면 스크롤바도 바운스도 없다. 넘칠 때만 스크롤된다.
             .scrollBounceBehavior(.basedOnSize)
         }
         // 고정이 아니라 **기본값 + 최소값**이다. 사용자가 창을 늘리고 줄일 수 있다.
         // `ideal` 이 처음 열릴 때의 크기가 되므로, 탭을 바꿔도 창이 튀지 않는 성질은 그대로다.
-        .frame(minWidth: Design.Size.windowMinWidth,
-               idealWidth: Design.Size.windowWidth,
+        .frame(minWidth: Design.Window.minWidth,
+               idealWidth: Design.Window.width,
                maxWidth: .infinity,
-               minHeight: Design.Size.windowMinContentHeight,
-               idealHeight: Design.Size.windowContentHeight,
+               minHeight: Design.Window.minContentHeight,
+               idealHeight: Design.Window.contentHeight,
                maxHeight: .infinity,
                alignment: .top)
         // 값이 재부팅·강제 종료 뒤에도 남으므로, 창이 다시 앞으로 나올 때마다
@@ -103,22 +103,22 @@ struct ContentView: View {
     /// 탭 뒤에 숨겨버리면 켜둔 사실이 화면 어디에도 없게 되므로, 어느 탭에 있든 보이게 한다.
     /// 점은 매니저의 `isRunning` 을 그대로 따라간다. 따로 기억하지 않는다.
     private var tabBar: some View {
-        HStack(spacing: Design.Spacing.tabItem) {
+        HStack(spacing: Design.Space.navItemGap) {
             ForEach(Tab.allCases) { tab in
                 Button {
                     selection = tab
                 } label: {
-                    HStack(spacing: Design.Spacing.dotToLabel) {
+                    HStack(spacing: Design.Space.labelGap) {
                         // 아이콘이 상태 점을 겸한다. 돌고 있으면 초록.
                         // 직접 그리는 탭바라 `.tabItem` 처럼 색이 template 으로 죽지 않는다.
                         Image(systemName: tab.symbol)
-                            .font(.system(size: Design.Size.tabIcon))
+                            .font(.system(size: Design.Size.navIcon))
                             .foregroundStyle(isRunning(tab) ? Color.green : Color.secondary)
                         Text(l10n(tab.titleKey))
                             .fontWeight(selection == tab ? .semibold : .regular)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, Design.Padding.tabItemVertical)
+                    .padding(.vertical, Design.Inset.navItemY)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -126,7 +126,7 @@ struct ContentView: View {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
                     if selection == tab {
-                        RoundedRectangle(cornerRadius: Design.Size.tabCornerRadius).fill(.quaternary)
+                        RoundedRectangle(cornerRadius: Design.Radius.control).fill(.quaternary)
                     }
                 }
             }
@@ -145,7 +145,7 @@ struct ContentView: View {
     // MARK: - 화면 끄고 작업
 
     private var screenOffTab: some View {
-        VStack(spacing: Design.Spacing.sleepBlock) {
+        VStack(spacing: Design.Space.blockLoose) {
             statusRow
 
             settings
@@ -173,7 +173,7 @@ struct ContentView: View {
     /// 근거는 `docs/plans/caffeinate-list/context.md`.
     private var caffeineSection: some View {
         DisclosureGroup(isExpanded: $caffeine.isExpanded) {
-            VStack(alignment: .leading, spacing: Design.Spacing.caffeineItem) {
+            VStack(alignment: .leading, spacing: Design.Space.listItem) {
                 if caffeine.processes.isEmpty {
                     Text(l10n(.caffeineEmpty))
                         .font(.caption)
@@ -191,9 +191,9 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, Design.Spacing.caffeineItem)
+            .padding(.top, Design.Space.listItem)
         } label: {
-            HStack(spacing: Design.Spacing.dotToLabel) {
+            HStack(spacing: Design.Space.labelGap) {
                 Text(l10n(.caffeineSectionTitle))
                     .font(.callout)
                 // 접혀 있어도 몇 개가 돌고 있는지 보여야 목적을 달성한다.
@@ -213,8 +213,8 @@ struct ContentView: View {
     }
 
     private func caffeineRow(_ process: CaffeinateProcess) -> some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.caffeineItemRow) {
-            HStack(spacing: Design.Spacing.inRow) {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack(spacing: Design.Space.inline) {
                 Text("pid \(process.pid)")
                     .font(.caption.monospacedDigit())
                 Spacer(minLength: 4)
@@ -228,7 +228,7 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                HStack(spacing: Design.Spacing.caffeineChip) {
+                HStack(spacing: Design.Space.chipGap) {
                     ForEach(process.flags) { flag in
                         caffeineChip(flag)
                     }
@@ -252,10 +252,10 @@ struct ContentView: View {
                 .contentShape(Rectangle())
                 .help(process.parentPath.isEmpty ? process.parentName : process.parentPath)
         }
-        .padding(Design.Padding.caffeineItem)
+        .padding(Design.Inset.card)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: Design.Size.caffeineItemCornerRadius)
+            RoundedRectangle(cornerRadius: Design.Radius.card)
                 .fill(Color.primary.opacity(0.05)))
         .contextMenu {
             Button(l10n(.caffeineStop)) {
@@ -273,10 +273,10 @@ struct ContentView: View {
     private func caffeineChip(_ flag: CaffeinateFlag) -> some View {
         let chip = Text(flag.label)
             .font(.caption2.monospaced())
-            .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
-            .padding(.vertical, Design.Padding.caffeineChipVertical)
+            .padding(.horizontal, Design.Inset.chipX)
+            .padding(.vertical, Design.Inset.chipY)
             .background(
-                RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
+                RoundedRectangle(cornerRadius: Design.Radius.chip)
                     .fill(Color.primary.opacity(0.1)))
 
         // 모르는 플래그는 설명을 달지 않는다. 지어낸 설명이 빈 칸보다 나쁘다.
@@ -305,7 +305,7 @@ struct ContentView: View {
         HStack {
             Circle()
                 .fill(manager.isRunning ? .green : .gray)
-                .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                .frame(width: Design.Size.indicator, height: Design.Size.indicator)
             Text(l10n(statusKey))
                 .font(.body)
         }
@@ -323,8 +323,8 @@ struct ContentView: View {
     }
 
     private var settings: some View {
-        VStack(spacing: Design.Spacing.settingsRow) {
-            HStack(spacing: Design.Spacing.inRow) {
+        VStack(spacing: Design.Space.formRow) {
+            HStack(spacing: Design.Space.inline) {
                 Text(l10n(.labelKeepWorking))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.hours) {
@@ -349,7 +349,7 @@ struct ContentView: View {
 
             // 셋이 서로 배타적이라 체크박스 여러 개가 아니라 목록 하나로 둔다.
             // 체크박스였다면 "끈 상태로 유지 + 계속 켜두기" 같은 모순 조합이 가능해진다.
-            HStack(spacing: Design.Spacing.inRow) {
+            HStack(spacing: Design.Space.inline) {
                 Text(l10n(.labelScreenMode))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.screenMode) {
@@ -362,7 +362,7 @@ struct ContentView: View {
             }
 
             // 지연 시간은 화면을 끌 때만 의미가 있다.
-            HStack(spacing: Design.Spacing.inRow) {
+            HStack(spacing: Design.Space.inline) {
                 Text(l10n(.labelScreenOffIn))
                 Spacer(minLength: 4)
                 Picker("", selection: $manager.displayDelaySeconds) {
@@ -435,20 +435,20 @@ struct ContentView: View {
     /// 기능 이름은 탭 라벨이 지니므로 여기서 다시 제목을 달지 않는다.
     /// 대신 위 탭과 같은 모양의 상태 줄로 시작한다.
     private var lidTab: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.lidBlock) {
+        VStack(alignment: .leading, spacing: Design.Space.block) {
             // 이 VStack 은 주의사항 목록 때문에 leading 정렬이다. 상태 줄만은 잠자기 방지
             // 탭과 같게 가운데에 두어야 해서 폭을 끝까지 펴고 그 안에서 가운데 정렬한다.
             HStack {
                 Circle()
                     .fill(lid.isRunning ? .green : .gray)
-                    .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                    .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                 Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
                     .font(.body)
             }
             .frame(maxWidth: .infinity)
 
             // 유지 시간. 켜져 있는 동안에는 못 바꾼다.
-            HStack(spacing: Design.Spacing.inRow) {
+            HStack(spacing: Design.Space.inline) {
                 Text(l10n(.labelKeepWorking))
                 Spacer(minLength: 4)
                 Picker("", selection: $lid.hours) {
@@ -520,15 +520,15 @@ struct ContentView: View {
     ]
 
     private var cautions: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.listRow) {
-            HStack(spacing: Design.Spacing.tabItem) {
+        VStack(alignment: .leading, spacing: Design.Space.listRow) {
+            HStack(spacing: Design.Space.navItemGap) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                 Text(l10n(.lidCautionTitle))
                     .fontWeight(.medium)
             }
             ForEach(Self.cautionKeys, id: \.self) { key in
-                HStack(alignment: .top, spacing: Design.Spacing.listRow) {
+                HStack(alignment: .top, spacing: Design.Space.listRow) {
                     Text("•")
                     Text(l10n(key))
                         .fixedSize(horizontal: false, vertical: true)
@@ -544,17 +544,17 @@ struct ContentView: View {
     /// 잠금이 아니라는 것을 화면에서도 읽히게 둔다. 인증이 없는 것이 결함이 아니라
     /// 용도라는 점이 안 보이면, 자리를 비우는 보안 수단으로 잘못 쓰게 된다.
     private var coverTab: some View {
-        VStack(spacing: Design.Spacing.sleepBlock) {
+        VStack(spacing: Design.Space.blockLoose) {
             HStack {
                 Circle()
                     .fill(cover.isCovering ? .green : .gray)
-                    .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                    .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                 Text(l10n(cover.isCovering ? .coverStatusOn : .coverStatusOff))
                     .font(.body)
             }
 
-            VStack(spacing: Design.Spacing.settingsRow) {
-                HStack(spacing: Design.Spacing.inRow) {
+            VStack(spacing: Design.Space.formRow) {
+                HStack(spacing: Design.Space.inline) {
                     Text(l10n(.coverLabelImage))
                     Spacer(minLength: 4)
                     Button(l10n(.coverChooseImage), action: chooseImage)
@@ -567,7 +567,7 @@ struct ContentView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                HStack(spacing: Design.Spacing.inRow) {
+                HStack(spacing: Design.Space.inline) {
                     Text(l10n(.coverLabelFillMode))
                     Spacer(minLength: 4)
                     Picker("", selection: $cover.fillMode) {
@@ -579,7 +579,7 @@ struct ContentView: View {
                     .fixedSize()
                 }
 
-                HStack(spacing: Design.Spacing.inRow) {
+                HStack(spacing: Design.Space.inline) {
                     Text(l10n(.coverLabelShortcut))
                     Spacer(minLength: 4)
                     ShortcutRecorder(
@@ -639,12 +639,12 @@ struct ContentView: View {
     /// 다른 셋과 달리 **켜고 끄는 Tool 이 아니다.** 시작 버튼이 없고, 보여주는 것과
     /// 여는 것·끄는 것만 있다. 그래서 상태행도 "켜짐/꺼짐" 이 아니라 개수를 말한다.
     private var localhostTab: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.portBlock) {
-            VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
-                HStack(spacing: Design.Spacing.dotToLabel) {
+        VStack(alignment: .leading, spacing: Design.Space.block) {
+            VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                HStack(spacing: Design.Space.labelGap) {
                     Circle()
                         .fill(localhost.isRunning ? .green : .gray)
-                        .frame(width: Design.Size.statusDot, height: Design.Size.statusDot)
+                        .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                     Text(localhost.ports.isEmpty
                          ? l10n(.localhostStatusNone)
                          : l10n(.localhostStatusCount, localhost.ports.count))
@@ -670,7 +670,7 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                VStack(alignment: .leading, spacing: Design.Spacing.portItem) {
+                VStack(alignment: .leading, spacing: Design.Space.listItem) {
                     ForEach(localhost.visiblePorts) { port in
                         portRow(port)
                     }
@@ -688,8 +688,8 @@ struct ContentView: View {
 
     /// 범주 선택과 포트 검색.
     private var portFilters: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
-            HStack(spacing: Design.Spacing.inRow) {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack(spacing: Design.Space.inline) {
                 Picker("", selection: $localhost.category) {
                     ForEach(PortCategory.allCases) { category in
                         Text(l10n(category.titleKey)).tag(category)
@@ -716,8 +716,8 @@ struct ContentView: View {
     }
 
     private func portRow(_ port: LocalPort) -> some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.portItemRow) {
-            HStack(spacing: Design.Spacing.inRow) {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack(spacing: Design.Space.inline) {
                 // 이 화면을 여는 이유가 "몇 번이 잡혀 있나" 라서 포트를 가장 크게 둔다.
                 Text("\(port.port)")
                     .font(.title3.monospacedDigit())
@@ -737,7 +737,7 @@ struct ContentView: View {
             // 것" 인지는 어떤 신호로도 가려낼 수 없어(daemonize 하면 부모도 터미널도
             // 사라진다) 단정하지 않는다. 대신 번들 식별자를 그대로 보여주고 판단을
             // 사용자에게 남긴다. 근거는 `docs/plans/localhost-list/research.md`.
-            HStack(spacing: Design.Spacing.caffeineChip) {
+            HStack(spacing: Design.Space.chipGap) {
                 if port.isSystem {
                     portChip(l10n(.localhostLabelSystem), tint: .red,
                              help: l10n(.localhostLabelSystemHelp))
@@ -767,10 +767,10 @@ struct ContentView: View {
                     .truncationMode(.middle)
             }
         }
-        .padding(Design.Padding.caffeineItem)
+        .padding(Design.Inset.card)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: Design.Size.caffeineItemCornerRadius)
+            RoundedRectangle(cornerRadius: Design.Radius.card)
                 .fill(Color.primary.opacity(0.05)))
         .contextMenu {
             Button(l10n(.localhostStop)) {
@@ -790,10 +790,10 @@ struct ContentView: View {
         Text(text)
             .font(.caption2.monospaced())
             .foregroundStyle(tint ?? .primary)
-            .padding(.horizontal, Design.Padding.caffeineChipHorizontal)
-            .padding(.vertical, Design.Padding.caffeineChipVertical)
+            .padding(.horizontal, Design.Inset.chipX)
+            .padding(.vertical, Design.Inset.chipY)
             .background(
-                RoundedRectangle(cornerRadius: Design.Size.caffeineChipCornerRadius)
+                RoundedRectangle(cornerRadius: Design.Radius.chip)
                     .fill((tint ?? Color.primary).opacity(0.1)))
             .contentShape(Rectangle())
             .help(help ?? "")

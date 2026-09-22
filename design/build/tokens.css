@@ -1,0 +1,56 @@
+/* 이 파일은 design/tokens.json 에서 생성됩니다. 직접 고치지 마세요. */
+/* 테마: base */
+:root {
+  --primitive-dimension-dotMd: 10px;
+  --primitive-dimension-dotSm: 8px;
+  --primitive-dimension-iconSm: 11px;
+  --primitive-radius-md: 12px;
+  --primitive-radius-none: 0px;
+  --primitive-radius-sm: 6px;
+  --primitive-radius-xs: 3px;
+  --primitive-space-0: 0px;
+  --primitive-space-1: 3px;
+  --primitive-space-10: 40px;
+  --primitive-space-2: 4px;
+  --primitive-space-3: 5px;
+  --primitive-space-4: 6px;
+  --primitive-space-5: 8px;
+  --primitive-space-6: 10px;
+  --primitive-space-7: 12px;
+  --primitive-space-8: 16px;
+  --primitive-space-9: 20px;
+  --product-window-contentHeight: 336px;
+  --product-window-minContentHeight: 240px;
+  --product-window-minWidth: 320px;
+  --product-window-titleBarHeight: 32px;
+  --product-window-width: 380px;
+  --semantic-inset-card: 8px;
+  --semantic-inset-chipX: 5px;
+  --semantic-inset-chipY: 1px;
+  --semantic-inset-navBottom: 8px;
+  --semantic-inset-navItemY: 6px;
+  --semantic-inset-navTop: 10px;
+  --semantic-inset-navX: 12px;
+  --semantic-inset-overlay: 40px;
+  --semantic-inset-panel: 16px;
+  --semantic-inset-screen: 20px;
+  --semantic-radius-card: 6px;
+  --semantic-radius-chip: 3px;
+  --semantic-radius-control: 6px;
+  --semantic-radius-panel: 12px;
+  --semantic-size-indicator: 10px;
+  --semantic-size-indicatorSmall: 8px;
+  --semantic-size-navIcon: 11px;
+  --semantic-space-block: 12px;
+  --semantic-space-blockLoose: 16px;
+  --semantic-space-chipGap: 4px;
+  --semantic-space-formRow: 10px;
+  --semantic-space-inline: 8px;
+  --semantic-space-labelGap: 6px;
+  --semantic-space-listItem: 8px;
+  --semantic-space-listRow: 5px;
+  --semantic-space-navItemGap: 4px;
+  --semantic-space-none: 0px;
+  --semantic-space-overlayRow: 12px;
+  --semantic-space-rowTight: 3px;
+}

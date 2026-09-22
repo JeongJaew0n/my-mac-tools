@@ -1,0 +1,28 @@
+{
+  "$name": "normalized",
+  "$description": "docs/DESIGN.md §8.1 의 정규화 제안을 값으로만 적용한 테마. 눈금을 4의 배수로 줄인다. 역할 이름은 하나도 바뀌지 않는다 — 원시 눈금만 덮어쓴다.",
+
+  "primitive": {
+    "space": {
+      "1": { "value": 4,  "$description": "3 → 4" },
+      "3": { "value": 4,  "$description": "5 → 4. 주의사항 줄 간격이 1pt 촘촘해진다" },
+      "4": { "value": 8,  "$description": "6 → 8. 탭 점과 글이 2pt 벌어진다" },
+      "6": { "value": 12, "$description": "10 → 12. 설정 항목 간격" }
+    }
+  },
+
+  "semantic": {
+    "space": {
+      "blockLoose": { "value": "{primitive.space.7}", "$description": "16 → 12. 두 탭의 블록 간격을 통일한다 (§8.2)" }
+    },
+    "inset": {
+      "chipY": { "value": "{primitive.space.1}", "$description": "1 → 4. 칩 위아래도 눈금에 올린다" }
+    }
+  },
+
+  "product": {
+    "window": {
+      "contentHeight": { "value": 320, "$description": "블록 간격이 줄어 내용이 짧아지므로 다시 재야 한다. 이 값은 눈으로 확인하기 전까지 임시다" }
+    }
+  }
+}
