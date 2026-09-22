@@ -128,7 +128,9 @@ struct MyMacToolsApp: App {
                     installAPIServer()
                 }
         }
-        .windowResizability(.contentSize)
+        // `.contentSize` 는 내용의 ideal 크기로 창을 **못 박는다.** 사용자가 끌어도 안 움직인다.
+        // `.contentMinSize` 는 최소만 지키고 그 위로는 자유롭게 놔둔다.
+        .windowResizability(.contentMinSize)
         .commands {
             // 언어 선택은 메인 창이 아니라 상단 메뉴바에 둔다.
             CommandMenu(l10n(.labelLanguage)) {

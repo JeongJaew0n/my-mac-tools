@@ -76,12 +76,16 @@ enum Design {
 
     /// 크기.
     enum Size {
-        /// 창 폭. 고정이다.
+        /// 창 폭의 **기본값**. 사용자가 늘리고 줄일 수 있다.
         static let windowWidth: CGFloat = 320
-        /// 창 **내용** 높이. 타이틀바(32)는 포함하지 않는다.
-        /// 두 탭 중 긴 쪽(덮어도 작업)의 내용 높이에 정확히 맞춘다.
+        /// 창 폭의 최소값. 이보다 좁아지면 라벨과 컨트롤이 한 줄에 못 들어간다.
+        static let windowMinWidth: CGFloat = 320
+        /// 창 **내용** 높이의 기본값. 타이틀바(32)는 포함하지 않는다.
+        /// 가장 긴 탭의 내용 높이에 맞춘다. 탭을 바꿀 때 창이 튀지 않게 하기 위한 값이다.
         /// 자세한 근거는 `docs/DESIGN.md` 의 "창" 절.
         static let windowContentHeight: CGFloat = 336
+        /// 창 내용 높이의 최소값. 이 아래로는 줄여도 `ScrollView` 가 받아낸다.
+        static let windowMinContentHeight: CGFloat = 240
         /// 본문의 상태 점.
         static let statusDot: CGFloat = 10
         /// 탭 라벨의 상태 점. 본문보다 작게 두어 위계를 만든다.

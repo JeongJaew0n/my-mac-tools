@@ -59,7 +59,15 @@ struct ContentView: View {
             // 내용이 창에 들어가면 스크롤바도 바운스도 없다. 넘칠 때만 스크롤된다.
             .scrollBounceBehavior(.basedOnSize)
         }
-        .frame(width: Design.Size.windowWidth, height: Design.Size.windowContentHeight, alignment: .top)
+        // 고정이 아니라 **기본값 + 최소값**이다. 사용자가 창을 늘리고 줄일 수 있다.
+        // `ideal` 이 처음 열릴 때의 크기가 되므로, 탭을 바꿔도 창이 튀지 않는 성질은 그대로다.
+        .frame(minWidth: Design.Size.windowMinWidth,
+               idealWidth: Design.Size.windowWidth,
+               maxWidth: .infinity,
+               minHeight: Design.Size.windowMinContentHeight,
+               idealHeight: Design.Size.windowContentHeight,
+               maxHeight: .infinity,
+               alignment: .top)
         // 값이 재부팅·강제 종료 뒤에도 남으므로, 창이 다시 앞으로 나올 때마다
         // 앱이 기억한 상태가 아니라 커널의 실제 값으로 맞춘다.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
