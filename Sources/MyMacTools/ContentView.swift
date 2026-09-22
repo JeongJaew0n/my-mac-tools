@@ -19,6 +19,17 @@ enum Tab: String, CaseIterable, Identifiable {
         case .localhost: return .tabLocalhost
         }
     }
+
+    /// 탭 아이콘. 상태 점 자리를 대신한다 — 320pt 에 탭 넷이라
+    /// 점·아이콘·글자를 다 넣을 자리가 없다.
+    var symbol: String {
+        switch self {
+        case .screenOff: return "cup.and.saucer.fill"   // caffeinate
+        case .lid: return "laptopcomputer"              // 덮개
+        case .cover: return "photo.fill"                // 사진으로 가리기
+        case .localhost: return "network"               // 포트
+        }
+    }
 }
 
 struct ContentView: View {
@@ -98,9 +109,11 @@ struct ContentView: View {
                     selection = tab
                 } label: {
                     HStack(spacing: Design.Spacing.dotToLabel) {
-                        Circle()
-                            .fill(isRunning(tab) ? .green : .gray)
-                            .frame(width: Design.Size.tabDot, height: Design.Size.tabDot)
+                        // 아이콘이 상태 점을 겸한다. 돌고 있으면 초록.
+                        // 직접 그리는 탭바라 `.tabItem` 처럼 색이 template 으로 죽지 않는다.
+                        Image(systemName: tab.symbol)
+                            .font(.system(size: Design.Size.tabIcon))
+                            .foregroundStyle(isRunning(tab) ? Color.green : Color.secondary)
                         Text(l10n(tab.titleKey))
                             .fontWeight(selection == tab ? .semibold : .regular)
                     }

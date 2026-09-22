@@ -76,9 +76,10 @@ enum Design {
 
     /// 크기.
     enum Size {
-        /// 창 폭의 **기본값**. 사용자가 늘리고 줄일 수 있다.
-        static let windowWidth: CGFloat = 320
-        /// 창 폭의 최소값. 이보다 좁아지면 라벨과 컨트롤이 한 줄에 못 들어간다.
+        /// 창 폭의 **기본값**. 탭 라벨 넷이 한 줄에 들어가는 폭이다.
+        /// 320 에서는 "로컬호스트" 가 "로컬호스/트" 로 잘린다.
+        static let windowWidth: CGFloat = 380
+        /// 창 폭의 최소값. 여기까지 줄이면 탭 라벨은 두 줄로 감기지만 본문은 멀쩡하다.
         static let windowMinWidth: CGFloat = 320
         /// 창 **내용** 높이의 기본값. 타이틀바(32)는 포함하지 않는다.
         /// 가장 긴 탭의 내용 높이에 맞춘다. 탭을 바꿀 때 창이 튀지 않게 하기 위한 값이다.
@@ -86,10 +87,14 @@ enum Design {
         static let windowContentHeight: CGFloat = 336
         /// 창 내용 높이의 최소값. 이 아래로는 줄여도 `ScrollView` 가 받아낸다.
         static let windowMinContentHeight: CGFloat = 240
+        /// 타이틀바 높이. `.defaultSize` 는 **창 전체** 크기라 내용 높이에 이걸 더해야 한다.
+        static let titleBarHeight: CGFloat = 32
         /// 본문의 상태 점.
         static let statusDot: CGFloat = 10
         /// 탭 라벨의 상태 점. 본문보다 작게 두어 위계를 만든다.
         static let tabDot: CGFloat = 8
+        /// 탭 아이콘. 점을 대신하므로 점보다 조금 크다.
+        static let tabIcon: CGFloat = 11
         /// 선택된 탭 배경의 모서리.
         static let tabCornerRadius: CGFloat = 6
         /// 카페인 항목 배경의 모서리.
