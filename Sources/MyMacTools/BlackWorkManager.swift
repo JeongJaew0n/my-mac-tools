@@ -137,6 +137,19 @@ final class BlackWorkManager: ObservableObject {
         reset()
     }
 
+    /// 지금 설정으로 세션을 시작한다. **이미 돌고 있으면 갈아끼운다.**
+    ///
+    /// `caffeinate` 는 `-t` 를 도중에 바꿀 수 없어 프로세스를 새로 띄우는 수밖에 없다.
+    /// 그 찰나에 assertion 이 끊기지만 유휴 잠자기가 그 사이에 일어나지는 않는다.
+    ///
+    /// `stop()` 이 `process` 를 먼저 끊으므로, 뒤늦게 도는 옛 프로세스의
+    /// `terminationHandler` 는 `process === finished` 에서 걸러진다 — 새 세션을
+    /// 만료로 오인해 정리해버리지 않는다.
+    func startReplacingCurrent() {
+        stop()
+        start()
+    }
+
     func toggle() {
         if isRunning {
             stop()

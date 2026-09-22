@@ -156,7 +156,9 @@ final class APIHandler {
             sleep.sleepWhenDone = flag
         }
 
-        sleep.start()
+        // 돌고 있어도 새 설정으로 갈아끼운다. `start()` 를 그냥 부르면 `guard !isRunning`
+        // 에 걸려 **설정만 바뀌고 세션은 그대로**여서, 돌려주는 값과 실제 세션이 어긋난다.
+        sleep.startReplacingCurrent()
         return sleepState()
     }
 

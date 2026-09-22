@@ -88,7 +88,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 
 | 메서드 | 파라미터 | 비고 |
 |---|---|---|
-| `sleep.start` | `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone` | 모두 선택. **준 것만 바꾸고** 시작한다 |
+| `sleep.start` | `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone` | 모두 선택. **준 것만 바꾸고** 시작한다. 이미 돌고 있으면 **새 설정으로 갈아끼운다** |
 | `sleep.stop` | — | |
 | `cover.start` | — | 사진을 먼저 골라야 한다 |
 | `cover.stop` | — | |
@@ -98,6 +98,16 @@ print(json.loads(sock.recv(1 << 20))["result"])
 
 `screenMode` 는 `system` · `keepOff` · `keepOn`.
 `hours` 0–24, `minutes` 0–50(10 단위), `displayDelaySeconds` 3·5·7·10.
+
+**시간 늘리기**는 `sleep.start` 를 다시 부르면 된다. 멈출 필요가 없다. 주는 시간은
+남은 시간에 더해지는 것이 아니라 **지금부터 다시 센다.**
+
+```bash
+scripts/mymactools sleep.start hours=2   # 남은 시간과 무관하게, 지금부터 2시간
+```
+
+`caffeinate` 가 `-t` 를 도중에 못 바꾸므로 프로세스를 갈아끼운다. 그 찰나에 assertion 이
+끊기지만 그 사이에 유휴 잠자기가 일어나지는 않는다.
 
 ### 하지 않는 것
 
