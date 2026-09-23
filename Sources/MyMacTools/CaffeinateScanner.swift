@@ -175,6 +175,8 @@ final class CaffeinateScanner: ObservableObject {
         let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
+        // 위와 같은 이유 (`docs/power.md`).
+        timer.tolerance = interval * 0.2
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
     }

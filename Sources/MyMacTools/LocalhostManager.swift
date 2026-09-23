@@ -129,6 +129,9 @@ final class LocalhostManager: ObservableObject {
         let timer = Timer(timeInterval: Self.interval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
         }
+        // 오차를 허용하면 macOS 가 다른 타이머와 **모아서 한 번에 깨운다**. 이 앱
+        // 비용의 대부분이 스캔이 아니라 깨어나는 값이다 (`docs/power.md`).
+        timer.tolerance = Self.interval * 0.2
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
     }

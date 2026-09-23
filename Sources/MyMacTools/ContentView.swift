@@ -86,13 +86,21 @@ struct ContentView: View {
         }
         // 창을 닫았다 다시 열면 앱이 활성화된 뒤에 뷰가 만들어져 위 알림을 놓칠 수 있다.
         .onAppear { lid.refreshFromSystem() }
-        // 카페인 목록은 **창이 보이는 동안만** 훑는다. 앱 생존에 묶으면, 창을 닫아도
-        // 세션이 유지되게 바뀐 뒤로는 며칠 띄워둔 동안 계속 훑게 된다.
-        .onAppear { caffeine.startPolling() }
-        .onDisappear { caffeine.stopPolling() }
-        // 포트 목록도 같은 규칙을 쓴다. 규칙이 둘이 되지 않게 한다.
-        .onAppear { localhost.startPolling() }
-        .onDisappear { localhost.stopPolling() }
+        // 목록을 훑는 것은 **그 탭이 보이는 동안만** 한다. 창이 열려 있는 동안으로
+        // 묶으면 잠자기 방지 탭을 보는 내내 포트 스캔이 돌았다 — 비용의 대부분이
+        // 스캔 자체가 아니라 타이머를 깨워 다시 그리는 값이라, 덜 깨우는 것이
+        // 스캔을 빠르게 만드는 것보다 크다. 근거는 `docs/power.md`.
+        //
+        // 다만 탭 라벨의 점은 어느 탭에 있든 보이므로, 창이 열릴 때 한 번은 훑어야
+        // 처음부터 맞는 값을 보여준다.
+        .onAppear {
+            caffeine.refresh()
+            localhost.refresh()
+        }
+        .onDisappear {
+            caffeine.stopPolling()
+            localhost.stopPolling()
+        }
     }
 
     // MARK: - 탭바
@@ -161,6 +169,9 @@ struct ContentView: View {
 
             caffeineSection
         }
+        // 이 탭 안에 카페인 목록이 있다. 다른 탭을 보는 동안에는 훑지 않는다.
+        .onAppear { caffeine.startPolling() }
+        .onDisappear { caffeine.stopPolling() }
     }
 
     // MARK: - 현재 실행중인 카페인
@@ -684,6 +695,9 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // 포트 스캔이 둘 중 비싼 쪽이다(1.66ms). 이 탭을 보는 동안에만 돌린다.
+        .onAppear { localhost.startPolling() }
+        .onDisappear { localhost.stopPolling() }
     }
 
     /// 범주 선택과 포트 검색.
