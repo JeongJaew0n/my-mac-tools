@@ -382,6 +382,7 @@ macOS 26 이 앱 아이콘에 스퀘어클 마스크와 그림자를 자동으�
 | --- | --- |
 | [`docs/api.md`](docs/api.md) | 에이전트용 API — 메서드 표와 예시 |
 | [`docs/sharing.md`](docs/sharing.md) | 남에게 줄 때 무엇이 문제인가 |
+| [`docs/power.md`](docs/power.md) | 전력 소비 측정과 줄일 여지 |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | 디자인 시스템 — UI 가 지키는 원칙 |
 | [`docs/design-tokens.md`](docs/design-tokens.md) | 디자인 토큰 — 값을 바꾸는 법, 다른 제품에서 쓰는 법 |
 | [`docs/i18n-design.md`](docs/i18n-design.md) | 다국어 설계 |
