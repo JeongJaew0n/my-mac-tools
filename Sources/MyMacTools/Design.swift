@@ -90,6 +90,8 @@ enum Design {
         static let minContentHeight: CGFloat = 240
         /// 창 폭 최소값. 여기까지 줄이면 탭 라벨은 두 줄로 감기지만 본문은 멀쩡하다
         static let minWidth: CGFloat = 320
+        /// 설정 창 폭. 목록 하나뿐이라 고정이다
+        static let settingsWidth: CGFloat = 340
         /// 타이틀바 높이. .defaultSize 는 창 전체 크기라 내용 높이에 이걸 더해야 한다
         static let titleBarHeight: CGFloat = 32
         /// 창 폭 기본값. 탭 라벨 넷이 한 줄에 들어가는 폭. 320 에서는 '로컬호스트' 가 잘린다

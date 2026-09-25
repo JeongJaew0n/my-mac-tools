@@ -69,6 +69,7 @@ struct MyMacToolsApp: App {
     @StateObject private var caffeine = CaffeinateScanner()
     @StateObject private var localhost = LocalhostManager()
     @StateObject private var l10n = L10n()
+    @StateObject private var preferences = Preferences()
 
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
     static let mainWindowID = "main"
@@ -118,7 +119,7 @@ struct MyMacToolsApp: App {
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
             ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
-                        localhost: localhost, l10n: l10n)
+                        localhost: localhost, preferences: preferences, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
@@ -146,6 +147,12 @@ struct MyMacToolsApp: App {
                 }
                 .pickerStyle(.inline)
             }
+        }
+
+        // `Settings` 씬에 넣으면 앱 메뉴의 `설정…` 과 `⌘,` 가 자동으로 붙는다.
+        // 직접 `NSWindow` 를 띄우면 그 둘을 손으로 만들어야 하고 관례와 어긋난다.
+        Settings {
+            SettingsView(preferences: preferences, l10n: l10n)
         }
     }
 }

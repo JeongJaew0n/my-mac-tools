@@ -128,3 +128,8 @@
 "localhost.searchPrompt" = "포트 번호";
 "localhost.noMatch" = "조건에 맞는 것이 없습니다";
 "localhost.showingCount" = "%1$d / %2$d개 보임";
+
+/* 설정 창 */
+"settings.tabsTitle" = "탭에 표시할 기능";
+"settings.tabsNote" = "숨긴 기능도 메뉴바에서는 그대로 켜고 끌 수 있습니다.";
+"settings.tabsLastOne" = "마지막 하나는 끌 수 없습니다.";

@@ -128,3 +128,8 @@
 "localhost.searchPrompt" = "Port number";
 "localhost.noMatch" = "Nothing matches";
 "localhost.showingCount" = "showing %1$d of %2$d";
+
+/* Settings window */
+"settings.tabsTitle" = "Tools shown as tabs";
+"settings.tabsNote" = "A hidden tool still works from the menu bar.";
+"settings.tabsLastOne" = "The last one cannot be turned off.";

@@ -147,6 +147,11 @@ final class L10n: ObservableObject {
         case localhostNoMatch = "localhost.noMatch"
         case localhostShowingCount = "localhost.showingCount"
 
+        // 설정 창
+        case settingsTabsTitle = "settings.tabsTitle"
+        case settingsTabsNote = "settings.tabsNote"
+        case settingsTabsLastOne = "settings.tabsLastOne"
+
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"
         case menuQuit = "menu.quit"

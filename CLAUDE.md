@@ -18,6 +18,8 @@ Sources/MyMacTools/
 ├── APIHandler.swift         API 메서드 처리 (docs/api.md 와 함께 고친다)
 ├── StatusItemController.swift  메뉴바 항목
 ├── Actions.swift            메뉴바와 창이 함께 쓰는 동작
+├── SettingsView.swift       설정 창 (SwiftUI `Settings` 씬 → `⌘,`)
+├── Preferences.swift        어떤 Tool 을 탭으로 보일지 (숨긴 것만 저장)
 ├── Localization.swift       L10n.Key 와 언어 전환
 └── Design.swift             디자인 토큰 — **생성물이다. 직접 고치지 않는다**
 Resources/                   Info.plist, 아이콘, ko/en/ja lproj

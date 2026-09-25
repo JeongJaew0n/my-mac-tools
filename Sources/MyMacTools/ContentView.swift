@@ -38,6 +38,7 @@ struct ContentView: View {
     @ObservedObject var cover: ScreenCoverManager
     @ObservedObject var caffeine: CaffeinateScanner
     @ObservedObject var localhost: LocalhostManager
+    @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
     /// 중지에 실패한 이유. 성공하면 비운다.
@@ -46,6 +47,14 @@ struct ContentView: View {
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
     @AppStorage("selectedTab") private var selection: Tab = .screenOff
+
+    /// 실제로 그릴 탭.
+    ///
+    /// 고른 탭이 설정에서 숨겨질 수 있다. 그때 `selection` 을 그대로 그리면 본문이
+    /// 통째로 빈다. 남아 있는 첫 번째로 떨어뜨린다.
+    private var activeTab: Tab {
+        preferences.isVisible(selection) ? selection : (preferences.visibleTabs.first ?? .screenOff)
+    }
 
     var body: some View {
         VStack(spacing: Design.Space.none) {
@@ -58,7 +67,7 @@ struct ContentView: View {
 
             ScrollView {
                 Group {
-                    switch selection {
+                    switch activeTab {
                     case .screenOff: screenOffTab
                     case .lid: lidTab
                     case .cover: coverTab
@@ -86,6 +95,13 @@ struct ContentView: View {
         }
         // 창을 닫았다 다시 열면 앱이 활성화된 뒤에 뷰가 만들어져 위 알림을 놓칠 수 있다.
         .onAppear { lid.refreshFromSystem() }
+        // 보고 있던 탭이 설정에서 숨겨지면 고른 값을 실제로 보이는 탭으로 되돌린다.
+        // `activeTab` 이 그리는 것은 이미 맞춰 주지만, 저장된 값을 고쳐두지 않으면
+        // 그 탭을 다시 켰을 때 엉뚱한 곳으로 돌아간다.
+        .onChange(of: preferences.visibleTabs) { _, visible in
+            guard !visible.contains(selection), let first = visible.first else { return }
+            selection = first
+        }
         // 목록을 훑는 것은 **그 탭이 보이는 동안만** 한다. 창이 열려 있는 동안으로
         // 묶으면 잠자기 방지 탭을 보는 내내 포트 스캔이 돌았다 — 비용의 대부분이
         // 스캔 자체가 아니라 타이머를 깨워 다시 그리는 값이라, 덜 깨우는 것이
@@ -112,7 +128,7 @@ struct ContentView: View {
     /// 점은 매니저의 `isRunning` 을 그대로 따라간다. 따로 기억하지 않는다.
     private var tabBar: some View {
         HStack(spacing: Design.Space.navItemGap) {
-            ForEach(Tab.allCases) { tab in
+            ForEach(preferences.visibleTabs) { tab in
                 Button {
                     selection = tab
                 } label: {
@@ -123,7 +139,7 @@ struct ContentView: View {
                             .font(.system(size: Design.Size.navIcon))
                             .foregroundStyle(isRunning(tab) ? Color.green : Color.secondary)
                         Text(l10n(tab.titleKey))
-                            .fontWeight(selection == tab ? .semibold : .regular)
+                            .fontWeight(activeTab == tab ? .semibold : .regular)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Design.Inset.navItemY)
@@ -133,7 +149,7 @@ struct ContentView: View {
                 .background {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
-                    if selection == tab {
+                    if activeTab == tab {
                         RoundedRectangle(cornerRadius: Design.Radius.control).fill(.quaternary)
                     }
                 }

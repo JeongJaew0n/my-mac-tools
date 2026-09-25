@@ -128,3 +128,8 @@
 "localhost.searchPrompt" = "ポート番号";
 "localhost.noMatch" = "条件に合うものはありません";
 "localhost.showingCount" = "%2$d件中 %1$d件を表示";
+
+/* 設定ウインドウ */
+"settings.tabsTitle" = "タブに表示する機能";
+"settings.tabsNote" = "非表示にした機能もメニューバーからはそのまま使えます。";
+"settings.tabsLastOne" = "最後の1つはオフにできません。";
