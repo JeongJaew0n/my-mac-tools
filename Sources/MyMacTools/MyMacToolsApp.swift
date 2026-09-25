@@ -73,6 +73,8 @@ struct MyMacToolsApp: App {
 
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
     static let mainWindowID = "main"
+    /// 설정 창.
+    static let settingsWindowID = "settings"
 
     /// 툴팁이 뜨기까지의 지연(밀리초).
     ///
@@ -138,6 +140,15 @@ struct MyMacToolsApp: App {
         .defaultSize(width: Design.Window.width,
                      height: Design.Window.contentHeight + Design.Window.titleBarHeight)
         .commands {
+            // `설정` 을 메뉴 막대에 독립 항목으로 둔다. `언어` 와 같은 방식이다.
+            CommandMenu(l10n(.settingsMenu)) {
+                Button(l10n(.settingsOpen)) {
+                    openWindowAction(id: Self.settingsWindowID)
+                }
+                // 자리를 옮겼다고 손에 익은 단축키를 뺄 이유는 없다.
+                .keyboardShortcut(",", modifiers: .command)
+            }
+
             // 언어 선택은 메인 창이 아니라 상단 메뉴바에 둔다.
             CommandMenu(l10n(.labelLanguage)) {
                 Picker(l10n(.labelLanguage), selection: $l10n.language) {
@@ -149,10 +160,15 @@ struct MyMacToolsApp: App {
             }
         }
 
-        // `Settings` 씬에 넣으면 앱 메뉴의 `설정…` 과 `⌘,` 가 자동으로 붙는다.
-        // 직접 `NSWindow` 를 띄우면 그 둘을 손으로 만들어야 하고 관례와 어긋난다.
-        Settings {
+        // `Settings` 씬을 쓰지 않는다.
+        //
+        // 그 씬은 앱 메뉴에 `설정…` 을 **자동으로** 넣는데, 그것을 지우려고
+        // `CommandGroup(replacing: .appSettings)` 를 줘도 먹지 않는다(실측 — 항목이 남았다).
+        // 설정을 메뉴 막대의 독립 항목으로 두기로 했으므로, 자동으로 붙는 항목이
+        // 없는 일반 창 씬을 쓰고 여는 것은 아래 `설정` 메뉴가 맡는다.
+        Window(l10n(.settingsMenu), id: Self.settingsWindowID) {
             SettingsView(preferences: preferences, l10n: l10n)
         }
+        .windowResizability(.contentSize)
     }
 }

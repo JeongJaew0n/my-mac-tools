@@ -67,6 +67,49 @@ final class BlackWorkManager: ObservableObject {
     /// 화면 끄기 유지 단계.
     @Published private(set) var screenPhase: ScreenPhase = .idle
 
+    init() {
+        // 저장된 기본값으로 시작한다. 저장한 적이 없으면 위의 초기값 그대로다.
+        apply(ToolDefaults.load(ToolDefaults.sleepKey, fallback: ToolDefaults.Sleep.builtIn))
+    }
+
+    // MARK: - 기본값
+
+    /// 지금 화면의 값.
+    private var snapshot: ToolDefaults.Sleep {
+        ToolDefaults.Sleep(hours: hours, minutes: minutes,
+                           displayDelaySeconds: displayDelaySeconds,
+                           screenMode: screenMode.rawValue, sleepWhenDone: sleepWhenDone)
+    }
+
+    /// 저장된 기본값. 없으면 코드에 박힌 값.
+    private var storedDefault: ToolDefaults.Sleep {
+        ToolDefaults.load(ToolDefaults.sleepKey, fallback: ToolDefaults.Sleep.builtIn)
+    }
+
+    /// 지금 값이 기본값과 같은가. 같으면 저장도 되돌리기도 할 일이 없다.
+    var matchesDefault: Bool { snapshot == storedDefault }
+
+    func saveAsDefault() {
+        ToolDefaults.save(snapshot, key: ToolDefaults.sleepKey)
+        objectWillChange.send()
+    }
+
+    /// 저장된 기본값으로 되돌린다.
+    ///
+    /// **돌고 있는 세션은 건드리지 않는다.** `caffeinate` 인자는 `시작` 을 누른 시점에
+    /// 정해지므로, 도는 중에 값을 되돌려도 그 세션은 그대로다.
+    func restoreDefault() {
+        apply(storedDefault)
+    }
+
+    private func apply(_ value: ToolDefaults.Sleep) {
+        hours = value.hours
+        minutes = value.minutes
+        displayDelaySeconds = value.displayDelaySeconds
+        screenMode = ScreenMode(rawValue: value.screenMode) ?? .system
+        sleepWhenDone = value.sleepWhenDone
+    }
+
     private var process: Process?
     private var endDate: Date?
     private var ticker: Timer?

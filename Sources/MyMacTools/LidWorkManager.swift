@@ -63,7 +63,35 @@ final class LidWorkManager: ObservableObject {
     private var ticker: Timer?
 
     init() {
+        // 저장된 기본값으로 시작한다.
+        let saved = ToolDefaults.load(ToolDefaults.lidKey, fallback: ToolDefaults.Lid.builtIn)
+        hours = saved.hours
+        minutes = saved.minutes
+
         refreshFromSystem()
+    }
+
+    // MARK: - 기본값
+
+    private var snapshot: ToolDefaults.Lid { ToolDefaults.Lid(hours: hours, minutes: minutes) }
+
+    private var storedDefault: ToolDefaults.Lid {
+        ToolDefaults.load(ToolDefaults.lidKey, fallback: ToolDefaults.Lid.builtIn)
+    }
+
+    /// 지금 값이 기본값과 같은가.
+    var matchesDefault: Bool { snapshot == storedDefault }
+
+    func saveAsDefault() {
+        ToolDefaults.save(snapshot, key: ToolDefaults.lidKey)
+        objectWillChange.send()
+    }
+
+    /// 저장된 기본값으로 되돌린다. 돌고 있는 세션은 건드리지 않는다.
+    func restoreDefault() {
+        let value = storedDefault
+        hours = value.hours
+        minutes = value.minutes
     }
 
     /// 커널에서 `SleepDisabled` 를 다시 읽어 `isRunning` 을 맞춘다.

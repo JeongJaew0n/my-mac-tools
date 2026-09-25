@@ -151,6 +151,11 @@ final class L10n: ObservableObject {
         case settingsTabsTitle = "settings.tabsTitle"
         case settingsTabsNote = "settings.tabsNote"
         case settingsTabsLastOne = "settings.tabsLastOne"
+        case settingsMenu = "settings.menu"
+        case settingsOpen = "settings.open"
+        case buttonSaveAsDefault = "button.saveAsDefault"
+        case buttonRestoreDefault = "button.restoreDefault"
+        case captionDefaults = "caption.defaults"
 
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"

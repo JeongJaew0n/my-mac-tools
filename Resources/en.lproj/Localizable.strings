@@ -133,3 +133,8 @@
 "settings.tabsTitle" = "Tools shown as tabs";
 "settings.tabsNote" = "A hidden tool still works from the menu bar.";
 "settings.tabsLastOne" = "The last one cannot be turned off.";
+"settings.menu" = "Settings";
+"settings.open" = "Open Settings…";
+"button.saveAsDefault" = "Save as Default";
+"button.restoreDefault" = "Restore";
+"caption.defaults" = "Saving these as the default starts the next launch with them.";

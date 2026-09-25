@@ -174,6 +174,10 @@ struct ContentView: View {
 
             settings
 
+            defaultsRow(matchesDefault: manager.matchesDefault,
+                        save: { manager.saveAsDefault() },
+                        restore: { manager.restoreDefault() })
+
             Button(l10n(manager.isRunning ? .buttonStop : .buttonStart)) {
                 manager.toggle()
             }
@@ -188,6 +192,31 @@ struct ContentView: View {
         // 이 탭 안에 카페인 목록이 있다. 다른 탭을 보는 동안에는 훑지 않는다.
         .onAppear { caffeine.startPolling() }
         .onDisappear { caffeine.stopPolling() }
+    }
+
+    // MARK: - 기본값 저장·되돌리기
+
+    /// 설정 블록 아래에 붙는 줄.
+    ///
+    /// 지금 값이 기본값과 같으면 **둘 다 잠근다.** 눌러도 아무 일이 없는 버튼을
+    /// 누르게 두지 않는다. 근거는 `docs/plans/tool-defaults/spec.md`.
+    private func defaultsRow(matchesDefault: Bool,
+                             save: @escaping () -> Void,
+                             restore: @escaping () -> Void) -> some View {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack(spacing: Design.Space.inline) {
+                Button(l10n(.buttonSaveAsDefault), action: save)
+                Button(l10n(.buttonRestoreDefault), action: restore)
+                Spacer(minLength: 0)
+            }
+            .controlSize(.small)
+            .disabled(matchesDefault)
+
+            Text(l10n(.captionDefaults))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     // MARK: - 현재 실행중인 카페인
@@ -527,6 +556,10 @@ struct ContentView: View {
                     .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            defaultsRow(matchesDefault: lid.matchesDefault,
+                        save: { lid.saveAsDefault() },
+                        restore: { lid.restoreDefault() })
 
             // 잠자기 방지 탭과 같은 모양으로. 이 VStack 이 leading 정렬이라
             // 양쪽 Spacer 로 가운데에 둔다. `.frame(maxWidth:)` 을 버튼에 직접 걸면
