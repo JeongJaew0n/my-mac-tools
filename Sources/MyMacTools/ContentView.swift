@@ -212,7 +212,14 @@ struct ContentView: View {
             .controlSize(.small)
             .disabled(matchesDefault)
 
+            // 두 줄을 붙여 둔다. 메뉴바에서 켜면 창에서 고르던 값이 아니라 이 기본값이
+            // 쓰이므로, 기본값을 설명하는 자리에서 함께 알려야 한다.
             Text(l10n(.captionDefaults))
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(l10n(.captionDefaultsMenuBar))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

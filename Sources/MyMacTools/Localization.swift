@@ -156,6 +156,7 @@ final class L10n: ObservableObject {
         case buttonSaveAsDefault = "button.saveAsDefault"
         case buttonRestoreDefault = "button.restoreDefault"
         case captionDefaults = "caption.defaults"
+        case captionDefaultsMenuBar = "caption.defaultsMenuBar"
 
         // 메뉴바
         case menuOpenWindow = "menu.openWindow"

@@ -138,3 +138,4 @@
 "button.saveAsDefault" = "Save as Default";
 "button.restoreDefault" = "Restore";
 "caption.defaults" = "Saving these as the default starts the next launch with them.";
+"caption.defaultsMenuBar" = "Starting it from the menu bar always uses this default.";

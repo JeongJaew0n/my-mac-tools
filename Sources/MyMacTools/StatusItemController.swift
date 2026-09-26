@@ -151,12 +151,12 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     // MARK: - 동작
 
     @objc private func toggleScreenOff() {
-        manager.toggle()
+        Actions.toggleScreenOffFromMenu(manager)
         refreshDot()
     }
 
     @objc private func toggleLid() {
-        Actions.toggleLid(lid, manager)
+        Actions.toggleLidFromMenu(lid, manager)
         refreshDot()
     }
 
