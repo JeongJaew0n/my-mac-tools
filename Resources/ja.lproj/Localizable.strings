@@ -136,6 +136,6 @@
 "settings.menu" = "設定";
 "settings.open" = "設定を開く…";
 "button.saveAsDefault" = "デフォルトとして保存";
-"button.restoreDefault" = "戻す";
+"button.restoreDefault" = "デフォルトに";
 "caption.defaults" = "今の値をデフォルトとして保存すると、次回起動時にこの値で始まります。";
-"caption.defaultsMenuBar" = "メニューバーからオンにするときは、常にこのデフォルトで始まります。";
+"caption.defaultsMenuBar" = "メニューバーからオンにするときは、常にデフォルトで始まります。";

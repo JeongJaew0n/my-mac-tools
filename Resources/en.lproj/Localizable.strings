@@ -136,6 +136,6 @@
 "settings.menu" = "Settings";
 "settings.open" = "Open Settings…";
 "button.saveAsDefault" = "Save as Default";
-"button.restoreDefault" = "Restore";
+"button.restoreDefault" = "Use Default";
 "caption.defaults" = "Saving these as the default starts the next launch with them.";
-"caption.defaultsMenuBar" = "Starting it from the menu bar always uses this default.";
+"caption.defaultsMenuBar" = "Starting it from the menu bar always uses the default.";
