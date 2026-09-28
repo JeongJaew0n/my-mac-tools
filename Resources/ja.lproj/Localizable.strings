@@ -139,3 +139,10 @@
 "button.restoreDefault" = "デフォルトに";
 "caption.defaults" = "今の値をデフォルトとして保存すると、次回起動時にこの値で始まります。";
 "caption.defaultsMenuBar" = "メニューバーからオンにするときは、常にデフォルトで始まります。";
+
+/* 모양 */
+"settings.appearanceTitle" = "外観";
+"settings.appearanceNote" = "「システム設定」を選ぶと macOS の外観に従います。メニューバーのアイコンはシステムのメニューバーに従います。";
+"appearance.system" = "システム設定";
+"appearance.light" = "ライト";
+"appearance.dark" = "ダーク";

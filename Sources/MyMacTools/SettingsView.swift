@@ -10,6 +10,25 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Space.block) {
+            // 창 전체에 걸리는 설정이라 맨 위에 둔다.
+            Text(l10n(.settingsAppearanceTitle))
+                .font(.headline)
+
+            Picker(l10n(.settingsAppearanceTitle), selection: $preferences.appearance) {
+                ForEach(AppAppearance.allCases) { option in
+                    Text(l10n(option.titleKey)).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            Text(l10n(.settingsAppearanceNote))
+                .font(.caption)
+                .foregroundStyle(Design.Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+
             Text(l10n(.settingsTabsTitle))
                 .font(.headline)
 

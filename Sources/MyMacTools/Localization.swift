@@ -148,6 +148,11 @@ final class L10n: ObservableObject {
         case localhostShowingCount = "localhost.showingCount"
 
         // 설정 창
+        case settingsAppearanceTitle = "settings.appearanceTitle"
+        case settingsAppearanceNote = "settings.appearanceNote"
+        case appearanceSystem = "appearance.system"
+        case appearanceLight = "appearance.light"
+        case appearanceDark = "appearance.dark"
         case settingsTabsTitle = "settings.tabsTitle"
         case settingsTabsNote = "settings.tabsNote"
         case settingsTabsLastOne = "settings.tabsLastOne"

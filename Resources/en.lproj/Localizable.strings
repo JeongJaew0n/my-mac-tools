@@ -139,3 +139,10 @@
 "button.restoreDefault" = "Use Default";
 "caption.defaults" = "Saving these as the default starts the next launch with them.";
 "caption.defaultsMenuBar" = "Starting it from the menu bar always uses the default.";
+
+/* 모양 */
+"settings.appearanceTitle" = "Appearance";
+"settings.appearanceNote" = "System follows the macOS appearance. The menu bar icon always follows the system menu bar.";
+"appearance.system" = "System";
+"appearance.light" = "Light";
+"appearance.dark" = "Dark";
