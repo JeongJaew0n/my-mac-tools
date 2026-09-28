@@ -66,6 +66,47 @@ Swift 로 내보내지도 않는다 — 집을 수 없으면 우회할 수도 �
 `indicator` · `indicatorSmall` · `navIcon`.
 `indicatorSmall` 은 본문보다 작게 두어 위계를 만든다.
 
+### `color` — 색
+
+팔레트는 Figma 색 조합 **"폭풍우가 몰아치는 아침"** 이다. 고른 이유와 기각한 조합은
+`docs/plans/color-tokens/`.
+
+| 이름 | 라이트 | 다크 | 쓰임 |
+|---|---|---|---|
+| `textSecondary` | `#54728F` | `#809AB4` | 단위·캡션·설명·쉬는 탐색 아이콘 |
+| `accent` | `#384959` | `#88BDF2` | 기본 동작 버튼, 토글, 초점 |
+| `onAccent` | `#FFFFFF` | `#1E1E1E` | 강조색 위 글자 |
+| `selection` | `#BDDDFC` | `#384959` | 선택된 항목 바탕, 칩 바탕 |
+| `onSelection` | `#384959` | `#BDDDFC` | 선택된 항목 글자 |
+| `surface` | `#BDDDFC` 32% | `#384959` 45% | 목록 항목·카드의 면 |
+| `statusRunning` · `statusIdle` · `statusWarning` · `statusError` | 시스템 색 | 시스템 색 | 돌고 있음·꺼짐·주의·실패 |
+
+**상태색은 팔레트에 넣지 않는다.** 색이 곧 뜻이라 팔레트를 바꿔도 달라지면 안 된다. 토큰에는
+두되 시스템 색(`NSColor.systemGreen` 등)을 가리킨다.
+
+값의 모양은 셋이다.
+
+```json
+"slate700":  { "value": "#384959" }                                    // 원시 — primitive 에만
+"accent":    { "value": { "light": "{primitive.color.slate700}",
+                          "dark":  "{primitive.color.sky400}" } }        // 테마마다 다른 색
+"surface":   { "value": { "light": { "ref": "{primitive.color.sky200}", "alpha": 0.32 }, … } }
+"statusIdle":{ "value": { "system": "gray" } }                           // 시스템 색
+```
+
+Swift 로는 두 벌이 나온다. 이름은 토큰과 같다.
+
+```swift
+Design.Color.accent          // SwiftUI — 화면 코드는 이쪽
+Design.AppKitColor.accent    // NSColor — 메뉴바처럼 AppKit 으로 그리는 곳
+```
+
+라이트·다크는 `NSColor(name:dynamicProvider:)` 로 **그리는 순간의 appearance** 를 따른다.
+그래서 창·메뉴바가 각자 맞는 쪽을 고른다.
+
+**보조 글자를 칩 위에 쓰지 않는다.** 바탕·면 위에서는 4.5 를 넘지만 칩 위에서는
+3.57 / 3.18 이다. 명암비 전체는 `docs/plans/color-tokens/spec.md`.
+
 ## 값만 바꿔 다른 디자인 입히기
 
 `design/themes/<이름>.json` 에 **바꿀 값만** 쓴다. 쓰지 않은 것은 기본값을 따른다.
@@ -125,14 +166,13 @@ Swift 외의 출력이 필요하면 `scripts/build-tokens.py` 의 `render_*` 함
 
 ## 이 체계가 다루지 않는 것
 
-- **색** — 아직 토큰이 아니다. `Color.primary.opacity(0.05)` 처럼 SwiftUI 의 의미 색을
-  직접 쓴다. macOS 의 라이트·다크 대응을 공짜로 얻는 대가로, 색만은 토큰 밖에 있다.
-  `docs/DESIGN.md` §4 를 보라
-- **글자** — `.caption` · `.callout` 같은 시스템 텍스트 스타일을 쓴다. 같은 이유다
+- **글자** — `.caption` · `.callout` 같은 시스템 텍스트 스타일을 쓴다
+- **기본 글자색** — `Color.primary` 그대로다. 시스템 색이 두 테마에서 가장 대비가 높다
+- **화면 가리기 오버레이** — 사진 위 `regularMaterial` 판이라 시스템 보조색의 투명도 적응이 낫다
+- **시스템이 그리는 것** — 경고창, 메뉴, 스테퍼·팝업 버튼의 바탕
 - **애니메이션 · 그림자** — 쓰는 곳이 없어 넣지 않았다
 
-색과 글자를 토큰으로 옮기려면 시스템 의미 색을 포기하고 직접 값을 지정해야 한다. 그
-값어치가 분명해질 때 하는 것이 맞다.
+색을 토큰으로 옮기면서 시스템 설정의 **대비 증가**와 **강조 색상**을 더는 따르지 않게 됐다.
 
 ## 규칙
 

@@ -16,7 +16,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     /// 돌고 있음을 알리는 초록 점. 버튼 위에 얹어 색을 유지한다.
     private final class RunningDot: NSView {
         override func draw(_ dirtyRect: NSRect) {
-            NSColor.systemGreen.setFill()
+            Design.AppKitColor.statusRunning.setFill()
             NSBezierPath(ovalIn: bounds).fill()
         }
     }

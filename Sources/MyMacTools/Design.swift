@@ -3,9 +3,10 @@
 //
 // 테마: base
 
-import CoreGraphics
+import AppKit
+import SwiftUI
 
-/// 화면에 쓰이는 수치.
+/// 화면에 쓰이는 수치와 색.
 ///
 /// 이름은 크기가 아니라 **쓰임**으로 짓는다. `space8` 이 아니라 `inline` 이라고
 /// 부르면 값을 바꿀 때 어디가 영향받는지 이름만 보고 알 수 있다.
@@ -14,6 +15,10 @@ import CoreGraphics
 /// `design/tokens.json` 의 `primitive` 값만 바꾸면 된다.
 enum Design {
     enum Inset {
+        /// 기본 동작 버튼 좌우
+        static let buttonX: CGFloat = 12
+        /// 기본 동작 버튼 위아래
+        static let buttonY: CGFloat = 4
         /// 카드·항목 둘레
         static let card: CGFloat = 8
         /// 칩 좌우
@@ -96,5 +101,57 @@ enum Design {
         static let titleBarHeight: CGFloat = 32
         /// 창 폭 기본값. 탭 라벨 넷이 한 줄에 들어가는 폭. 320 에서는 '로컬호스트' 가 잘린다
         static let width: CGFloat = 380
+    }
+
+    /// 색. 테마마다 값이 다르면 **그리는 순간의 appearance** 를 따른다.
+    ///
+    /// SwiftUI 의 `Color` 와 이름이 같지만 `Design.Color` 로 부르므로 겹치지 않는다.
+    enum Color {
+        /// 강조색. 기본 동작 버튼, 토글, 초점
+        static let accent = SwiftUI.Color(nsColor: AppKitColor.accent)
+        /// 강조색 위 글자. 라이트 9.27, 다크 8.42
+        static let onAccent = SwiftUI.Color(nsColor: AppKitColor.onAccent)
+        /// 선택된 항목 글자. 6.58
+        static let onSelection = SwiftUI.Color(nsColor: AppKitColor.onSelection)
+        /// 선택된 항목 바탕, 칩 바탕
+        static let selection = SwiftUI.Color(nsColor: AppKitColor.selection)
+        /// 실패·오류
+        static let statusError = SwiftUI.Color(nsColor: AppKitColor.statusError)
+        /// 꺼짐
+        static let statusIdle = SwiftUI.Color(nsColor: AppKitColor.statusIdle)
+        /// 돌고 있음
+        static let statusRunning = SwiftUI.Color(nsColor: AppKitColor.statusRunning)
+        /// 곧 일어남·주의. 카운트다운, 주의사항
+        static let statusWarning = SwiftUI.Color(nsColor: AppKitColor.statusWarning)
+        /// 목록 항목·카드의 면. 바탕 위에 반투명으로 얹는다
+        static let surface = SwiftUI.Color(nsColor: AppKitColor.surface)
+        /// 보조 글자. 단위·캡션·설명·쉬는 탐색 아이콘. 바탕과 면 위에서 4.5 이상, 칩 위에는 쓰지 않는다(3.6 미만)
+        static let textSecondary = SwiftUI.Color(nsColor: AppKitColor.textSecondary)
+    }
+
+    /// 같은 색의 AppKit 판. 메뉴바처럼 AppKit 으로 그리는 곳에서 쓴다.
+    enum AppKitColor {
+        static let accent = adaptive(light: rgb(0x38, 0x49, 0x59), dark: rgb(0x88, 0xBD, 0xF2))
+        static let onAccent = adaptive(light: rgb(0xFF, 0xFF, 0xFF), dark: rgb(0x1E, 0x1E, 0x1E))
+        static let onSelection = adaptive(light: rgb(0x38, 0x49, 0x59), dark: rgb(0xBD, 0xDD, 0xFC))
+        static let selection = adaptive(light: rgb(0xBD, 0xDD, 0xFC), dark: rgb(0x38, 0x49, 0x59))
+        static let statusError = NSColor.systemRed
+        static let statusIdle = NSColor.systemGray
+        static let statusRunning = NSColor.systemGreen
+        static let statusWarning = NSColor.systemOrange
+        static let surface = adaptive(light: rgb(0xBD, 0xDD, 0xFC, 0.32), dark: rgb(0x38, 0x49, 0x59, 0.45))
+        static let textSecondary = adaptive(light: rgb(0x54, 0x72, 0x8F), dark: rgb(0x80, 0x9A, 0xB4))
+    }
+}
+
+private func rgb(_ red: Int, _ green: Int, _ blue: Int, _ alpha: CGFloat = 1) -> NSColor {
+    NSColor(srgbRed: CGFloat(red) / 255, green: CGFloat(green) / 255,
+            blue: CGFloat(blue) / 255, alpha: alpha)
+}
+
+/// 그리는 순간의 appearance 로 라이트·다크를 고른다. 창마다, 메뉴바마다 따로 판단된다.
+private func adaptive(light: NSColor, dark: NSColor) -> NSColor {
+    NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
     }
 }

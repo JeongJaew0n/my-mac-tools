@@ -18,6 +18,7 @@ Sources/MyMacTools/
 ├── APIHandler.swift         API 메서드 처리 (docs/api.md 와 함께 고친다)
 ├── StatusItemController.swift  메뉴바 항목
 ├── Actions.swift            메뉴바와 창이 함께 쓰는 동작
+├── PrimaryButtonStyle.swift 기본 동작 버튼 (강조색 + onAccent 글자)
 ├── SettingsView.swift       설정 창 (SwiftUI `Settings` 씬 → `⌘,`)
 ├── Preferences.swift        어떤 Tool 을 탭으로 보일지 (숨긴 것만 저장)
 ├── ToolDefaults.swift       Tool 설정값의 기본값 저장·복원
@@ -54,11 +55,13 @@ Tool 을 추가하면 `enum Tab` 에 case 를 넣고 전용 Manager 를 만든�
 - 도메인 용어를 새로 만들거나 이름을 바꾸면 `docs/glossary/README.md` 를 먼저 고치고
   코드를 그 이름에 맞춘다. 코드만 바꾸면 용어집이 거짓말이 된다.
 
-### 디자인 수치
+### 디자인 수치·색
 - `Sources/MyMacTools/Design.swift` 는 **생성물**이다. 고치면 다음 생성에서 사라진다.
   값을 바꾸려면 `design/tokens.json` 을 고치고 `scripts/build-tokens.py` 를 돌린다.
 - 새 수치가 필요하면 **역할 이름**을 먼저 정한다 (`listItem`, `labelGap`). 제품 이름
   (`caffeine`, `port`)을 `semantic` 층에 넣지 않는다 — 그건 역할 이름을 잘못 고른 것이다.
+- 색도 같다. 화면 코드는 `Design.Color.<역할>` 만 쓰고 시스템 색(`.secondary`, `.green` …)을
+  직접 집지 않는다. 상태색은 토큰이 시스템 색을 가리킨다.
 - 자세한 것은 `docs/design-tokens.md`.
 
 ### 설계

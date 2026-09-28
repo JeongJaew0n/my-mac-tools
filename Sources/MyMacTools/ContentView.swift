@@ -88,6 +88,8 @@ struct ContentView: View {
                idealHeight: Design.Window.contentHeight,
                maxHeight: .infinity,
                alignment: .top)
+        // 토글·초점 링·기본 강조가 팔레트의 강조색을 따른다.
+        .tint(Design.Color.accent)
         // 값이 재부팅·강제 종료 뒤에도 남으므로, 창이 다시 앞으로 나올 때마다
         // 앱이 기억한 상태가 아니라 커널의 실제 값으로 맞춘다.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -137,9 +139,10 @@ struct ContentView: View {
                         // 직접 그리는 탭바라 `.tabItem` 처럼 색이 template 으로 죽지 않는다.
                         Image(systemName: tab.symbol)
                             .font(.system(size: Design.Size.navIcon))
-                            .foregroundStyle(isRunning(tab) ? Color.green : Color.secondary)
+                            .foregroundStyle(isRunning(tab) ? Design.Color.statusRunning : Design.Color.textSecondary)
                         Text(l10n(tab.titleKey))
                             .fontWeight(activeTab == tab ? .semibold : .regular)
+                            .foregroundStyle(activeTab == tab ? Design.Color.onSelection : Color.primary)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Design.Inset.navItemY)
@@ -150,7 +153,7 @@ struct ContentView: View {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
                     if activeTab == tab {
-                        RoundedRectangle(cornerRadius: Design.Radius.control).fill(.quaternary)
+                        RoundedRectangle(cornerRadius: Design.Radius.control).fill(Design.Color.selection)
                     }
                 }
             }
@@ -181,6 +184,7 @@ struct ContentView: View {
             Button(l10n(manager.isRunning ? .buttonStop : .buttonStart)) {
                 manager.toggle()
             }
+            .buttonStyle(PrimaryButtonStyle())
             .keyboardShortcut(.defaultAction)
 
             progress
@@ -216,12 +220,12 @@ struct ContentView: View {
             // 쓰이므로, 기본값을 설명하는 자리에서 함께 알려야 한다.
             Text(l10n(.captionDefaults))
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(l10n(.captionDefaultsMenuBar))
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -240,7 +244,7 @@ struct ContentView: View {
                 if caffeine.processes.isEmpty {
                     Text(l10n(.caffeineEmpty))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Design.Color.textSecondary)
                 } else {
                     ForEach(caffeine.processes) { process in
                         caffeineRow(process)
@@ -250,7 +254,7 @@ struct ContentView: View {
                 if let caffeineError {
                     Text(l10n(.caffeineStopFailed, caffeineError))
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Design.Color.statusError)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -263,7 +267,7 @@ struct ContentView: View {
                 if !caffeine.processes.isEmpty {
                     Text("\(caffeine.processes.count)")
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Design.Color.textSecondary)
                 }
                 // 글자 뒤 빈 자리까지 눌리게 한다. 제목 폭만 눌리면 어디를 눌러야
                 // 열리는지 눈으로 알 수 없다.
@@ -283,13 +287,13 @@ struct ContentView: View {
                 Spacer(minLength: 4)
                 Text(elapsed(since: process.started))
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
 
             if process.argsUnreadable {
                 Text(l10n(.caffeineArgsUnreadable))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             } else {
                 HStack(spacing: Design.Space.chipGap) {
                     ForEach(process.flags) { flag in
@@ -301,7 +305,7 @@ struct ContentView: View {
             if !process.utility.isEmpty {
                 Text(l10n(.caffeineUtility, process.utility.joined(separator: " ")))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
@@ -309,7 +313,7 @@ struct ContentView: View {
             // 이름은 사람이 읽을 것으로, 전체 경로는 툴팁으로 남긴다.
             Text(process.isOurs ? l10n(.caffeineOwnerThisApp) : process.parentName)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .contentShape(Rectangle())
@@ -319,7 +323,7 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: Design.Radius.card)
-                .fill(Color.primary.opacity(0.05)))
+                .fill(Design.Color.surface))
         .contextMenu {
             Button(l10n(.caffeineStop)) {
                 caffeineError = caffeine.stop(process, manager: manager)
@@ -340,7 +344,7 @@ struct ContentView: View {
             .padding(.vertical, Design.Inset.chipY)
             .background(
                 RoundedRectangle(cornerRadius: Design.Radius.chip)
-                    .fill(Color.primary.opacity(0.1)))
+                    .fill(Design.Color.selection))
 
         // 모르는 플래그는 설명을 달지 않는다. 지어낸 설명이 빈 칸보다 나쁘다.
         // `.help("")` 를 주는 대신 아예 붙이지 않는다.
@@ -367,7 +371,7 @@ struct ContentView: View {
     private var statusRow: some View {
         HStack {
             Circle()
-                .fill(manager.isRunning ? .green : .gray)
+                .fill(manager.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
                 .frame(width: Design.Size.indicator, height: Design.Size.indicator)
             Text(l10n(statusKey))
                 .font(.body)
@@ -398,7 +402,7 @@ struct ContentView: View {
                 .labelsHidden()
                 .fixedSize()
                 Text(l10n(.unitHour))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                 Picker("", selection: $manager.minutes) {
                     ForEach(BlackWorkManager.minuteOptions, id: \.self) { minute in
                         Text(String(format: "%02d", minute)).tag(minute)
@@ -407,7 +411,7 @@ struct ContentView: View {
                 .labelsHidden()
                 .fixedSize()
                 Text(l10n(.unitMinute))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
 
             // 셋이 서로 배타적이라 체크박스 여러 개가 아니라 목록 하나로 둔다.
@@ -436,7 +440,7 @@ struct ContentView: View {
                 .labelsHidden()
                 .fixedSize()
                 Text(l10n(.unitSecond))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
             .disabled(manager.screenMode != .keepOff)
 
@@ -449,7 +453,7 @@ struct ContentView: View {
 
             Text(caption)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -473,23 +477,23 @@ struct ContentView: View {
         if let countdown = manager.displayCountdown {
             Text(l10n(.progressScreenOff, countdown))
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(.orange)
+                .foregroundStyle(Design.Color.statusWarning)
         } else if let grace = manager.screenGraceRemaining {
             Text(l10n(.progressReblank, grace))
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(.orange)
+                .foregroundStyle(Design.Color.statusWarning)
         } else if manager.keepScreenOffGaveUp {
             Text(l10n(.statusKeepOffFailed))
                 .font(.callout)
-                .foregroundStyle(.red)
+                .foregroundStyle(Design.Color.statusError)
         } else if let remaining = manager.remaining {
             Text(l10n(.progressRemaining, Self.format(remaining)))
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
         } else if manager.isRunning {
             Text(l10n(.progressNoLimit))
                 .font(.callout)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
         }
     }
 
@@ -503,7 +507,7 @@ struct ContentView: View {
             // 탭과 같게 가운데에 두어야 해서 폭을 끝까지 펴고 그 안에서 가운데 정렬한다.
             HStack {
                 Circle()
-                    .fill(lid.isRunning ? .green : .gray)
+                    .fill(lid.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
                     .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                 Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
                     .font(.body)
@@ -522,7 +526,7 @@ struct ContentView: View {
                 .labelsHidden()
                 .fixedSize()
                 Text(l10n(.unitHour))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                 Picker("", selection: $lid.minutes) {
                     ForEach(LidWorkManager.minuteOptions, id: \.self) { minute in
                         Text(String(format: "%02d", minute)).tag(minute)
@@ -531,14 +535,14 @@ struct ContentView: View {
                 .labelsHidden()
                 .fixedSize()
                 Text(l10n(.unitMinute))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
             .disabled(lid.isRunning)
 
             if lid.durationSeconds == nil {
                 Text(l10n(.captionUnlimited))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -547,20 +551,20 @@ struct ContentView: View {
             if let remaining = lid.remaining {
                 Text(l10n(.progressRemaining, Self.format(remaining)))
                     .font(.system(.callout, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
 
             if lid.autoStopFailed {
                 Text(l10n(.lidAutoStopFailed))
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Design.Color.statusError)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             if let error = lid.lastError {
                 Text(l10n(.lidError, error))
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Design.Color.statusError)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -590,7 +594,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: Design.Space.listRow) {
             HStack(spacing: Design.Space.navItemGap) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Design.Color.statusWarning)
                 Text(l10n(.lidCautionTitle))
                     .fontWeight(.medium)
             }
@@ -603,7 +607,7 @@ struct ContentView: View {
             }
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Design.Color.textSecondary)
     }
 
     // MARK: - 화면 가리기
@@ -614,7 +618,7 @@ struct ContentView: View {
         VStack(spacing: Design.Space.blockLoose) {
             HStack {
                 Circle()
-                    .fill(cover.isCovering ? .green : .gray)
+                    .fill(cover.isCovering ? Design.Color.statusRunning : Design.Color.statusIdle)
                     .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                 Text(l10n(cover.isCovering ? .coverStatusOn : .coverStatusOff))
                     .font(.body)
@@ -630,7 +634,7 @@ struct ContentView: View {
                 // 고른 사진이 무엇인지 보이게 둔다. 전체 경로는 창 폭을 넘기므로 파일명만.
                 Text(cover.imagePath.map { ($0 as NSString).lastPathComponent } ?? l10n(.coverNoImage))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
 
@@ -658,20 +662,20 @@ struct ContentView: View {
 
                 Text(l10n(.coverShortcutHint))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Text(l10n(.coverNotALock))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let path = cover.lastError {
                     Text(l10n(.coverImageError, (path as NSString).lastPathComponent))
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Design.Color.statusError)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -710,7 +714,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: Design.Space.rowTight) {
                 HStack(spacing: Design.Space.labelGap) {
                     Circle()
-                        .fill(localhost.isRunning ? .green : .gray)
+                        .fill(localhost.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
                         .frame(width: Design.Size.indicator, height: Design.Size.indicator)
                     Text(localhost.ports.isEmpty
                          ? l10n(.localhostStatusNone)
@@ -721,7 +725,7 @@ struct ContentView: View {
                 // 화면에서 밝힌다 — 목록이 전부라고 믿으면 틀린 결론을 낸다.
                 Text(l10n(.localhostOwnUserOnly))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
 
             portFilters
@@ -729,13 +733,13 @@ struct ContentView: View {
             if localhost.ports.isEmpty {
                 Text(l10n(.localhostEmpty))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             } else if localhost.visiblePorts.isEmpty {
                 // 듣는 것이 없는 것과 필터에 걸러진 것은 다른 상태다. 같은 문구를
                 // 쓰면 포트를 놓쳤는지 필터 때문인지 알 수 없다.
                 Text(l10n(.localhostNoMatch))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             } else {
                 VStack(alignment: .leading, spacing: Design.Space.listItem) {
                     ForEach(localhost.visiblePorts) { port in
@@ -747,7 +751,7 @@ struct ContentView: View {
             if let error = localhost.lastError {
                 Text(l10n(.localhostStopFailed, error))
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Design.Color.statusError)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -780,7 +784,7 @@ struct ContentView: View {
             if localhost.isFiltered {
                 Text(l10n(.localhostShowingCount, localhost.visiblePorts.count, localhost.ports.count))
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
         }
     }
@@ -809,15 +813,15 @@ struct ContentView: View {
             // 사용자에게 남긴다. 근거는 `docs/plans/localhost-list/research.md`.
             HStack(spacing: Design.Space.chipGap) {
                 if port.isSystem {
-                    portChip(l10n(.localhostLabelSystem), tint: .red,
+                    portChip(l10n(.localhostLabelSystem), tint: Design.Color.statusError,
                              help: l10n(.localhostLabelSystemHelp))
                 }
                 if port.startedFromTerminal {
-                    portChip(l10n(.localhostLabelTerminal), tint: .green,
+                    portChip(l10n(.localhostLabelTerminal), tint: Design.Color.statusRunning,
                              help: l10n(.localhostLabelTerminalHelp))
                 }
                 if port.isWellKnown {
-                    portChip(l10n(.localhostLabelWellKnown), tint: .orange,
+                    portChip(l10n(.localhostLabelWellKnown), tint: Design.Color.statusWarning,
                              help: l10n(.localhostLabelWellKnownHelp))
                 }
                 ForEach(port.addresses, id: \.self) { address in
@@ -832,7 +836,7 @@ struct ContentView: View {
             if let identifier = port.bundleIdentifier, !identifier.isEmpty {
                 Text(identifier)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
@@ -841,7 +845,7 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: Design.Radius.card)
-                .fill(Color.primary.opacity(0.05)))
+                .fill(Design.Color.surface))
         .contextMenu {
             Button(l10n(.localhostStop)) {
                 stopPort(port)
@@ -864,7 +868,7 @@ struct ContentView: View {
             .padding(.vertical, Design.Inset.chipY)
             .background(
                 RoundedRectangle(cornerRadius: Design.Radius.chip)
-                    .fill((tint ?? Color.primary).opacity(0.1)))
+                    .fill(tint.map { AnyShapeStyle($0.opacity(0.1)) } ?? AnyShapeStyle(Design.Color.selection)))
             .contentShape(Rectangle())
             .help(help ?? "")
     }

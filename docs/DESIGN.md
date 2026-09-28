@@ -111,16 +111,25 @@ defaults delete com.jjw.mymactools "NSWindow Frame main-AppWindow-1"
 
 ## 4. 색
 
-의미로만 쓴다. 브랜드 색이 없고 전부 시스템 색이라 다크/라이트가 자동으로 맞는다.
+값은 `design/tokens.json` 의 `semantic.color` 에 있다 — 표와 근거는 `docs/design-tokens.md`
+의 `color` 절. 팔레트는 Figma "폭풍우가 몰아치는 아침" 이다.
 
-| 색 | 뜻 | 쓰이는 곳 |
+화면 코드는 `Design.Color.<역할>` 만 쓴다. `.secondary` · `.quaternary` · `.green` 같은
+시스템 색을 직접 집지 않는다.
+
+| 역할 | 뜻 | 쓰이는 곳 |
 |---|---|---|
-| `.green` | 동작 중 | 상태 점 |
-| `.gray` | 꺼짐 | 상태 점 |
-| `.orange` | 곧 일어남 · 주의 | 화면 꺼짐 카운트다운, 재차 끄기 유예, 주의사항 아이콘 |
-| `.red` | 실패 | 화면 계속 끄기 포기, 자동 해제 실패, 오류 |
-| `.secondary` | 보조 설명 | 단위, caption, 주의사항 본문, 남은 시간 |
-| `.quaternary` | 선택된 탭 배경 | 탭바 |
+| `statusRunning` | 동작 중 | 상태 점, 탭 아이콘 |
+| `statusIdle` | 꺼짐 | 상태 점 |
+| `statusWarning` | 곧 일어남 · 주의 | 화면 꺼짐 카운트다운, 재차 끄기 유예, 주의사항 아이콘 |
+| `statusError` | 실패 | 화면 계속 끄기 포기, 자동 해제 실패, 오류 |
+| `textSecondary` | 보조 설명 | 단위, caption, 주의사항 본문, 남은 시간 |
+| `selection` · `onSelection` | 선택 | 선택된 탭 바탕·글자, 칩 바탕 |
+| `surface` | 면 | 목록 항목, 카페인 항목 |
+| `accent` · `onAccent` | 기본 동작 | 시작 버튼(`PrimaryButtonStyle`), 토글, 초점 |
+
+**기본 동작 버튼은 `PrimaryButtonStyle` 로 그린다.** macOS 기본 버튼은 강조색 위에 흰 글자를
+그리는데, 다크의 강조색 `#88BDF2` 위에서 흰 글자는 1.98 로 읽히지 않는다.
 
 **녹색 점은 직접 그린다.** `Circle().fill(...)` 이다. macOS 의 `TabView` `.tabItem` 은
 이미지를 template 으로 렌더링해 색이 죽기 때문에, 탭바를 직접 그리는 쪽을 택했다.

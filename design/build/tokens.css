@@ -1,5 +1,6 @@
 /* 이 파일은 design/tokens.json 에서 생성됩니다. 직접 고치지 마세요. */
 /* 테마: base */
+/* 시스템 색은 macOS 26 에서 잰 근사값이다. */
 :root {
   --primitive-dimension-dotMd: 10px;
   --primitive-dimension-dotSm: 8px;
@@ -25,6 +26,8 @@
   --product-window-settingsWidth: 340px;
   --product-window-titleBarHeight: 32px;
   --product-window-width: 380px;
+  --semantic-inset-buttonX: 12px;
+  --semantic-inset-buttonY: 4px;
   --semantic-inset-card: 8px;
   --semantic-inset-chipX: 5px;
   --semantic-inset-chipY: 1px;
@@ -54,4 +57,36 @@
   --semantic-space-none: 0px;
   --semantic-space-overlayRow: 12px;
   --semantic-space-rowTight: 3px;
+  --primitive-color-charcoal: #1E1E1E;
+  --primitive-color-sky200: #BDDDFC;
+  --primitive-color-sky400: #88BDF2;
+  --primitive-color-slate400: #809AB4;
+  --primitive-color-slate500: #6A89A7;
+  --primitive-color-slate600: #54728F;
+  --primitive-color-slate700: #384959;
+  --primitive-color-white: #FFFFFF;
+  --semantic-color-accent: #384959;
+  --semantic-color-onAccent: #FFFFFF;
+  --semantic-color-onSelection: #384959;
+  --semantic-color-selection: #BDDDFC;
+  --semantic-color-statusError: #FF383C;
+  --semantic-color-statusIdle: #8E8E93;
+  --semantic-color-statusRunning: #34C759;
+  --semantic-color-statusWarning: #FF8D28;
+  --semantic-color-surface: rgba(189, 221, 252, 0.32);
+  --semantic-color-textSecondary: #54728F;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --semantic-color-accent: #88BDF2;
+    --semantic-color-onAccent: #1E1E1E;
+    --semantic-color-onSelection: #BDDDFC;
+    --semantic-color-selection: #384959;
+    --semantic-color-statusError: #FF4245;
+    --semantic-color-statusIdle: #98989D;
+    --semantic-color-statusRunning: #30D158;
+    --semantic-color-statusWarning: #FF9230;
+    --semantic-color-surface: rgba(56, 73, 89, 0.45);
+    --semantic-color-textSecondary: #809AB4;
+  }
 }

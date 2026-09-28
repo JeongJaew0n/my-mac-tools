@@ -21,11 +21,12 @@ struct SettingsView: View {
 
             Text(l10n(.settingsTabsNote))
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Design.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(Design.Inset.panel)
         .frame(width: Design.Window.settingsWidth, alignment: .leading)
+        .tint(Design.Color.accent)
     }
 
     private func row(_ tab: Tab) -> some View {
@@ -39,7 +40,7 @@ struct SettingsView: View {
             HStack(spacing: Design.Space.labelGap) {
                 Image(systemName: tab.symbol)
                     .font(.system(size: Design.Size.navIcon))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Design.Color.textSecondary)
                 Text(l10n(tab.titleKey))
             }
         }
