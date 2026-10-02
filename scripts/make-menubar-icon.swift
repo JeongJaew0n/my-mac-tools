@@ -6,8 +6,9 @@ import AppKit
 // 메뉴바 아이콘은 template 이어야 배경 밝기에 맞춰 색이 잡힌다. template 은 **알파만**
 // 보므로 흰 배경을 투명으로 바꾸고 그림만 불투명하게 남긴다.
 //
-// 임계값은 **최종 표시 픽셀 크기에서** 적용한다. 큰 마스크를 만들어 줄이면 가장자리가
-// 전부 반투명 회색이 되고, 메뉴바의 반투명 틴트와 곱해져 글리프가 흐릿하게 뜬다.
+// 가장자리는 **덮인 비율만큼 반투명**으로 남긴다(안티앨리어싱). 예전 사과·공구 그림은
+// 틈이 가늘어 반투명 가장자리가 흐릿하게 떠서 이진화했지만, 지금 별·궤도 그림은 곡선이라
+// 이진화하면 레티나가 아닌 화면(20px 그대로 쓰임)에서 계단이 진다.
 //
 // 원본은 `Resources/MenuBarIconSource.png` — 앱 아이콘의 글리프만 흰 바탕 검은 그림으로
 // 따낸 것이다. 앱 아이콘은 어두운 바탕 위 밝은 그림이라 이 스크립트에 그대로 넣을 수
@@ -73,8 +74,7 @@ func mask(side: Int) -> Data? {
             }
             let i = (y * side + x) * 4
             outData[i] = 0; outData[i + 1] = 0; outData[i + 2] = 0
-            // 반투명을 남기지 않는다.
-            outData[i + 3] = Double(hits) / Double(cell) >= 0.5 ? 255 : 0
+            outData[i + 3] = UInt8((Double(hits) / Double(cell) * 255).rounded())
         }
     }
     return out.representation(using: .png, properties: [:])
