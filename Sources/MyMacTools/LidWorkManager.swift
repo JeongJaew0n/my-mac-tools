@@ -82,12 +82,22 @@ final class LidWorkManager: ObservableObject {
     /// 지금 값이 기본값과 같은가.
     var matchesDefault: Bool { snapshot == storedDefault }
 
+    /// 메뉴바에서 켰을 때 쓰일 유지 시간(초). `nil` 이면 제한 없음.
+    var defaultDurationSeconds: Int? {
+        let value = storedDefault
+        let total = value.hours * 3600 + value.minutes * 60
+        return total == 0 ? nil : total
+    }
+
     func saveAsDefault() {
         ToolDefaults.save(snapshot, key: ToolDefaults.lidKey)
         objectWillChange.send()
     }
 
-    /// 저장된 기본값으로 되돌린다. 돌고 있는 세션은 건드리지 않는다.
+    /// 저장된 기본값으로 되돌린다.
+    ///
+    /// **세션이 도는 동안에는 부르지 않는다.** 카운트다운은 시작 때의 `endDate` 로
+    /// 고정돼 있어, 도는 중에 시·분을 되돌리면 화면의 시간과 실제 남은 시간이 어긋난다.
     func restoreDefault() {
         let value = storedDefault
         hours = value.hours

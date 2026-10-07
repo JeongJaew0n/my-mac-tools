@@ -89,6 +89,16 @@ final class BlackWorkManager: ObservableObject {
     /// 지금 값이 기본값과 같은가. 같으면 저장도 되돌리기도 할 일이 없다.
     var matchesDefault: Bool { snapshot == storedDefault }
 
+    /// 메뉴바에서 켰을 때 쓰일 유지 시간(초). `nil` 이면 제한 없음.
+    ///
+    /// 메뉴바에서 켜면 저장된 기본값으로 시작하므로(`Actions.toggleScreenOffFromMenu`),
+    /// 메뉴에 보여줄 시간도 화면의 값이 아니라 이것이다.
+    var defaultDurationSeconds: Int? {
+        let value = storedDefault
+        let total = value.hours * 3600 + value.minutes * 60
+        return total == 0 ? nil : total
+    }
+
     func saveAsDefault() {
         ToolDefaults.save(snapshot, key: ToolDefaults.sleepKey)
         objectWillChange.send()
@@ -96,8 +106,12 @@ final class BlackWorkManager: ObservableObject {
 
     /// 저장된 기본값으로 되돌린다.
     ///
-    /// **돌고 있는 세션은 건드리지 않는다.** `caffeinate` 인자는 `시작` 을 누른 시점에
-    /// 정해지므로, 도는 중에 값을 되돌려도 그 세션은 그대로다.
+    /// **세션이 도는 동안에는 부르지 않는다.** `caffeinate` 인자는 `시작` 때 정해지지만
+    /// `sleepWhenDone` 은 만료 시점에(`handleTermination`), `screenMode` 는 화면 끄기
+    /// 카운트다운이 끝날 때(`tick`) **살아있는 값을 읽는다.** 도는 중에 되돌리면 만료 때
+    /// 잠들지 말지가 바뀐다. 그래서 창은 세션 중에 버튼을 잠그고, 메뉴바는 켤 때만
+    /// 되돌린다. 덮개 규칙은 이 함수가 모르므로 부르는 쪽이 `Actions.enforceLidRule` 을
+    /// 함께 부른다.
     func restoreDefault() {
         apply(storedDefault)
     }

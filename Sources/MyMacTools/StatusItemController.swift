@@ -122,10 +122,17 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
 
-        add(menu, title: l10n(.tabScreenOff), on: manager.isRunning,
-            action: #selector(toggleScreenOff))
-        add(menu, title: l10n(.tabLid), on: lid.isRunning,
-            action: #selector(toggleLid))
+        // 이름 옆에 시간을 붙인다. 꺼져 있으면 **켤 때 쓰일 시간**(저장된 기본값),
+        // 켜져 있으면 **남은 시간**. 메뉴에는 시간을 고르는 자리가 없어서, 켜기 전에
+        // 몇 시간짜리로 켜지는지 알 방법이 이것뿐이다.
+        add(menu, title: titled(.tabScreenOff, running: manager.isRunning,
+                                remaining: manager.remaining,
+                                defaultSeconds: manager.defaultDurationSeconds),
+            on: manager.isRunning, action: #selector(toggleScreenOff))
+        add(menu, title: titled(.tabLid, running: lid.isRunning,
+                                remaining: lid.remaining,
+                                defaultSeconds: lid.defaultDurationSeconds),
+            on: lid.isRunning, action: #selector(toggleLid))
         // 사진이 없으면 덮을 것이 없다. 고르는 것은 창에서 한다.
         add(menu, title: l10n(.tabCover), on: cover.isCovering,
             action: #selector(toggleCover),
@@ -134,6 +141,36 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         add(menu, title: l10n(.menuOpenWindow), on: false, action: #selector(showWindow))
         add(menu, title: l10n(.menuQuit), on: false, action: #selector(quit))
+    }
+
+    /// `잠자기 방지 — 2시간 30분` · `잠자기 방지 — 1:23:45 남음` · `… — 시간 제한 없음`.
+    ///
+    /// 메뉴는 열 때마다 다시 만들어지므로(`menuNeedsUpdate`) 남은 시간은 연 순간의 값이다.
+    private func titled(_ name: L10n.Key, running: Bool,
+                        remaining: TimeInterval?, defaultSeconds: Int?) -> String {
+        let detail: String
+        if running {
+            detail = remaining.map { l10n(.progressRemaining, Self.clock($0)) } ?? l10n(.progressNoLimit)
+        } else {
+            detail = defaultSeconds.map(duration) ?? l10n(.progressNoLimit)
+        }
+        return "\(l10n(name)) — \(detail)"
+    }
+
+    /// `2시간 30분`, `2시간`, `30분`. 단위는 창의 선택기 옆 글자와 같은 문구를 쓴다.
+    private func duration(_ seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = seconds % 3600 / 60
+        var parts: [String] = []
+        if hours > 0 { parts.append("\(hours)\(l10n(.unitHour))") }
+        if minutes > 0 { parts.append("\(minutes)\(l10n(.unitMinute))") }
+        return parts.joined(separator: " ")
+    }
+
+    /// 남은 시간을 창과 같은 `H:MM:SS` 로.
+    private static func clock(_ interval: TimeInterval) -> String {
+        let total = max(0, Int(interval.rounded()))
+        return String(format: "%d:%02d:%02d", total / 3600, (total % 3600) / 60, total % 60)
     }
 
     private func add(_ menu: NSMenu,
@@ -151,7 +188,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     // MARK: - 동작
 
     @objc private func toggleScreenOff() {
-        Actions.toggleScreenOffFromMenu(manager)
+        Actions.toggleScreenOffFromMenu(manager, lid: lid)
         refreshDot()
     }
 

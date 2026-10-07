@@ -17,6 +17,23 @@ enum Actions {
         }
     }
 
+    /// 덮개 기능이 켜져 있으면 "끝나면 Mac잠자기 모드" 를 내린다.
+    ///
+    /// `toggleLid` 는 **켜는 순간**만 지킨다. 그런데 기본값을 싣는 경로가 셋 더 생겼다 —
+    /// 앱 시작, `기본값으로` 버튼, 메뉴바에서 켜기. 셋 다 덮개 상태를 모른 채 저장된
+    /// `sleepWhenDone = true` 를 실어, `toggleLid` 가 막으려던 상태를 다시 만든다.
+    /// 게다가 그 토글은 덮개가 켜진 동안 **잠겨 있어** 사용자가 되돌릴 수도 없다.
+    /// 기본값을 싣는 곳은 모두 이 함수를 거친다.
+    static func enforceLidRule(_ lid: LidWorkManager, _ manager: BlackWorkManager) {
+        if lid.isRunning { manager.sleepWhenDone = false }
+    }
+
+    /// 창의 `기본값으로` 버튼.
+    static func restoreSleepDefault(_ manager: BlackWorkManager, lid: LidWorkManager) {
+        manager.restoreDefault()
+        enforceLidRule(lid, manager)
+    }
+
     /// 상태 막대에서 **켤 때**는 저장된 기본값으로 되돌린 뒤 시작한다.
     ///
     /// 메뉴에는 값을 고르는 자리가 없다. 창에서 값을 만지다 저장하지 않고 닫아두면,
@@ -28,8 +45,11 @@ enum Actions {
     ///
     /// **끄는 것은 그냥 끈다.** 끌 때 값을 건드리면 사용자가 창에서 고르던 중인 값을
     /// 메뉴가 지워버린다.
-    static func toggleScreenOffFromMenu(_ manager: BlackWorkManager) {
-        if !manager.isRunning { manager.restoreDefault() }
+    static func toggleScreenOffFromMenu(_ manager: BlackWorkManager, lid: LidWorkManager) {
+        if !manager.isRunning {
+            manager.restoreDefault()
+            enforceLidRule(lid, manager)
+        }
         manager.toggle()
     }
 

@@ -94,9 +94,15 @@ struct ContentView: View {
         // 앱이 기억한 상태가 아니라 커널의 실제 값으로 맞춘다.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             lid.refreshFromSystem()
+            Actions.enforceLidRule(lid, manager)
         }
         // 창을 닫았다 다시 열면 앱이 활성화된 뒤에 뷰가 만들어져 위 알림을 놓칠 수 있다.
-        .onAppear { lid.refreshFromSystem() }
+        .onAppear {
+            lid.refreshFromSystem()
+            // `disablesleep` 은 재시작해도 남는다. 덮개가 켜진 채로 다시 열었는데 저장된
+            // 기본값에 "끝나면 Mac잠자기 모드" 가 켜져 있으면, 잠긴 토글이 켜진 채로 남는다.
+            Actions.enforceLidRule(lid, manager)
+        }
         // 보고 있던 탭이 설정에서 숨겨지면 고른 값을 실제로 보이는 탭으로 되돌린다.
         // `activeTab` 이 그리는 것은 이미 맞춰 주지만, 저장된 값을 고쳐두지 않으면
         // 그 탭을 다시 켰을 때 엉뚱한 곳으로 돌아간다.
@@ -178,8 +184,9 @@ struct ContentView: View {
             settings
 
             defaultsRow(matchesDefault: manager.matchesDefault,
+                        isRunning: manager.isRunning,
                         save: { manager.saveAsDefault() },
-                        restore: { manager.restoreDefault() })
+                        restore: { Actions.restoreSleepDefault(manager, lid: lid) })
 
             Button(l10n(manager.isRunning ? .buttonStop : .buttonStart)) {
                 manager.toggle()
@@ -205,6 +212,7 @@ struct ContentView: View {
     /// 지금 값이 기본값과 같으면 **둘 다 잠근다.** 눌러도 아무 일이 없는 버튼을
     /// 누르게 두지 않는다. 근거는 `docs/plans/tool-defaults/spec.md`.
     private func defaultsRow(matchesDefault: Bool,
+                             isRunning: Bool,
                              save: @escaping () -> Void,
                              restore: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: Design.Space.rowTight) {
@@ -214,7 +222,9 @@ struct ContentView: View {
                 Spacer(minLength: 0)
             }
             .controlSize(.small)
-            .disabled(matchesDefault)
+            // 세션이 도는 동안에도 잠근다. 위의 설정 블록이 잠기는 것과 같은 이유다 —
+            // 도는 세션이 일부 값을 살아있는 채로 읽어서, 되돌리면 그 세션이 바뀐다.
+            .disabled(matchesDefault || isRunning)
 
             // 두 줄을 붙여 둔다. 메뉴바에서 켜면 창에서 고르던 값이 아니라 이 기본값이
             // 쓰이므로, 기본값을 설명하는 자리에서 함께 알려야 한다.
@@ -569,6 +579,7 @@ struct ContentView: View {
             }
 
             defaultsRow(matchesDefault: lid.matchesDefault,
+                        isRunning: lid.isRunning,
                         save: { lid.saveAsDefault() },
                         restore: { lid.restoreDefault() })
 
