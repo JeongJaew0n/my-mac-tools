@@ -177,3 +177,25 @@
 "usage.seconds" = "%d초";
 "usage.minutes" = "%d분";
 "usage.hours" = "%.1f시간";
+
+/* Mac 정보 */
+"tab.macInfo" = "Mac 정보";
+"info.memory" = "메모리";
+"info.storage" = "저장공간";
+"info.usedOfTotal" = "%@ / %@";
+"info.free" = "%@ 남음";
+"info.pressure" = "압력";
+"info.pressure.normal" = "정상";
+"info.pressure.warning" = "주의";
+"info.pressure.critical" = "위험";
+"info.freePercent" = "여유 %d%%";
+"info.localIP" = "내부 IP";
+"info.publicIP" = "공인 IP";
+"info.publicIPCheck" = "확인";
+"info.publicIPNote" = "공인 IP 는 바깥 서비스(api.ipify.org)에 물어야 알 수 있어, 누를 때만 묻습니다.";
+"info.publicIPFailed" = "확인하지 못했습니다: %@";
+"info.noNetwork" = "연결된 네트워크가 없습니다";
+"info.copy" = "복사";
+"info.copied" = "복사했습니다";
+"info.memoryHelp" = "활성 상태 보기의 '사용된 메모리'와 같은 기준입니다(앱 + 고정 + 압축). macOS 는 남는 메모리를 캐시로 쓰므로 거의 다 찬 것처럼 보이는 게 정상이고, 실제 여유는 압력으로 판단합니다.";
+"info.storageHelp" = "Finder 와 같은 기준입니다. 지울 수 있는 캐시는 남은 공간에 포함됩니다.";

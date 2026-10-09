@@ -9,6 +9,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case cover
     case localhost
     case speedTest
+    case macInfo
 
     var id: String { rawValue }
 
@@ -19,6 +20,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .cover: return .tabCover
         case .localhost: return .tabLocalhost
         case .speedTest: return .tabSpeedTest
+        case .macInfo: return .tabMacInfo
         }
     }
 
@@ -31,6 +33,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .cover: return "photo.fill"                // 사진으로 가리기
         case .localhost: return "network"               // 포트
         case .speedTest: return "speedometer"           // 인터넷 속도
+        case .macInfo: return "info.circle"             // 이 맥
         }
     }
 }
@@ -42,11 +45,14 @@ struct ContentView: View {
     @ObservedObject var caffeine: CaffeinateScanner
     @ObservedObject var localhost: LocalhostManager
     @ObservedObject var speedTest: SpeedTestManager
+    @ObservedObject var macInfo: MacInfoManager
     @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
     /// 중지에 실패한 이유. 성공하면 비운다.
     @State private var caffeineError: String?
+    /// 방금 복사한 주소. 잠깐 "복사했습니다" 를 보여주고 지운다.
+    @State private var copiedAddress: String?
 
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
@@ -77,6 +83,7 @@ struct ContentView: View {
                     case .cover: coverTab
                     case .localhost: localhostTab
                     case .speedTest: speedTestTab
+                    case .macInfo: macInfoTab
                     }
                 }
                 .padding(Design.Inset.screen)
@@ -129,6 +136,7 @@ struct ContentView: View {
         .onDisappear {
             caffeine.stopPolling()
             localhost.stopPolling()
+            macInfo.stopPolling()
         }
     }
 
@@ -139,7 +147,18 @@ struct ContentView: View {
     /// 두 기능 모두 **시스템 상태**를 바꾸고, 덮개 기능은 앱을 꺼도 값이 남는다.
     /// 탭 뒤에 숨겨버리면 켜둔 사실이 화면 어디에도 없게 되므로, 어느 탭에 있든 보이게 한다.
     /// 점은 매니저의 `isRunning` 을 그대로 따라간다. 따로 기억하지 않는다.
+    /// 이름이 한 줄에 다 들어가면 이름까지, 아니면 아이콘만 그린다.
+    ///
+    /// 탭이 여섯이 되자 기본 폭에서 이름이 두 줄로 꺾였다("로컬호스/트"). 꺾인 이름보다
+    /// 아이콘만 있는 편이 읽기 쉽다. 창을 넓히면 이름이 돌아온다.
     private var tabBar: some View {
+        ViewThatFits(in: .horizontal) {
+            tabBar(showsTitles: true)
+            tabBar(showsTitles: false)
+        }
+    }
+
+    private func tabBar(showsTitles: Bool) -> some View {
         HStack(spacing: Design.Space.navItemGap) {
             ForEach(preferences.visibleTabs) { tab in
                 Button {
@@ -151,15 +170,20 @@ struct ContentView: View {
                         Image(systemName: tab.symbol)
                             .font(.system(size: Design.Size.navIcon))
                             .foregroundStyle(isRunning(tab) ? Design.Color.statusRunning : Design.Color.textSecondary)
-                        Text(l10n(tab.titleKey))
-                            .fontWeight(activeTab == tab ? .semibold : .regular)
-                            .foregroundStyle(activeTab == tab ? Design.Color.onSelection : Color.primary)
+                        if showsTitles {
+                            Text(l10n(tab.titleKey))
+                                .fontWeight(activeTab == tab ? .semibold : .regular)
+                                .foregroundStyle(activeTab == tab ? Design.Color.onSelection : Color.primary)
+                                .lineLimit(1)
+                                .fixedSize()
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Design.Inset.navItemY)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .help(showsTitles ? "" : l10n(tab.titleKey))
                 .background {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
@@ -178,6 +202,8 @@ struct ContentView: View {
         case .cover: return cover.isCovering
         case .localhost: return localhost.isRunning
         case .speedTest: return speedTest.isRunning
+        // 보여주기만 하는 Tool 이라 '돌고 있는' 상태가 없다.
+        case .macInfo: return false
         }
     }
 
@@ -927,6 +953,241 @@ struct ContentView: View {
         formatter.dateStyle = Calendar.current.isDateInToday(date) ? .none : .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+
+    // MARK: - Mac 정보
+
+    /// 이 맥의 기종·메모리·저장공간·IP.
+    ///
+    /// 숫자의 기준은 활성 상태 보기·Finder 와 같다. `top`·`df` 는 다른 숫자를 준다 —
+    /// 근거는 `docs/plans/mac-info/context.md`.
+    private var macInfoTab: some View {
+        VStack(alignment: .leading, spacing: Design.Space.block) {
+            VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                Text(macInfo.hardware.modelName + " · " + macInfo.hardware.chip)
+                    .font(.headline)
+                Text(macInfo.hardware.osVersion + " · " + macInfo.hardware.modelIdentifier)
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.textSecondary)
+                    .textSelection(.enabled)
+            }
+
+            Divider()
+
+            memoryBlock
+            storageBlock
+
+            Divider()
+
+            addressBlock
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onAppear { macInfo.startPolling() }
+        .onDisappear { macInfo.stopPolling() }
+    }
+
+    private var memoryBlock: some View {
+        let total = Int64(macInfo.hardware.memoryBytes)
+        let used = min(Int64(macInfo.memory.usedBytes), total)
+        return VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            usageHeader(symbol: "memorychip", title: l10n(.infoMemory),
+                        value: l10n(.infoUsedOfTotal, Self.memoryBytes(used), Self.memoryBytes(total)))
+            ProgressView(value: Double(used), total: Double(max(total, 1)))
+                .tint(pressureColor)
+            HStack(spacing: Design.Space.labelGap) {
+                Circle()
+                    .fill(pressureColor)
+                    .frame(width: Design.Size.indicatorSmall, height: Design.Size.indicatorSmall)
+                Text(pressureLine)
+            }
+            .font(.caption)
+            .foregroundStyle(Design.Color.textSecondary)
+        }
+        .contentShape(Rectangle())
+        .help(l10n(.infoMemoryHelp))
+    }
+
+    private var storageBlock: some View {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            if let storage = macInfo.storage {
+                usageHeader(symbol: "internaldrive", title: l10n(.infoStorage),
+                            value: l10n(.infoUsedOfTotal, Self.fileBytes(storage.usedBytes),
+                                        Self.fileBytes(storage.totalBytes)))
+                ProgressView(value: Double(storage.usedBytes), total: Double(max(storage.totalBytes, 1)))
+                Text(l10n(.infoFree, Self.fileBytes(storage.availableBytes)))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.textSecondary)
+            } else {
+                usageHeader(symbol: "internaldrive", title: l10n(.infoStorage), value: "—")
+            }
+        }
+        .contentShape(Rectangle())
+        .help(l10n(.infoStorageHelp))
+    }
+
+    private func usageHeader(symbol: String, title: String, value: String) -> some View {
+        HStack(spacing: Design.Space.inline) {
+            Image(systemName: symbol)
+                .foregroundStyle(Design.Color.textSecondary)
+                .frame(width: Design.Size.indicator * 1.6)
+            Text(title)
+            Spacer(minLength: 4)
+            Text(value).font(.body.monospacedDigit())
+        }
+    }
+
+    private var addressBlock: some View {
+        VStack(alignment: .leading, spacing: Design.Space.listRow) {
+            if macInfo.addresses.isEmpty {
+                usageHeader(symbol: "wifi.slash", title: l10n(.infoLocalIP), value: "—")
+                Text(l10n(.infoNoNetwork))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.textSecondary)
+            } else {
+                ForEach(macInfo.addresses) { address in
+                    addressRow(symbol: symbol(for: address.interface),
+                               title: l10n(.infoLocalIP),
+                               detail: interfaceLabel(address.interface),
+                               address: address.address)
+                }
+            }
+
+            publicIPRow
+
+            Text(l10n(.infoPublicIPNote))
+                .font(.caption2)
+                .foregroundStyle(Design.Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private var publicIPRow: some View {
+        switch macInfo.publicIP {
+        case .value(let ip):
+            addressRow(symbol: "globe", title: l10n(.infoPublicIP), detail: nil, address: ip)
+        case .failed(let reason):
+            HStack(spacing: Design.Space.inline) {
+                Image(systemName: "globe")
+                    .foregroundStyle(Design.Color.textSecondary)
+                    .frame(width: Design.Size.indicator * 1.6)
+                Text(l10n(.infoPublicIP))
+                Spacer(minLength: 4)
+                Button(l10n(.infoPublicIPCheck)) { macInfo.fetchPublicIP() }
+                    .controlSize(.small)
+            }
+            Text(l10n(.infoPublicIPFailed, reason))
+                .font(.caption)
+                .foregroundStyle(Design.Color.statusError)
+                .fixedSize(horizontal: false, vertical: true)
+        case .unknown, .loading:
+            HStack(spacing: Design.Space.inline) {
+                Image(systemName: "globe")
+                    .foregroundStyle(Design.Color.textSecondary)
+                    .frame(width: Design.Size.indicator * 1.6)
+                Text(l10n(.infoPublicIP))
+                Spacer(minLength: 4)
+                if macInfo.publicIP == .loading {
+                    ProgressView().controlSize(.small)
+                } else {
+                    Button(l10n(.infoPublicIPCheck)) { macInfo.fetchPublicIP() }
+                        .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    /// 주소를 누르면 복사한다. 붙여 넣으려고 보는 값이라 그게 가장 흔한 다음 동작이다.
+    private func addressRow(symbol: String, title: String, detail: String?, address: String) -> some View {
+        HStack(spacing: Design.Space.inline) {
+            Image(systemName: symbol)
+                .foregroundStyle(Design.Color.textSecondary)
+                .frame(width: Design.Size.indicator * 1.6)
+            Text(title)
+            if let detail {
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.textSecondary)
+            }
+            Spacer(minLength: 4)
+            Button {
+                copy(address)
+            } label: {
+                Text(copiedAddress == address ? l10n(.infoCopied) : address)
+                    .font(.body.monospacedDigit())
+                    .foregroundStyle(copiedAddress == address ? Design.Color.statusRunning : Color.primary)
+            }
+            .buttonStyle(.plain)
+            .help(l10n(.infoCopy))
+        }
+    }
+
+    private func copy(_ address: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(address, forType: .string)
+        copiedAddress = address
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            if copiedAddress == address { copiedAddress = nil }
+        }
+    }
+
+    private func symbol(for interface: String) -> String {
+        switch macInfo.kind(of: interface) {
+        case .wifi: return "wifi"
+        case .wiredEthernet: return "cable.connector"
+        case .cellular: return "antenna.radiowaves.left.and.right"
+        default: return "network"
+        }
+    }
+
+    /// `Wi-Fi (en0)`. 종류를 모르면 이름만.
+    private func interfaceLabel(_ interface: String) -> String {
+        switch macInfo.kind(of: interface) {
+        case .wifi: return "Wi-Fi (\(interface))"
+        case .wiredEthernet: return "Ethernet (\(interface))"
+        case .cellular: return "Cellular (\(interface))"
+        default: return interface
+        }
+    }
+
+    /// `압력 정상 · 여유 42%`. 여유 비율을 못 읽으면 압력만.
+    private var pressureLine: String {
+        let pressure = l10n(.infoPressure) + " " + l10n(pressureKey)
+        guard let free = macInfo.memory.freePercent else { return pressure }
+        return pressure + " · " + l10n(.infoFreePercent, free)
+    }
+
+    private var pressureKey: L10n.Key {
+        switch macInfo.pressure {
+        case .normal: return .infoPressureNormal
+        case .warning: return .infoPressureWarning
+        case .critical: return .infoPressureCritical
+        }
+    }
+
+    private var pressureColor: Color {
+        switch macInfo.pressure {
+        case .normal: return Design.Color.statusRunning
+        case .warning: return Design.Color.statusWarning
+        case .critical: return Design.Color.statusError
+        }
+    }
+
+    /// 메모리는 2진(GiB)으로 센다. 18 GB 맥이 "19.3 GB" 로 보이면 안 된다 —
+    /// Apple 이 메모리를 파는 단위와 활성 상태 보기가 모두 2진이다.
+    private static func memoryBytes(_ bytes: Int64) -> String {
+        String(format: "%.1f GB", Double(bytes) / 1_073_741_824)
+    }
+
+    /// 저장공간은 10진(GB)으로 센다. Finder 와 Apple 의 용량 표기가 10진이다.
+    ///
+    /// `ByteCountFormatter` 는 한국어에서 "222.41GB" 처럼 붙이고 소수 둘째 자리까지 써서
+    /// 메모리 줄과 꼴이 달랐다. 같은 꼴로 직접 쓴다.
+    private static func fileBytes(_ bytes: Int64) -> String {
+        let gb = Double(bytes) / 1_000_000_000
+        if gb >= 1000 { return String(format: "%.2f TB", gb / 1000) }
+        if gb >= 100 { return String(format: "%.0f GB", gb) }
+        return String(format: "%.1f GB", gb)
     }
 
     // MARK: - 로컬호스트

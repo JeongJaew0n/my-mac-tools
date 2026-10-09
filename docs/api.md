@@ -73,17 +73,23 @@ print(json.loads(sock.recv(1 << 20))["result"])
 
 | 메서드 | 파라미터 | 결과 |
 |---|---|---|
-| `status` | — | 네 Tool 의 상태 한 번에 |
+| `status` | — | 켜고 끄는 Tool 들의 상태 한 번에 |
 | `sleep.get` | — | 잠자기 방지 상태·설정 |
 | `lid.get` | — | 덮개 상태 (커널의 지금 값으로 갱신 후) |
 | `cover.get` | — | 화면 가리기 상태 |
 | `caffeinate.list` | — | 돌고 있는 `caffeinate` 전부 |
 | `ports.list` | `category` `search` | 듣고 있는 localhost 포트 |
 | `speedtest.status` | — | 측정 중인지, 경과 시간, 마지막 결과 |
+| `mac.info` | — | 기종·칩·macOS, 메모리·저장공간(바이트), 내부 IP, 마지막으로 확인한 공인 IP |
 
 `ports.list` 의 `category` 는 `all` · `system` · `wellKnown` · `terminal` · `other` 중 하나다.
 `search` 는 숫자만 쓴다 — 문자열이든 숫자든 받고, 포트 번호에 **부분 일치**한다
 (`87` 은 `8765` 도 `9876` 도 잡는다).
+
+`mac.info` 의 숫자는 **바이트**다. 메모리 `usedBytes` 는 활성 상태 보기의 "사용된 메모리",
+`pressure` 는 `normal` · `warning` · `critical` (OS 판정), `freePercent` 는
+`kern.memorystatus_level`. 저장공간 `availableBytes` 는 Finder 의 "사용 가능" 과 같다.
+`publicIP.status` 는 `unknown`(아직 안 물음) · `loading` · `ok`(`address`) · `failed`(`error`).
 
 ### 쓰기
 
@@ -98,6 +104,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 | `ports.open` | `port` | 기본 브라우저로 `http://localhost:<포트>` |
 | `speedtest.start` | — | 인터넷 속도 측정을 **시작만** 하고 곧바로 돌아온다 |
 | `speedtest.cancel` | — | 측정을 멈춘다 |
+| `mac.publicIP` | — | 공인 IP 를 `api.ipify.org` 에 **묻기만** 하고 곧바로 돌아온다. 결과는 `mac.info` 의 `publicIP` |
 
 `screenMode` 는 `system` · `keepOff` · `keepOn`.
 `hours` 0–24, `minutes` 0–50(10 단위), `displayDelaySeconds` 3·5·7·10.
@@ -164,6 +171,13 @@ scripts/mymactools sleep.stop
 scripts/mymactools speedtest.start
 until ! scripts/mymactools speedtest.status | grep -q '"running": true'; do sleep 3; done
 scripts/mymactools speedtest.status
+```
+
+공인 IP 도 같은 꼴이다. 보통 1초 안에 온다.
+
+```bash
+scripts/mymactools mac.publicIP
+sleep 1; scripts/mymactools mac.info
 ```
 
 모르게 돌고 있는 `caffeinate` 찾기.

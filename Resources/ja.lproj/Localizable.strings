@@ -177,3 +177,25 @@
 "usage.seconds" = "%d秒";
 "usage.minutes" = "%d分";
 "usage.hours" = "%.1f時間";
+
+/* Mac 情報 */
+"tab.macInfo" = "Mac 情報";
+"info.memory" = "メモリ";
+"info.storage" = "ストレージ";
+"info.usedOfTotal" = "%@ / %@";
+"info.free" = "空き %@";
+"info.pressure" = "プレッシャー";
+"info.pressure.normal" = "正常";
+"info.pressure.warning" = "注意";
+"info.pressure.critical" = "危険";
+"info.freePercent" = "空き %d%%";
+"info.localIP" = "内部 IP";
+"info.publicIP" = "グローバル IP";
+"info.publicIPCheck" = "確認";
+"info.publicIPNote" = "グローバル IP は外部サービス(api.ipify.org)に問い合わせないと分からないため、押したときだけ問い合わせます。";
+"info.publicIPFailed" = "確認できませんでした: %@";
+"info.noNetwork" = "接続中のネットワークがありません";
+"info.copy" = "コピー";
+"info.copied" = "コピーしました";
+"info.memoryHelp" = "アクティビティモニタの「使用済みメモリ」と同じ基準です(アプリ + 確保 + 圧縮)。macOS は余ったメモリをキャッシュに使うため、ほぼ埋まって見えるのは正常で、実際の余裕はプレッシャーで判断します。";
+"info.storageHelp" = "Finder と同じ基準です。削除可能なキャッシュは空き容量に含まれます。";

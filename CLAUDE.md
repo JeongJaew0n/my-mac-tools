@@ -13,6 +13,7 @@ Sources/MyMacTools/
 ├── ScreenCoverManager.swift Tool: 화면 가리기 (+ CoverView, Shortcut, ShortcutRecorder)
 ├── LocalhostManager.swift   Tool: 로컬호스트 (libproc 으로 LISTEN 소켓)
 ├── SpeedTestManager.swift   Tool: 속도 측정 (macOS 내장 networkQuality)
+├── MacInfoManager.swift     Tool: Mac 정보 (기종·메모리·저장공간·IP)
 ├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
 ├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
 ├── APIServer.swift          에이전트용 유닉스 소켓 서버

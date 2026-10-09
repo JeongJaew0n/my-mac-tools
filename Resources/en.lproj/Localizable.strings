@@ -177,3 +177,25 @@
 "usage.seconds" = "%ds";
 "usage.minutes" = "%d min";
 "usage.hours" = "%.1f h";
+
+/* Mac info */
+"tab.macInfo" = "Mac Info";
+"info.memory" = "Memory";
+"info.storage" = "Storage";
+"info.usedOfTotal" = "%@ of %@";
+"info.free" = "%@ free";
+"info.pressure" = "Pressure";
+"info.pressure.normal" = "Normal";
+"info.pressure.warning" = "Warning";
+"info.pressure.critical" = "Critical";
+"info.freePercent" = "%d%% free";
+"info.localIP" = "Local IP";
+"info.publicIP" = "Public IP";
+"info.publicIPCheck" = "Check";
+"info.publicIPNote" = "The public IP can only be learned by asking an outside service (api.ipify.org), so it is asked only when you press.";
+"info.publicIPFailed" = "Could not check: %@";
+"info.noNetwork" = "No network connected";
+"info.copy" = "Copy";
+"info.copied" = "Copied";
+"info.memoryHelp" = "Same measure as Activity Monitor's Memory Used (app + wired + compressed). macOS keeps spare memory as cache, so looking nearly full is normal; judge headroom by pressure.";
+"info.storageHelp" = "Same measure as Finder. Purgeable caches count as available.";

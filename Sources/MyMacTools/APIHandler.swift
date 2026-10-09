@@ -29,16 +29,18 @@ final class APIHandler {
     private let caffeine: CaffeinateScanner
     private let localhost: LocalhostManager
     private let speedTest: SpeedTestManager
+    private let macInfo: MacInfoManager
 
     init(sleep: BlackWorkManager, lid: LidWorkManager, cover: ScreenCoverManager,
          caffeine: CaffeinateScanner, localhost: LocalhostManager,
-         speedTest: SpeedTestManager) {
+         speedTest: SpeedTestManager, macInfo: MacInfoManager) {
         self.sleep = sleep
         self.lid = lid
         self.cover = cover
         self.caffeine = caffeine
         self.localhost = localhost
         self.speedTest = speedTest
+        self.macInfo = macInfo
     }
 
     /// 요청 한 줄을 받아 응답 한 줄을 만든다.
@@ -103,6 +105,13 @@ final class APIHandler {
         case "speedtest.cancel":
             speedTest.cancel()
             return speedTestState()
+
+        case "mac.info": return macInfoState()
+        // 바깥 서비스에 요청이 나가므로 `mac.info` 에 섞지 않는다. 묻기만 하고 곧바로
+        // 돌아온다 — 결과는 `mac.info` 의 `publicIP` 로 본다.
+        case "mac.publicIP":
+            macInfo.fetchPublicIP()
+            return ["publicIP": publicIPState()]
 
         default: throw Failure.unknownMethod
         }
@@ -282,6 +291,54 @@ final class APIHandler {
         }
         state["expensiveNetwork"] = speedTest.isExpensiveNetwork
         return state
+    }
+
+    private func macInfoState() -> [String: Any] {
+        // 탭이 안 보이면 훑지 않으므로, 부를 때마다 지금 값으로 맞춘다.
+        macInfo.refresh()
+        let hardware = macInfo.hardware
+        var state: [String: Any] = [
+            "model": hardware.modelName,
+            "modelIdentifier": hardware.modelIdentifier,
+            "chip": hardware.chip,
+            "os": hardware.osVersion,
+            "memory": [
+                "totalBytes": hardware.memoryBytes,
+                "usedBytes": macInfo.memory.usedBytes,
+                "pressure": "\(macInfo.pressure)",
+            ] as [String: Any],
+            "addresses": macInfo.addresses.map { address -> [String: Any] in
+                var row: [String: Any] = ["interface": address.interface, "address": address.address]
+                switch macInfo.kind(of: address.interface) {
+                case .wifi: row["type"] = "wifi"
+                case .wiredEthernet: row["type"] = "wiredEthernet"
+                case .cellular: row["type"] = "cellular"
+                default: break
+                }
+                return row
+            },
+            "publicIP": publicIPState(),
+        ]
+        if let free = macInfo.memory.freePercent {
+            var memory = state["memory"] as! [String: Any]
+            memory["freePercent"] = free
+            state["memory"] = memory
+        }
+        if let storage = macInfo.storage {
+            state["storage"] = ["totalBytes": storage.totalBytes,
+                                "availableBytes": storage.availableBytes,
+                                "usedBytes": storage.usedBytes]
+        }
+        return state
+    }
+
+    private func publicIPState() -> [String: Any] {
+        switch macInfo.publicIP {
+        case .unknown: return ["status": "unknown"]
+        case .loading: return ["status": "loading"]
+        case .value(let ip): return ["status": "ok", "address": ip]
+        case .failed(let reason): return ["status": "failed", "error": reason]
+        }
     }
 
     // MARK: - 값 만들기

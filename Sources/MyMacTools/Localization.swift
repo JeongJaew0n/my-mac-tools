@@ -37,6 +37,7 @@ final class L10n: ObservableObject {
         case tabCover = "tab.cover"
         case tabLocalhost = "tab.localhost"
         case tabSpeedTest = "tab.speedTest"
+        case tabMacInfo = "tab.macInfo"
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
@@ -177,6 +178,27 @@ final class L10n: ObservableObject {
         case usageSeconds = "usage.seconds"
         case usageMinutes = "usage.minutes"
         case usageHours = "usage.hours"
+
+        // Mac 정보
+        case infoMemory = "info.memory"
+        case infoStorage = "info.storage"
+        case infoUsedOfTotal = "info.usedOfTotal"
+        case infoFree = "info.free"
+        case infoPressure = "info.pressure"
+        case infoPressureNormal = "info.pressure.normal"
+        case infoPressureWarning = "info.pressure.warning"
+        case infoPressureCritical = "info.pressure.critical"
+        case infoFreePercent = "info.freePercent"
+        case infoLocalIP = "info.localIP"
+        case infoPublicIP = "info.publicIP"
+        case infoPublicIPCheck = "info.publicIPCheck"
+        case infoPublicIPNote = "info.publicIPNote"
+        case infoPublicIPFailed = "info.publicIPFailed"
+        case infoNoNetwork = "info.noNetwork"
+        case infoCopy = "info.copy"
+        case infoCopied = "info.copied"
+        case infoMemoryHelp = "info.memoryHelp"
+        case infoStorageHelp = "info.storageHelp"
 
         // 설정 창
         case settingsAppearanceTitle = "settings.appearanceTitle"
