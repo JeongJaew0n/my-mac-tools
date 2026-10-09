@@ -265,6 +265,19 @@ final class APIHandler {
                 "interface": latest.interfaceName,
                 "interfaceType": latest.interfaceType,
                 "endpoint": latest.endpoint,
+                // 기준값은 각 서비스 공식 권장 속도. 이름은 화면 문구가 아니라 고정된 식별자다.
+                "usage": SpeedUsage.allCases.map { usage -> [String: Any] in
+                    var row: [String: Any] = ["activity": usage.rawValue,
+                                              "ok": usage.isSatisfied(by: latest),
+                                              "needDownMbps": usage.downloadMbps,
+                                              "source": usage.source]
+                    if let up = usage.uploadMbps { row["needUpMbps"] = up }
+                    return row
+                },
+                "secondsPerGigabyteDown": SpeedUsage.secondsPerGigabyte(
+                    bitsPerSecond: latest.downloadBitsPerSecond).map { Int($0.rounded()) } ?? 0,
+                "secondsPerGigabyteUp": SpeedUsage.secondsPerGigabyte(
+                    bitsPerSecond: latest.uploadBitsPerSecond).map { Int($0.rounded()) } ?? 0,
             ]
         }
         state["expensiveNetwork"] = speedTest.isExpensiveNetwork

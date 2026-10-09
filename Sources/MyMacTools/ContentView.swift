@@ -728,6 +728,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: Design.Space.block) {
             if let result = speedTest.latest {
                 speedResultBlock(result)
+                Divider()
+                speedUsageBlock(result)
             } else {
                 Text(l10n(.speedNever))
                     .font(.callout)
@@ -773,6 +775,60 @@ struct ContentView: View {
                 .truncationMode(.middle)
                 .help(result.endpoint)
         }
+    }
+
+    /// 측정한 속도로 무엇을 할 수 있는가. 기준값은 각 서비스의 공식 권장 속도이고,
+    /// 마우스를 올리면 출처가 뜬다 (`SpeedUsage`).
+    private func speedUsageBlock(_ result: SpeedResult) -> some View {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            Text(l10n(.usageTitle)).font(.callout)
+
+            ForEach(SpeedUsage.allCases) { usage in
+                let ok = usage.isSatisfied(by: result)
+                HStack(spacing: Design.Space.labelGap) {
+                    Image(systemName: ok ? "checkmark.circle.fill" : "xmark.circle")
+                        .foregroundStyle(ok ? Design.Color.statusRunning : Design.Color.textSecondary)
+                    Text(l10n(usage.titleKey))
+                        .foregroundStyle(ok ? Color.primary : Design.Color.textSecondary)
+                    Spacer(minLength: 4)
+                    Text(Self.requirement(usage))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Design.Color.textSecondary)
+                }
+                .font(.callout)
+                .contentShape(Rectangle())
+                .help(usage.source)
+            }
+
+            // 계산값이라 출처가 필요 없다. 서버·혼잡에 따라 실제로는 더 걸린다.
+            if let down = SpeedUsage.secondsPerGigabyte(bitsPerSecond: result.downloadBitsPerSecond),
+               let up = SpeedUsage.secondsPerGigabyte(bitsPerSecond: result.uploadBitsPerSecond) {
+                Text(l10n(.usageGigabyte, duration(down), duration(up)))
+                    .font(.caption)
+                    .padding(.top, Design.Space.rowTight)
+            }
+
+            Text(l10n(.usageNote))
+                .font(.caption2)
+                .foregroundStyle(Design.Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// `↓20` · `↑3.8 ↓3`. 필요한 것만 쓴다.
+    private static func requirement(_ usage: SpeedUsage) -> String {
+        func number(_ value: Double) -> String {
+            value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value)
+        }
+        let down = "↓" + number(usage.downloadMbps)
+        guard let up = usage.uploadMbps else { return down + " Mbps" }
+        return "↑" + number(up) + " " + down + " Mbps"
+    }
+
+    private func duration(_ seconds: Double) -> String {
+        if seconds < 60 { return l10n(.usageSeconds, max(1, Int(seconds.rounded()))) }
+        if seconds < 3600 { return l10n(.usageMinutes, Int((seconds / 60).rounded())) }
+        return l10n(.usageHours, seconds / 3600)
     }
 
     private func speedRow(symbol: String, label: String, value: String, prominent: Bool) -> some View {

@@ -166,3 +166,14 @@
 "speed.expensiveTitle" = "データ料金がかかる回線です";
 "speed.expensiveBody" = "テザリング・モバイル回線、または省データモードで接続しています。1回の測定で約150 MB以上を使います。";
 "speed.expensiveGo" = "それでも測定";
+"usage.title" = "この速度でできること";
+"usage.note" = "端末1台あたりの推奨速度です。複数の端末で使うと分け合います。";
+"usage.video4K" = "4K動画";
+"usage.video1080p" = "1080p動画";
+"usage.video720p" = "720p動画";
+"usage.call1080p" = "1080pビデオ通話 (1対1)";
+"usage.callGroup720p" = "720pビデオ会議 (複数人)";
+"usage.gigabyte" = "1 GBのダウンロード約%@ · アップロード約%@";
+"usage.seconds" = "%d秒";
+"usage.minutes" = "%d分";
+"usage.hours" = "%.1f時間";

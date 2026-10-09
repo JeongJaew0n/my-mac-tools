@@ -166,3 +166,14 @@
 "speed.expensiveTitle" = "데이터 요금이 드는 회선입니다";
 "speed.expensiveBody" = "테더링·셀룰러 또는 저데이터 모드로 연결돼 있습니다. 측정 1회에 약 150 MB 이상을 씁니다.";
 "speed.expensiveGo" = "그래도 측정";
+"usage.title" = "이 속도로";
+"usage.note" = "기기 한 대 기준 권장 속도입니다. 여러 기기가 함께 쓰면 나눠 갖습니다.";
+"usage.video4K" = "4K 영상";
+"usage.video1080p" = "1080p 영상";
+"usage.video720p" = "720p 영상";
+"usage.call1080p" = "1080p 화상 통화 (1:1)";
+"usage.callGroup720p" = "720p 화상 회의 (여럿)";
+"usage.gigabyte" = "1 GB 받기 약 %@ · 보내기 약 %@";
+"usage.seconds" = "%d초";
+"usage.minutes" = "%d분";
+"usage.hours" = "%.1f시간";

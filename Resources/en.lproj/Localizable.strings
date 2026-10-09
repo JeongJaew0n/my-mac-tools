@@ -166,3 +166,14 @@
 "speed.expensiveTitle" = "This connection may cost data";
 "speed.expensiveBody" = "You are on tethering, cellular or Low Data Mode. One test uses about 150 MB or more.";
 "speed.expensiveGo" = "Test Anyway";
+"usage.title" = "Good enough for";
+"usage.note" = "Recommended speeds for one device. Devices sharing the link split it.";
+"usage.video4K" = "4K video";
+"usage.video1080p" = "1080p video";
+"usage.video720p" = "720p video";
+"usage.call1080p" = "1080p video call (1:1)";
+"usage.callGroup720p" = "720p group video meeting";
+"usage.gigabyte" = "1 GB down in about %@ · up in about %@";
+"usage.seconds" = "%ds";
+"usage.minutes" = "%d min";
+"usage.hours" = "%.1f h";

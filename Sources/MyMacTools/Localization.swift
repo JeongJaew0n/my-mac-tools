@@ -166,6 +166,17 @@ final class L10n: ObservableObject {
         case speedExpensiveTitle = "speed.expensiveTitle"
         case speedExpensiveBody = "speed.expensiveBody"
         case speedExpensiveGo = "speed.expensiveGo"
+        case usageTitle = "usage.title"
+        case usageNote = "usage.note"
+        case usageVideo4K = "usage.video4K"
+        case usageVideo1080p = "usage.video1080p"
+        case usageVideo720p = "usage.video720p"
+        case usageCall1080p = "usage.call1080p"
+        case usageCallGroup720p = "usage.callGroup720p"
+        case usageGigabyte = "usage.gigabyte"
+        case usageSeconds = "usage.seconds"
+        case usageMinutes = "usage.minutes"
+        case usageHours = "usage.hours"
 
         // 설정 창
         case settingsAppearanceTitle = "settings.appearanceTitle"
