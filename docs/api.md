@@ -89,6 +89,8 @@ print(json.loads(sock.recv(1 << 20))["result"])
 `mac.info` 의 숫자는 **바이트**다. 메모리 `usedBytes` 는 활성 상태 보기의 "사용된 메모리",
 `pressure` 는 `normal` · `warning` · `critical` (OS 판정), `freePercent` 는
 `kern.memorystatus_level`. 저장공간 `availableBytes` 는 Finder 의 "사용 가능" 과 같다.
+`addresses` 의 각 줄에 `mac`(지금 쓰는 MAC — 공유기가 보는 값)과 `hardwareMAC`(기기 고유)이
+오고, 둘이 다르면 `privateMAC: true` 다(비공개 Wi-Fi 주소).
 `publicIP.status` 는 `unknown`(아직 안 물음) · `loading` · `ok`(`address`) · `failed`(`error`).
 
 ### 쓰기

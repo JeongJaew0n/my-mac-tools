@@ -2,6 +2,7 @@ import AppKit
 import Combine
 import Darwin
 import Foundation
+import IOKit
 import Network
 
 /// 이 맥의 정보 — 기종·칩·macOS, 메모리·저장공간, IP.
@@ -37,7 +38,17 @@ final class MacInfoManager: ObservableObject {
     struct Address: Equatable, Identifiable {
         var interface: String
         var address: String
+        /// 지금 이 인터페이스가 쓰는 MAC. 공유기가 보는 것은 이것이다.
+        var mac: String?
+        /// 기기에 박힌 MAC. 비공개 Wi-Fi 주소를 쓰면 `mac` 과 다르다.
+        var hardwareMAC: String?
         var id: String { interface + address }
+
+        /// 비공개 주소를 쓰는 중인가 — 지금 MAC 이 하드웨어 MAC 과 다르다.
+        var usesPrivateMAC: Bool {
+            guard let mac, let hardwareMAC else { return false }
+            return mac != hardwareMAC
+        }
     }
 
     enum Pressure: Equatable { case normal, warning, critical }
@@ -63,6 +74,8 @@ final class MacInfoManager: ObservableObject {
     private static let interval: TimeInterval = 5
 
     private var timer: Timer?
+    /// 하드웨어 MAC 은 바뀌지 않는다. 5초마다 IOKit 을 뒤지지 않게 인터페이스별로 한 번만 읽는다.
+    private var hardwareMACs: [String: String?] = [:]
     private let pathMonitor = NWPathMonitor()
     private let pressureSource = DispatchSource.makeMemoryPressureSource(
         eventMask: [.normal, .warning, .critical], queue: .main)
@@ -130,7 +143,12 @@ final class MacInfoManager: ObservableObject {
         let nextStorage = Self.storage()
         if nextStorage != storage { storage = nextStorage }
 
-        let nextAddresses = Self.ipv4Addresses()
+        var nextAddresses = Self.ipv4Addresses()
+        for index in nextAddresses.indices {
+            let name = nextAddresses[index].interface
+            if hardwareMACs[name] == nil { hardwareMACs[name] = .some(Self.hardwareMAC(of: name)) }
+            nextAddresses[index].hardwareMAC = hardwareMACs[name] ?? nil
+        }
         if nextAddresses != addresses { addresses = nextAddresses }
     }
 
@@ -202,13 +220,20 @@ final class MacInfoManager: ObservableObject {
         defer { freeifaddrs(head) }
 
         var found: [Address] = []
+        // 같은 목록에 인터페이스마다 AF_LINK 항목이 따로 온다. 거기서 지금 MAC 을 읽는다.
+        var macs: [String: String] = [:]
         var cursor: UnsafeMutablePointer<ifaddrs>? = first
         while let entry = cursor {
             defer { cursor = entry.pointee.ifa_next }
             let flags = Int32(entry.pointee.ifa_flags)
             guard flags & IFF_UP != 0, flags & IFF_LOOPBACK == 0,
-                  let addr = entry.pointee.ifa_addr,
-                  addr.pointee.sa_family == UInt8(AF_INET) else { continue }
+                  let addr = entry.pointee.ifa_addr else { continue }
+
+            if addr.pointee.sa_family == UInt8(AF_LINK) {
+                if let mac = linkAddress(addr) { macs[String(cString: entry.pointee.ifa_name)] = mac }
+                continue
+            }
+            guard addr.pointee.sa_family == UInt8(AF_INET) else { continue }
 
             var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
             guard getnameinfo(addr, socklen_t(addr.pointee.sa_len), &host, socklen_t(host.count),
@@ -216,8 +241,44 @@ final class MacInfoManager: ObservableObject {
             let name = String(cString: entry.pointee.ifa_name)
             found.append(Address(interface: name, address: String(cString: host)))
         }
+        for index in found.indices { found[index].mac = macs[found[index].interface] }
         // en0 이 보통 주 회선이다. 이름 순이면 en0 이 앞에 온다.
         return found.sorted { $0.interface < $1.interface }
+    }
+
+    /// 기기에 박힌 MAC. 인터페이스 위의 이더넷 컨트롤러가 `IOMACAddress` 로 갖고 있다.
+    ///
+    /// `ifconfig` 의 `ether` 는 비공개 Wi-Fi 주소를 쓰면 그 주소를 보여준다. 기기 고유 값은
+    /// 여기에만 있다 — `networksetup -listallhardwareports` 의 값과 같음을 확인했다.
+    nonisolated static func hardwareMAC(of interface: String) -> String? {
+        guard let matching = IOBSDNameMatching(kIOMainPortDefault, 0, interface) else { return nil }
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, matching)
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+        let options = IOOptionBits(kIORegistryIterateRecursively | kIORegistryIterateParents)
+        guard let data = IORegistryEntrySearchCFProperty(service, kIOServicePlane, "IOMACAddress" as CFString,
+                                                         kCFAllocatorDefault, options) as? Data,
+              data.count == 6 else { return nil }
+        return format(mac: Array(data))
+    }
+
+    nonisolated private static func linkAddress(_ addr: UnsafeMutablePointer<sockaddr>) -> String? {
+        let dl = UnsafeRawPointer(addr).assumingMemoryBound(to: sockaddr_dl.self).pointee
+        let length = Int(dl.sdl_alen)
+        guard length == 6, let dataOffset = MemoryLayout<sockaddr_dl>.offset(of: \sockaddr_dl.sdl_data)
+        else { return nil }
+        // `sdl_data` 는 12바이트로 선언돼 있지만 실제 길이는 `sa_len` 이다. 이름이 길면
+        // (`bridge100` 9 + 6) 선언을 넘는다. 선언이 아니라 `sa_len` 안에서 읽는다.
+        let start = dataOffset + Int(dl.sdl_nlen)
+        guard start + length <= Int(addr.pointee.sa_len) else { return nil }
+        let raw = UnsafeRawBufferPointer(start: UnsafeRawPointer(addr) + start, count: length)
+        let bytes = Array(raw)
+        guard bytes.contains(where: { $0 != 0 }) else { return nil }
+        return format(mac: bytes)
+    }
+
+    nonisolated private static func format(mac bytes: [UInt8]) -> String {
+        bytes.map { String(format: "%02x", $0) }.joined(separator: ":")
     }
 
     // MARK: - Private

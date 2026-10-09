@@ -1049,6 +1049,7 @@ struct ContentView: View {
                                title: l10n(.infoLocalIP),
                                detail: interfaceLabel(address.interface),
                                address: address.address)
+                    macRows(address)
                 }
             }
 
@@ -1097,13 +1098,36 @@ struct ContentView: View {
         }
     }
 
+    /// IP 줄 밑에 붙는 MAC. 비공개 주소를 쓰는 중이면 하드웨어 MAC 을 한 줄 더 쓴다 —
+    /// 공유기가 보는 값과 기기에 박힌 값이 달라서, 어느 쪽을 찾는지에 따라 답이 다르다.
+    @ViewBuilder
+    private func macRows(_ address: MacInfoManager.Address) -> some View {
+        if let mac = address.mac {
+            addressRow(symbol: nil, title: l10n(.infoMAC),
+                       detail: address.usesPrivateMAC ? l10n(.infoMACPrivate) : nil,
+                       address: mac)
+                .help(address.usesPrivateMAC ? l10n(.infoMACPrivateHelp) : l10n(.infoCopy))
+        }
+        if address.usesPrivateMAC, let hardware = address.hardwareMAC {
+            addressRow(symbol: nil, title: l10n(.infoHardwareMAC), detail: nil, address: hardware)
+        }
+    }
+
     /// 주소를 누르면 복사한다. 붙여 넣으려고 보는 값이라 그게 가장 흔한 다음 동작이다.
-    private func addressRow(symbol: String, title: String, detail: String?, address: String) -> some View {
+    /// 아이콘이 없으면 윗줄에 딸린 줄이라 그 자리를 비워 글자 줄을 맞춘다.
+    private func addressRow(symbol: String?, title: String, detail: String?, address: String) -> some View {
         HStack(spacing: Design.Space.inline) {
-            Image(systemName: symbol)
-                .foregroundStyle(Design.Color.textSecondary)
-                .frame(width: Design.Size.indicator * 1.6)
+            Group {
+                if let symbol {
+                    Image(systemName: symbol).foregroundStyle(Design.Color.textSecondary)
+                } else {
+                    Color.clear
+                }
+            }
+            .frame(width: Design.Size.indicator * 1.6)
             Text(title)
+                .font(symbol == nil ? .callout : .body)
+                .foregroundStyle(symbol == nil ? Design.Color.textSecondary : Color.primary)
             if let detail {
                 Text(detail)
                     .font(.caption)

@@ -23,3 +23,9 @@
 - [x] 기종 이름 `MacBook Pro`(system_profiler) · `Mac15,6` · `Apple M3 Pro` · `macOS 26.3.1 (25D2128)`
 - [x] 화면 캡처로 배치·숫자 꼴 확인
 - [ ] (확인) 사용자가 직접 써보기
+
+## 3. MAC 주소 (추가 요청)
+- [x] 지금 MAC — `getifaddrs` 의 AF_LINK. `sa_len` 안에서 읽는다 (`sdl_data` 선언 12바이트를 넘는 긴 이름 대비)
+- [x] 하드웨어 MAC — IOKit `IOMACAddress` (인터페이스의 부모 컨트롤러). 인터페이스별 한 번만 읽고 캐시
+- [x] (실측) en0 지금 `d2:22:e2:b6:4b:3d` = `ifconfig en0 ether`, 하드웨어 `10:42:10:ee:f2:16` = `networksetup -getmacaddress en0`
+- [x] 둘이 다르면 "비공개 주소" 표시 + 하드웨어 줄, 같으면 한 줄

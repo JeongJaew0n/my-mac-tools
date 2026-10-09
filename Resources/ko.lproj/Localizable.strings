@@ -199,3 +199,7 @@
 "info.copied" = "복사했습니다";
 "info.memoryHelp" = "활성 상태 보기의 '사용된 메모리'와 같은 기준입니다(앱 + 고정 + 압축). macOS 는 남는 메모리를 캐시로 쓰므로 거의 다 찬 것처럼 보이는 게 정상이고, 실제 여유는 압력으로 판단합니다.";
 "info.storageHelp" = "Finder 와 같은 기준입니다. 지울 수 있는 캐시는 남은 공간에 포함됩니다.";
+"info.mac" = "MAC 주소";
+"info.macPrivate" = "비공개 주소";
+"info.macPrivateHelp" = "macOS 가 이 네트워크에서 쓰는 비공개 Wi-Fi 주소입니다. 공유기와 네트워크 관리자에게 보이는 것은 이 주소이고, 기기 고유의 주소는 아래 하드웨어 MAC 입니다. 누르면 복사합니다.";
+"info.hardwareMAC" = "하드웨어 MAC";

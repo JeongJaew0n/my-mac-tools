@@ -199,3 +199,7 @@
 "info.copied" = "Copied";
 "info.memoryHelp" = "Same measure as Activity Monitor's Memory Used (app + wired + compressed). macOS keeps spare memory as cache, so looking nearly full is normal; judge headroom by pressure.";
 "info.storageHelp" = "Same measure as Finder. Purgeable caches count as available.";
+"info.mac" = "MAC Address";
+"info.macPrivate" = "Private";
+"info.macPrivateHelp" = "The private Wi-Fi address macOS uses on this network. Routers and network admins see this one; the device's own address is the hardware MAC below. Click to copy.";
+"info.hardwareMAC" = "Hardware MAC";

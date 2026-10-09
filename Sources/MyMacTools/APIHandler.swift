@@ -309,6 +309,9 @@ final class APIHandler {
             ] as [String: Any],
             "addresses": macInfo.addresses.map { address -> [String: Any] in
                 var row: [String: Any] = ["interface": address.interface, "address": address.address]
+                if let mac = address.mac { row["mac"] = mac }
+                if let hardware = address.hardwareMAC { row["hardwareMAC"] = hardware }
+                row["privateMAC"] = address.usesPrivateMAC
                 switch macInfo.kind(of: address.interface) {
                 case .wifi: row["type"] = "wifi"
                 case .wiredEthernet: row["type"] = "wiredEthernet"
