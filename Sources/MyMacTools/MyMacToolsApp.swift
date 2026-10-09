@@ -68,6 +68,7 @@ struct MyMacToolsApp: App {
     @StateObject private var cover = ScreenCoverManager()
     @StateObject private var caffeine = CaffeinateScanner()
     @StateObject private var localhost = LocalhostManager()
+    @StateObject private var speedTest = SpeedTestManager()
     @StateObject private var l10n = L10n()
     @StateObject private var preferences = Preferences()
 
@@ -112,7 +113,8 @@ struct MyMacToolsApp: App {
     private func installAPIServer() {
         guard appDelegate.api == nil else { return }
         let handler = APIHandler(sleep: manager, lid: lid, cover: cover,
-                                 caffeine: caffeine, localhost: localhost)
+                                 caffeine: caffeine, localhost: localhost,
+                                 speedTest: speedTest)
         let server = APIServer(handler: handler)
         server.start()
         appDelegate.api = server
@@ -121,7 +123,8 @@ struct MyMacToolsApp: App {
     var body: some Scene {
         WindowGroup(id: Self.mainWindowID) {
             ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
-                        localhost: localhost, preferences: preferences, l10n: l10n)
+                        localhost: localhost, speedTest: speedTest,
+                        preferences: preferences, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n

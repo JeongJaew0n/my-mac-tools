@@ -8,6 +8,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case lid
     case cover
     case localhost
+    case speedTest
 
     var id: String { rawValue }
 
@@ -17,6 +18,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .lid: return .tabLid
         case .cover: return .tabCover
         case .localhost: return .tabLocalhost
+        case .speedTest: return .tabSpeedTest
         }
     }
 
@@ -28,6 +30,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .lid: return "laptopcomputer"              // 덮개
         case .cover: return "photo.fill"                // 사진으로 가리기
         case .localhost: return "network"               // 포트
+        case .speedTest: return "speedometer"           // 인터넷 속도
         }
     }
 }
@@ -38,6 +41,7 @@ struct ContentView: View {
     @ObservedObject var cover: ScreenCoverManager
     @ObservedObject var caffeine: CaffeinateScanner
     @ObservedObject var localhost: LocalhostManager
+    @ObservedObject var speedTest: SpeedTestManager
     @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
@@ -72,6 +76,7 @@ struct ContentView: View {
                     case .lid: lidTab
                     case .cover: coverTab
                     case .localhost: localhostTab
+                    case .speedTest: speedTestTab
                     }
                 }
                 .padding(Design.Inset.screen)
@@ -172,6 +177,7 @@ struct ContentView: View {
         case .lid: return lid.isRunning
         case .cover: return cover.isCovering
         case .localhost: return localhost.isRunning
+        case .speedTest: return speedTest.isRunning
         }
     }
 
@@ -712,6 +718,159 @@ struct ContentView: View {
     private static func format(_ interval: TimeInterval) -> String {
         let total = Int(interval.rounded())
         return String(format: "%d:%02d:%02d", total / 3600, (total % 3600) / 60, total % 60)
+    }
+
+    // MARK: - 속도 측정
+
+    /// 인터넷 속도. **누를 때만 잰다** — 1회에 21초, 약 150 MB 를 쓴다(실측).
+    /// 근거는 `docs/plans/speed-test/`.
+    private var speedTestTab: some View {
+        VStack(alignment: .leading, spacing: Design.Space.block) {
+            if let result = speedTest.latest {
+                speedResultBlock(result)
+            } else {
+                Text(l10n(.speedNever))
+                    .font(.callout)
+                    .foregroundStyle(Design.Color.textSecondary)
+            }
+
+            if case .failed(let reason) = speedTest.state {
+                // 실패를 0 Mbps 로 그리지 않는다. 이유를 그대로 보여준다.
+                Text(l10n(.speedFailed, reason))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.statusError)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            speedTestControls
+
+            if speedTest.history.count > 1 {
+                Divider()
+                speedHistory
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func speedResultBlock(_ result: SpeedResult) -> some View {
+        VStack(alignment: .leading, spacing: Design.Space.listRow) {
+            speedRow(symbol: "arrow.down", label: l10n(.speedDownload),
+                     value: Self.mbps(result.downloadBitsPerSecond), prominent: true)
+            speedRow(symbol: "arrow.up", label: l10n(.speedUpload),
+                     value: Self.mbps(result.uploadBitsPerSecond), prominent: true)
+            // 등급(낮음·중간·높음)은 붙이지 않는다. `networkQuality` 가 쓰는 경계값을
+            // 확인하지 못했고, 지어낸 등급은 숫자보다 나쁘다.
+            speedRow(symbol: "arrow.left.arrow.right", label: l10n(.speedResponsiveness),
+                     value: "\(Int(result.responsivenessRPM.rounded())) RPM", prominent: false)
+                .help(l10n(.speedResponsivenessHelp))
+            speedRow(symbol: "timer", label: l10n(.speedLatency),
+                     value: "\(Int(result.baseRTTMilliseconds.rounded())) ms", prominent: false)
+
+            Text(Self.connectionLine(result) + " · " + l10n(.speedMeasuredAt, Self.when(result.date)))
+                .font(.caption2)
+                .foregroundStyle(Design.Color.textSecondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .help(result.endpoint)
+        }
+    }
+
+    private func speedRow(symbol: String, label: String, value: String, prominent: Bool) -> some View {
+        HStack(spacing: Design.Space.inline) {
+            Image(systemName: symbol)
+                .foregroundStyle(Design.Color.textSecondary)
+                .frame(width: Design.Size.indicator * 1.6)
+            Text(label)
+            Spacer(minLength: 4)
+            Text(value)
+                .font(prominent ? .title3.monospacedDigit() : .body.monospacedDigit())
+        }
+    }
+
+    private var speedTestControls: some View {
+        VStack(spacing: Design.Space.rowTight) {
+            HStack {
+                Spacer()
+                if case .running(let started) = speedTest.state {
+                    // 진행은 측정 중일 때만 그린다. 폴링하지 않는 화면이라 이 1초 갱신이 전부다.
+                    TimelineView(.periodic(from: started, by: 1)) { context in
+                        Text(l10n(.speedRunning, Int(context.date.timeIntervalSince(started))))
+                            .font(.callout.monospacedDigit())
+                    }
+                    ProgressView().controlSize(.small)
+                    Button(l10n(.speedCancel)) { speedTest.cancel() }
+                } else {
+                    Button(l10n(.speedStart)) { startSpeedTest() }
+                        .keyboardShortcut(.defaultAction)
+                }
+                Spacer()
+            }
+
+            Text(l10n(.speedDataNote))
+                .font(.caption2)
+                .foregroundStyle(Design.Color.textSecondary)
+                .frame(maxWidth: .infinity)
+        }
+    }
+
+    private var speedHistory: some View {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack {
+                Text(l10n(.speedHistory)).font(.callout)
+                Spacer()
+                Button(l10n(.speedClearHistory)) { speedTest.clearHistory() }
+                    .controlSize(.small)
+                    .disabled(speedTest.isRunning)
+            }
+            ForEach(speedTest.history) { result in
+                HStack(spacing: Design.Space.inline) {
+                    Text(Self.when(result.date))
+                        .foregroundStyle(Design.Color.textSecondary)
+                    Spacer(minLength: 4)
+                    Text("↓ " + Self.mbps(result.downloadBitsPerSecond))
+                    Text("↑ " + Self.mbps(result.uploadBitsPerSecond))
+                }
+                .font(.caption.monospacedDigit())
+            }
+        }
+    }
+
+    /// 비싼 회선이면 시작 전에 한 번 묻는다. 핫스팟으로 150 MB 는 무시할 양이 아니다.
+    private func startSpeedTest() {
+        if speedTest.isExpensiveNetwork {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = l10n(.speedExpensiveTitle)
+            alert.informativeText = l10n(.speedExpensiveBody)
+            alert.addButton(withTitle: l10n(.speedExpensiveGo))
+            alert.addButton(withTitle: l10n(.localhostConfirmCancel))
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+        }
+        speedTest.start()
+    }
+
+    private static func mbps(_ bitsPerSecond: Double) -> String {
+        let value = bitsPerSecond / 1_000_000
+        return value >= 100 ? String(format: "%.0f Mbps", value) : String(format: "%.1f Mbps", value)
+    }
+
+    private static func connectionLine(_ result: SpeedResult) -> String {
+        let kind: String
+        switch result.interfaceType {
+        case "wifi": kind = "Wi-Fi"
+        case "wiredEthernet": kind = "Ethernet"
+        case "cellular": kind = "Cellular"
+        case "": kind = ""
+        default: kind = result.interfaceType
+        }
+        return kind.isEmpty ? result.interfaceName : "\(kind) (\(result.interfaceName))"
+    }
+
+    private static func when(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = Calendar.current.isDateInToday(date) ? .none : .short
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 
     // MARK: - 로컬호스트

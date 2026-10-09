@@ -79,6 +79,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 | `cover.get` | — | 화면 가리기 상태 |
 | `caffeinate.list` | — | 돌고 있는 `caffeinate` 전부 |
 | `ports.list` | `category` `search` | 듣고 있는 localhost 포트 |
+| `speedtest.status` | — | 측정 중인지, 경과 시간, 마지막 결과 |
 
 `ports.list` 의 `category` 는 `all` · `system` · `wellKnown` · `terminal` · `other` 중 하나다.
 `search` 는 숫자만 쓴다 — 문자열이든 숫자든 받고, 포트 번호에 **부분 일치**한다
@@ -95,6 +96,8 @@ print(json.loads(sock.recv(1 << 20))["result"])
 | `caffeinate.stop` | `pid` | 이 앱이 띄운 것이면 매니저를 거친다 |
 | `ports.stop` | `pid` | `SIGTERM` |
 | `ports.open` | `port` | 기본 브라우저로 `http://localhost:<포트>` |
+| `speedtest.start` | — | 인터넷 속도 측정을 **시작만** 하고 곧바로 돌아온다 |
+| `speedtest.cancel` | — | 측정을 멈춘다 |
 
 `screenMode` 는 `system` · `keepOff` · `keepOn`.
 `hours` 0–24, `minutes` 0–50(10 단위), `displayDelaySeconds` 3·5·7·10.
@@ -116,6 +119,7 @@ scripts/mymactools sleep.start hours=2   # 남은 시간과 무관하게, 지금
 | `lid.start` · `lid.stop` | `needsHuman` | `pmset` 에 관리자 인증이 필요하다. 에이전트 호출로 암호창이 튀어나오면 사용자는 무엇 때문에 뜬 창인지 알 수 없다 |
 | `ports.stop` (시스템 구성요소) | `forbidden` | 앱은 사람에게 한 번 더 묻고 끈다. 호출자에게는 물어볼 화면이 없다 |
 | `ports.stop` (이 앱 자신) | `forbidden` | 자기를 끄는 호출이 된다 |
+| `speedtest.start` (데이터 요금 회선) | `needsHuman` | 1회에 약 150 MB 를 쓴다. 앱은 사람에게 묻고 시작한다 |
 
 `ports.list` 의 각 줄에 `canStop` 이 함께 온다. 부르기 전에 걸러낼 수 있다.
 
@@ -151,6 +155,15 @@ PID=$(scripts/mymactools ports.list search=3000 \
 scripts/mymactools sleep.start hours=2 screenMode=system
 ./gradlew build
 scripts/mymactools sleep.stop
+```
+
+인터넷 속도 재기 — 약 21초가 걸려 **시작과 조회를 나눈다.** 한 번에 기다리면 클라이언트의
+10초 타임아웃에 걸린다.
+
+```bash
+scripts/mymactools speedtest.start
+until ! scripts/mymactools speedtest.status | grep -q '"running": true'; do sleep 3; done
+scripts/mymactools speedtest.status
 ```
 
 모르게 돌고 있는 `caffeinate` 찾기.

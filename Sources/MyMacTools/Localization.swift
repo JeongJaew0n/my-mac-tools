@@ -36,6 +36,7 @@ final class L10n: ObservableObject {
         case tabLid = "tab.lid"
         case tabCover = "tab.cover"
         case tabLocalhost = "tab.localhost"
+        case tabSpeedTest = "tab.speedTest"
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
@@ -146,6 +147,25 @@ final class L10n: ObservableObject {
         case localhostSearchPrompt = "localhost.searchPrompt"
         case localhostNoMatch = "localhost.noMatch"
         case localhostShowingCount = "localhost.showingCount"
+
+        // 속도 측정
+        case speedDownload = "speed.download"
+        case speedUpload = "speed.upload"
+        case speedResponsiveness = "speed.responsiveness"
+        case speedResponsivenessHelp = "speed.responsivenessHelp"
+        case speedLatency = "speed.latency"
+        case speedStart = "speed.start"
+        case speedCancel = "speed.cancel"
+        case speedRunning = "speed.running"
+        case speedNever = "speed.never"
+        case speedFailed = "speed.failed"
+        case speedDataNote = "speed.dataNote"
+        case speedMeasuredAt = "speed.measuredAt"
+        case speedHistory = "speed.history"
+        case speedClearHistory = "speed.clearHistory"
+        case speedExpensiveTitle = "speed.expensiveTitle"
+        case speedExpensiveBody = "speed.expensiveBody"
+        case speedExpensiveGo = "speed.expensiveGo"
 
         // 설정 창
         case settingsAppearanceTitle = "settings.appearanceTitle"

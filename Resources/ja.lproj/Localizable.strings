@@ -146,3 +146,23 @@
 "appearance.system" = "システム設定";
 "appearance.light" = "ライト";
 "appearance.dark" = "ダーク";
+
+/* 速度測定 */
+"tab.speedTest" = "速度測定";
+"speed.download" = "ダウンロード";
+"speed.upload" = "アップロード";
+"speed.responsiveness" = "応答性";
+"speed.responsivenessHelp" = "回線が混んでいるときに1分間でやり取りできる往復回数(RPM)です。大きいほど良く、通話やゲームの体感に効きます。";
+"speed.latency" = "基本遅延";
+"speed.start" = "測定開始";
+"speed.cancel" = "キャンセル";
+"speed.running" = "測定中… %d秒";
+"speed.never" = "まだ測定していません";
+"speed.failed" = "測定できませんでした: %@";
+"speed.dataNote" = "1回で約150 MBを使います。回線が速いほど多く使います。";
+"speed.measuredAt" = "%@ に測定";
+"speed.history" = "最近の記録";
+"speed.clearHistory" = "記録を消去";
+"speed.expensiveTitle" = "データ料金がかかる回線です";
+"speed.expensiveBody" = "テザリング・モバイル回線、または省データモードで接続しています。1回の測定で約150 MB以上を使います。";
+"speed.expensiveGo" = "それでも測定";

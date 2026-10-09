@@ -146,3 +146,23 @@
 "appearance.system" = "System";
 "appearance.light" = "Light";
 "appearance.dark" = "Dark";
+
+/* Speed test */
+"tab.speedTest" = "Speed";
+"speed.download" = "Download";
+"speed.upload" = "Upload";
+"speed.responsiveness" = "Responsiveness";
+"speed.responsivenessHelp" = "Round trips per minute (RPM) the link can sustain while busy. Higher is better. It is what you feel in calls and games.";
+"speed.latency" = "Idle latency";
+"speed.start" = "Start Test";
+"speed.cancel" = "Cancel";
+"speed.running" = "Testing… %ds";
+"speed.never" = "Not measured yet";
+"speed.failed" = "Could not measure: %@";
+"speed.dataNote" = "One test uses about 150 MB, more on faster links.";
+"speed.measuredAt" = "Measured %@";
+"speed.history" = "Recent";
+"speed.clearHistory" = "Clear History";
+"speed.expensiveTitle" = "This connection may cost data";
+"speed.expensiveBody" = "You are on tethering, cellular or Low Data Mode. One test uses about 150 MB or more.";
+"speed.expensiveGo" = "Test Anyway";

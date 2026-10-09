@@ -28,14 +28,17 @@ final class APIHandler {
     private let cover: ScreenCoverManager
     private let caffeine: CaffeinateScanner
     private let localhost: LocalhostManager
+    private let speedTest: SpeedTestManager
 
     init(sleep: BlackWorkManager, lid: LidWorkManager, cover: ScreenCoverManager,
-         caffeine: CaffeinateScanner, localhost: LocalhostManager) {
+         caffeine: CaffeinateScanner, localhost: LocalhostManager,
+         speedTest: SpeedTestManager) {
         self.sleep = sleep
         self.lid = lid
         self.cover = cover
         self.caffeine = caffeine
         self.localhost = localhost
+        self.speedTest = speedTest
     }
 
     /// 요청 한 줄을 받아 응답 한 줄을 만든다.
@@ -93,6 +96,14 @@ final class APIHandler {
         case "ports.stop": return try stopPort(params)
         case "ports.open": return try openPort(params)
 
+        // 측정에 약 21초가 걸린다. 클라이언트 소켓 타임아웃(10초) 안에 끝나지 않으므로
+        // 시작과 조회를 나눈다 — `speedtest.start` 는 곧바로 돌아오고 `speedtest.status` 로 본다.
+        case "speedtest.start": return try startSpeedTest()
+        case "speedtest.status": return speedTestState()
+        case "speedtest.cancel":
+            speedTest.cancel()
+            return speedTestState()
+
         default: throw Failure.unknownMethod
         }
     }
@@ -107,6 +118,7 @@ final class APIHandler {
             "cover": coverState(),
             "localhost": ["listening": localhost.ports.count],
             "caffeinate": ["running": caffeine.processes.count],
+            "speedtest": speedTestState(),
         ]
     }
 
@@ -224,6 +236,39 @@ final class APIHandler {
         }
         localhost.open(target)
         return ["opened": target.url?.absoluteString ?? ""]
+    }
+
+    private func startSpeedTest() throws -> [String: Any] {
+        // 데이터 요금이 드는 회선이면 앱은 사람에게 묻는다. 호출자에게는 물어볼 화면이 없다.
+        guard !speedTest.isExpensiveNetwork else { throw Failure.needsHuman }
+        speedTest.start()
+        return speedTestState()
+    }
+
+    private func speedTestState() -> [String: Any] {
+        var state: [String: Any] = ["running": speedTest.isRunning]
+        switch speedTest.state {
+        case .running(let started):
+            state["elapsedSeconds"] = Int(Date().timeIntervalSince(started))
+        case .failed(let reason):
+            state["error"] = reason
+        case .idle:
+            break
+        }
+        if let latest = speedTest.latest {
+            state["latest"] = [
+                "measuredAt": ISO8601DateFormatter().string(from: latest.date),
+                "downloadMbps": (latest.downloadBitsPerSecond / 1_000_000 * 10).rounded() / 10,
+                "uploadMbps": (latest.uploadBitsPerSecond / 1_000_000 * 10).rounded() / 10,
+                "responsivenessRPM": Int(latest.responsivenessRPM.rounded()),
+                "baseRTTms": Int(latest.baseRTTMilliseconds.rounded()),
+                "interface": latest.interfaceName,
+                "interfaceType": latest.interfaceType,
+                "endpoint": latest.endpoint,
+            ]
+        }
+        state["expensiveNetwork"] = speedTest.isExpensiveNetwork
+        return state
     }
 
     // MARK: - 값 만들기
