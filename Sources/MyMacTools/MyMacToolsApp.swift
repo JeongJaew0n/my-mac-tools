@@ -17,10 +17,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: StatusItemController?
     /// API 소켓 서버. 같은 이유로 여기에 둔다.
     var api: APIServer?
+    /// 종료할 때 측정을 멈추려고 들고 있는다.
+    var speedTest: SpeedTestManager?
 
     /// 종료할 때 소켓 파일을 치운다. 남겨두면 다음 실행이 낡은 파일 위에 bind 하려 한다.
+    ///
+    /// 측정 중인 `networkQuality` 도 멈춘다. `Process` 로 띄운 자식은 앱이 끝나도 같이
+    /// 죽지 않고 launchd 밑으로 옮겨가 계속 돈다(실측 — PPID 가 1 이 됐다). 그러면 결과를
+    /// 받을 곳도 없이 최대 30초 동안 데이터를 쓴다.
     func applicationWillTerminate(_ notification: Notification) {
         api?.stop()
+        // 이 알림은 메인 스레드에서 온다.
+        MainActor.assumeIsolated { speedTest?.cancel() }
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -129,6 +137,7 @@ struct MyMacToolsApp: App {
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
+                    appDelegate.speedTest = speedTest
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
                     installStatusItem()
