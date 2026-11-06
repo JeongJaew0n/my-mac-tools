@@ -79,6 +79,7 @@ struct MyMacToolsApp: App {
     @StateObject private var speedTest = SpeedTestManager()
     @StateObject private var macInfo = MacInfoManager()
     @StateObject private var thermal = ThermalManager()
+    @StateObject private var intellij = IntelliJThemeManager()
     @StateObject private var l10n = L10n()
     @StateObject private var preferences = Preferences()
 
@@ -125,7 +126,7 @@ struct MyMacToolsApp: App {
         let handler = APIHandler(sleep: manager, lid: lid, cover: cover,
                                  caffeine: caffeine, localhost: localhost,
                                  speedTest: speedTest, macInfo: macInfo,
-                                 thermal: thermal)
+                                 thermal: thermal, intellij: intellij)
         let server = APIServer(handler: handler)
         server.start()
         appDelegate.api = server
@@ -135,7 +136,8 @@ struct MyMacToolsApp: App {
         WindowGroup(id: Self.mainWindowID) {
             ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
                         localhost: localhost, speedTest: speedTest,
-                        macInfo: macInfo, thermal: thermal, preferences: preferences, l10n: l10n)
+                        macInfo: macInfo, thermal: thermal, intellij: intellij,
+                        preferences: preferences, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n

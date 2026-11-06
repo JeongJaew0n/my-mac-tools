@@ -11,6 +11,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case speedTest
     case macInfo
     case thermal
+    case intellijTheme
 
     var id: String { rawValue }
 
@@ -23,6 +24,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .speedTest: return .tabSpeedTest
         case .macInfo: return .tabMacInfo
         case .thermal: return .tabThermal
+        case .intellijTheme: return .tabIntelliJTheme
         }
     }
 
@@ -37,6 +39,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .speedTest: return "speedometer"           // 인터넷 속도
         case .macInfo: return "info.circle"             // 이 맥
         case .thermal: return "thermometer.medium"      // 발열
+        case .intellijTheme: return "paintpalette"      // IntelliJ 색
         }
     }
 }
@@ -50,6 +53,7 @@ struct ContentView: View {
     @ObservedObject var speedTest: SpeedTestManager
     @ObservedObject var macInfo: MacInfoManager
     @ObservedObject var thermal: ThermalManager
+    @ObservedObject var intellij: IntelliJThemeManager
     @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
@@ -91,6 +95,7 @@ struct ContentView: View {
                     case .speedTest: speedTestTab
                     case .macInfo: macInfoTab
                     case .thermal: thermalTab
+                    case .intellijTheme: intellijTab
                     }
                 }
                 .padding(Design.Inset.screen)
@@ -211,7 +216,7 @@ struct ContentView: View {
         case .localhost: return localhost.isRunning
         case .speedTest: return speedTest.isRunning
         // 보여주기만 하는 Tool 이라 '돌고 있는' 상태가 없다.
-        case .macInfo, .thermal: return false
+        case .macInfo, .thermal, .intellijTheme: return false
         }
     }
 
@@ -1342,6 +1347,13 @@ struct ContentView: View {
 
     private static func celsius(_ value: Double) -> String {
         String(format: "%.1f°C", value)
+    }
+
+    // MARK: - IntelliJ 색
+
+    /// 이 파일이 이미 길어 화면은 따로 둔다. `IntelliJThemeView.swift`.
+    private var intellijTab: some View {
+        IntelliJThemeView(manager: intellij, l10n: l10n)
     }
 
     // MARK: - 로컬호스트

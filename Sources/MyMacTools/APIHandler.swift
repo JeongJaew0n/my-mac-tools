@@ -31,11 +31,12 @@ final class APIHandler {
     private let speedTest: SpeedTestManager
     private let macInfo: MacInfoManager
     private let thermal: ThermalManager
+    private let intellij: IntelliJThemeManager
 
     init(sleep: BlackWorkManager, lid: LidWorkManager, cover: ScreenCoverManager,
          caffeine: CaffeinateScanner, localhost: LocalhostManager,
          speedTest: SpeedTestManager, macInfo: MacInfoManager,
-         thermal: ThermalManager) {
+         thermal: ThermalManager, intellij: IntelliJThemeManager) {
         self.sleep = sleep
         self.lid = lid
         self.cover = cover
@@ -44,6 +45,7 @@ final class APIHandler {
         self.speedTest = speedTest
         self.macInfo = macInfo
         self.thermal = thermal
+        self.intellij = intellij
     }
 
     /// 요청 한 줄을 받아 응답 한 줄을 만든다.
@@ -117,6 +119,11 @@ final class APIHandler {
             return ["publicIP": publicIPState()]
 
         case "thermal.info": return thermalState()
+
+        case "intellij.info": return intellijState()
+        // 켜져 있는 IntelliJ 를 끄고 다시 연다. 작업 중인 다른 앱을 에이전트 호출이 끄면
+        // 사용자는 왜 꺼졌는지 모른다. 앱에서 직접 누르게 돌려보낸다.
+        case "intellij.apply", "intellij.restore": throw Failure.needsHuman
 
         default: throw Failure.unknownMethod
         }
@@ -356,6 +363,25 @@ final class APIHandler {
         ]
     }
 
+    private func intellijState() -> [String: Any] {
+        // IntelliJ 설정은 이 앱 밖에서 바뀐다. 부를 때마다 다시 읽는다.
+        intellij.refresh()
+        var state: [String: Any] = [
+            "applied": intellij.isApplied,
+            "palette": Dictionary(uniqueKeysWithValues: IntelliJThemeTemplate.Role.allCases.map {
+                ($0.rawValue, "#" + intellij.hex($0))
+            }),
+            "presets": intellij.presets.map(\.name),
+        ]
+        if let target = intellij.target {
+            state["target"] = ["name": target.displayName, "version": target.version,
+                               "configDir": target.configDir.path, "running": intellij.isIntelliJRunning]
+        }
+        if let theme = intellij.currentThemeID { state["currentTheme"] = theme }
+        if let previous = intellij.previous?.themeID { state["previousTheme"] = previous }
+        return state
+    }
+
     /// 화면과 같은 소수 한 자리. 센서가 주는 긴 꼬리(33.4140625)는 정밀도가 아니다.
     private static func rounded(_ celsius: Double) -> Double {
         (celsius * 10).rounded() / 10
@@ -407,6 +433,8 @@ final class APIHandler {
 
     private func message(for failure: Failure, method: String) -> String {
         switch failure {
+        case .needsHuman where method.hasPrefix("intellij."):
+            return "'\(method)' 은 켜져 있는 IntelliJ 를 끄고 다시 엽니다. API 로는 하지 않습니다. 앱에서 직접 눌러주세요."
         case .needsHuman:
             return "'\(method)' 은 관리자 인증이 필요해 API 로는 하지 않습니다. 앱에서 직접 바꿔주세요."
         case .forbidden:

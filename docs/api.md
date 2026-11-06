@@ -82,6 +82,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 | `speedtest.status` | — | 측정 중인지, 경과 시간, 마지막 결과 |
 | `mac.info` | — | 기종·칩·macOS, 메모리·저장공간(바이트), 내부 IP, 마지막으로 확인한 공인 IP |
 | `thermal.info` | — | 열 상태(OS 판정)와 센서 온도(°C) — 묶음별 최고·평균, 센서 전체 |
+| `intellij.info` | — | IntelliJ 색 — 대상 IntelliJ, 지금 테마, 팔레트, 프리셋 이름 |
 
 `ports.list` 의 `category` 는 `all` · `system` · `wellKnown` · `terminal` · `other` 중 하나다.
 `search` 는 숫자만 쓴다 — 문자열이든 숫자든 받고, 포트 번호에 **부분 일치**한다
@@ -99,6 +100,11 @@ OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `gr
 `pmuDevice` · `ssd` · `battery` 중 센서가 있는 것만 온다. `sensors` 는 `{name, celsius}` 전부(이름순,
 같은 이름이 둘씩 올 수 있다). 온도는 소수 한 자리. **온도로 뜨겁다 아니다를 판정하지 말고 `state` 를 본다.**
 센서를 못 읽으면(비공개 API) `groups`·`sensors` 가 빈 배열이고 `state` 는 그대로 온다.
+
+`intellij.info` 의 `palette` 는 색 역할 → `#RRGGBB` (역할 이름은 `IntelliJThemeTemplate.Role`).
+`target` 은 `{name, version, configDir, running}` — IntelliJ 가 없으면 빠진다. `currentTheme` 은
+`laf.xml` 의 themeId, `applied` 는 그것이 이 앱의 테마(`mymactools-theme`)인지. `previousTheme` 은
+되돌리기가 돌아갈 themeId 로, 이 앱이 적용한 뒤에만 온다.
 
 ### 쓰기
 
@@ -136,6 +142,7 @@ scripts/mymactools sleep.start hours=2   # 남은 시간과 무관하게, 지금
 | `ports.stop` (시스템 구성요소) | `forbidden` | 앱은 사람에게 한 번 더 묻고 끈다. 호출자에게는 물어볼 화면이 없다 |
 | `ports.stop` (이 앱 자신) | `forbidden` | 자기를 끄는 호출이 된다 |
 | `speedtest.start` (데이터 요금 회선) | `needsHuman` | 1회에 약 150 MB 를 쓴다. 앱은 사람에게 묻고 시작한다 |
+| `intellij.apply` · `intellij.restore` | `needsHuman` | 켜져 있는 IntelliJ 를 끄고 다시 연다. 작업 중인 다른 앱을 에이전트 호출이 끄면 사용자는 왜 꺼졌는지 모른다 |
 
 `ports.list` 의 각 줄에 `canStop` 이 함께 온다. 부르기 전에 걸러낼 수 있다.
 
