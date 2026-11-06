@@ -25,9 +25,10 @@
 
 | 용어 | 정의 | 비고 |
 |---|---|---|
-| **Tool** | 이 앱의 기능 묶음 단위. 현재 `screenOff`(잠자기 방지) · `lid`(덮개 닫아도 작업) · `cover`(화면 가리기) · `localhost`(로컬호스트) · `speedTest`(속도 측정) · `macInfo`(Mac 정보) 여섯 | `Tab` 과 다름 — Tab 은 Tool 의 UI 표현(`enum Tab`)이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지 먼저 정한다 |
+| **Tool** | 이 앱의 기능 묶음 단위. 현재 `screenOff`(잠자기 방지) · `lid`(덮개 닫아도 작업) · `cover`(화면 가리기) · `localhost`(로컬호스트) · `speedTest`(속도 측정) · `macInfo`(Mac 정보) · `thermal`(발열) 일곱 | `Tab` 과 다름 — Tab 은 Tool 의 UI 표현(`enum Tab`)이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지 먼저 정한다 |
 | ScreenMode | 잠자기 방지 세션 동안 **화면**을 어떻게 할지. `system`(맥북 기본설정대로) · `keepOff`(끈 상태로 유지) · `keepOn`(계속 켜두기) 셋 중 하나이며 서로 배타적이다 | 시스템 잠자기 차단과 별개다. 시스템은 `caffeinate -i` 로 항상 막고, ScreenMode 는 `-d` 를 붙일지와 `displaysleepnow` 를 쓸지를 가른다 |
 | ScreenPhase | `keepOff` 일 때 화면 끄기를 유지하는 내부 단계. `idle` → `verifying` → `watching` → `grace(n)` | ScreenMode 와 다름 — Mode 는 사용자가 고르는 설정, Phase 는 그 설정을 지키려고 앱이 오가는 상태다 |
+| 열 상태 | 발열 Tool 의 **OS 판정** — `ProcessInfo.thermalState` 의 정상·약간 높음·높음·위험 | 센서 온도(°C)와 다름 — 온도는 숫자일 뿐 판정이 아니다. 몇 도부터 뜨거운지는 우리가 정하지 않고 이 단계만 판정으로 쓴다 |
 | 유지 시간 | 잠자기 방지를 얼마나 끌지. `0h 00m` 이면 정지를 누를 때까지 무제한 | 무제한이면 "끝나면 Mac잠자기 모드" 가 비활성화된다 — 끝나는 시점이 없기 때문 |
 
 ## 규칙

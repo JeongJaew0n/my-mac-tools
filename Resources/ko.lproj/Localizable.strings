@@ -203,3 +203,20 @@
 "info.macPrivate" = "비공개 주소";
 "info.macPrivateHelp" = "macOS 가 이 네트워크에서 쓰는 비공개 Wi-Fi 주소입니다. 공유기와 네트워크 관리자에게 보이는 것은 이 주소이고, 기기 고유의 주소는 아래 하드웨어 MAC 입니다. 누르면 복사합니다.";
 "info.hardwareMAC" = "하드웨어 MAC";
+
+/* Thermal */
+"tab.thermal" = "발열";
+"thermal.state" = "열 상태";
+"thermal.state.nominal" = "정상";
+"thermal.state.fair" = "약간 높음";
+"thermal.state.serious" = "높음";
+"thermal.state.critical" = "위험";
+"thermal.stateHelp" = "macOS 가 판정한 단계입니다. '높음'부터는 시스템이 열을 줄이려고 성능을 낮추고, '위험'이면 식혀야 합니다. 몇 도부터 뜨거운지는 이 앱이 정하지 않습니다.";
+"thermal.group.die" = "SoC 다이";
+"thermal.group.pmuDevice" = "PMU 기기 센서";
+"thermal.group.ssd" = "SSD";
+"thermal.group.battery" = "배터리";
+"thermal.maxAverage" = "최고 %@ · 평균 %@";
+"thermal.allSensors" = "센서 전체 (%d)";
+"thermal.sensorNote" = "센서 이름과 묶음은 Apple 이 공개하지 않은 값이라 macOS·칩에 따라 다를 수 있습니다. 뜻을 모르는 센서는 묶지 않고 전체 목록에만 보입니다.";
+"thermal.unavailable" = "온도 센서를 읽지 못했습니다";

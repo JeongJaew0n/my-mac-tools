@@ -30,10 +30,12 @@ final class APIHandler {
     private let localhost: LocalhostManager
     private let speedTest: SpeedTestManager
     private let macInfo: MacInfoManager
+    private let thermal: ThermalManager
 
     init(sleep: BlackWorkManager, lid: LidWorkManager, cover: ScreenCoverManager,
          caffeine: CaffeinateScanner, localhost: LocalhostManager,
-         speedTest: SpeedTestManager, macInfo: MacInfoManager) {
+         speedTest: SpeedTestManager, macInfo: MacInfoManager,
+         thermal: ThermalManager) {
         self.sleep = sleep
         self.lid = lid
         self.cover = cover
@@ -41,6 +43,7 @@ final class APIHandler {
         self.localhost = localhost
         self.speedTest = speedTest
         self.macInfo = macInfo
+        self.thermal = thermal
     }
 
     /// 요청 한 줄을 받아 응답 한 줄을 만든다.
@@ -112,6 +115,8 @@ final class APIHandler {
         case "mac.publicIP":
             macInfo.fetchPublicIP()
             return ["publicIP": publicIPState()]
+
+        case "thermal.info": return thermalState()
 
         default: throw Failure.unknownMethod
         }
@@ -333,6 +338,27 @@ final class APIHandler {
                                 "usedBytes": storage.usedBytes]
         }
         return state
+    }
+
+    private func thermalState() -> [String: Any] {
+        // 탭이 안 보이면 훑지 않으므로, 부를 때마다 지금 값으로 맞춘다.
+        thermal.refreshNow()
+        let sensors = thermal.sensors ?? []
+        return [
+            "state": thermal.state.rawValue,
+            "groups": thermal.summaries.map { summary -> [String: Any] in
+                ["group": summary.group.rawValue,
+                 "maxCelsius": Self.rounded(summary.maxCelsius),
+                 "averageCelsius": Self.rounded(summary.averageCelsius),
+                 "count": summary.count]
+            },
+            "sensors": sensors.map { ["name": $0.name, "celsius": Self.rounded($0.celsius)] as [String: Any] },
+        ]
+    }
+
+    /// 화면과 같은 소수 한 자리. 센서가 주는 긴 꼬리(33.4140625)는 정밀도가 아니다.
+    private static func rounded(_ celsius: Double) -> Double {
+        (celsius * 10).rounded() / 10
     }
 
     private func publicIPState() -> [String: Any] {

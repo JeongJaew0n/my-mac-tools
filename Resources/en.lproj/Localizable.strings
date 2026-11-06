@@ -203,3 +203,20 @@
 "info.macPrivate" = "Private";
 "info.macPrivateHelp" = "The private Wi-Fi address macOS uses on this network. Routers and network admins see this one; the device's own address is the hardware MAC below. Click to copy.";
 "info.hardwareMAC" = "Hardware MAC";
+
+/* Thermal */
+"tab.thermal" = "Thermal";
+"thermal.state" = "Thermal state";
+"thermal.state.nominal" = "Normal";
+"thermal.state.fair" = "Slightly elevated";
+"thermal.state.serious" = "High";
+"thermal.state.critical" = "Critical";
+"thermal.stateHelp" = "macOS's own assessment. From “High” on, the system lowers performance to shed heat; at “Critical” the Mac needs to cool down. This app does not decide how hot is too hot.";
+"thermal.group.die" = "SoC die";
+"thermal.group.pmuDevice" = "PMU sensors";
+"thermal.group.ssd" = "SSD";
+"thermal.group.battery" = "Battery";
+"thermal.maxAverage" = "Max %@ · Avg %@";
+"thermal.allSensors" = "All sensors (%d)";
+"thermal.sensorNote" = "Sensor names and groups are undocumented by Apple and may differ by macOS and chip. Sensors of unknown meaning are not grouped and appear only in the full list.";
+"thermal.unavailable" = "Couldn't read temperature sensors";

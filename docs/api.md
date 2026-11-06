@@ -81,6 +81,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 | `ports.list` | `category` `search` | 듣고 있는 localhost 포트 |
 | `speedtest.status` | — | 측정 중인지, 경과 시간, 마지막 결과 |
 | `mac.info` | — | 기종·칩·macOS, 메모리·저장공간(바이트), 내부 IP, 마지막으로 확인한 공인 IP |
+| `thermal.info` | — | 열 상태(OS 판정)와 센서 온도(°C) — 묶음별 최고·평균, 센서 전체 |
 
 `ports.list` 의 `category` 는 `all` · `system` · `wellKnown` · `terminal` · `other` 중 하나다.
 `search` 는 숫자만 쓴다 — 문자열이든 숫자든 받고, 포트 번호에 **부분 일치**한다
@@ -92,6 +93,12 @@ print(json.loads(sock.recv(1 << 20))["result"])
 `addresses` 의 각 줄에 `mac`(지금 쓰는 MAC — 공유기가 보는 값)과 `hardwareMAC`(기기 고유)이
 오고, 둘이 다르면 `privateMAC: true` 다(비공개 Wi-Fi 주소).
 `publicIP.status` 는 `unknown`(아직 안 물음) · `loading` · `ok`(`address`) · `failed`(`error`).
+
+`thermal.info` 의 `state` 는 `nominal` · `fair` · `serious` · `critical` (`ProcessInfo.thermalState`,
+OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `group` 은 `die`(SoC 다이) ·
+`pmuDevice` · `ssd` · `battery` 중 센서가 있는 것만 온다. `sensors` 는 `{name, celsius}` 전부(이름순,
+같은 이름이 둘씩 올 수 있다). 온도는 소수 한 자리. **온도로 뜨겁다 아니다를 판정하지 말고 `state` 를 본다.**
+센서를 못 읽으면(비공개 API) `groups`·`sensors` 가 빈 배열이고 `state` 는 그대로 온다.
 
 ### 쓰기
 

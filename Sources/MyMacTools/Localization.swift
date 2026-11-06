@@ -38,6 +38,7 @@ final class L10n: ObservableObject {
         case tabLocalhost = "tab.localhost"
         case tabSpeedTest = "tab.speedTest"
         case tabMacInfo = "tab.macInfo"
+        case tabThermal = "tab.thermal"
 
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
@@ -203,6 +204,22 @@ final class L10n: ObservableObject {
         case infoCopied = "info.copied"
         case infoMemoryHelp = "info.memoryHelp"
         case infoStorageHelp = "info.storageHelp"
+
+        // 발열
+        case thermalState = "thermal.state"
+        case thermalStateNominal = "thermal.state.nominal"
+        case thermalStateFair = "thermal.state.fair"
+        case thermalStateSerious = "thermal.state.serious"
+        case thermalStateCritical = "thermal.state.critical"
+        case thermalStateHelp = "thermal.stateHelp"
+        case thermalGroupDie = "thermal.group.die"
+        case thermalGroupPMUDevice = "thermal.group.pmuDevice"
+        case thermalGroupSSD = "thermal.group.ssd"
+        case thermalGroupBattery = "thermal.group.battery"
+        case thermalMaxAverage = "thermal.maxAverage"
+        case thermalAllSensors = "thermal.allSensors"
+        case thermalSensorNote = "thermal.sensorNote"
+        case thermalUnavailable = "thermal.unavailable"
 
         // 설정 창
         case settingsAppearanceTitle = "settings.appearanceTitle"

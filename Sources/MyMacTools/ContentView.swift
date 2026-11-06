@@ -10,6 +10,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case localhost
     case speedTest
     case macInfo
+    case thermal
 
     var id: String { rawValue }
 
@@ -21,6 +22,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .localhost: return .tabLocalhost
         case .speedTest: return .tabSpeedTest
         case .macInfo: return .tabMacInfo
+        case .thermal: return .tabThermal
         }
     }
 
@@ -34,6 +36,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .localhost: return "network"               // 포트
         case .speedTest: return "speedometer"           // 인터넷 속도
         case .macInfo: return "info.circle"             // 이 맥
+        case .thermal: return "thermometer.medium"      // 발열
         }
     }
 }
@@ -46,6 +49,7 @@ struct ContentView: View {
     @ObservedObject var localhost: LocalhostManager
     @ObservedObject var speedTest: SpeedTestManager
     @ObservedObject var macInfo: MacInfoManager
+    @ObservedObject var thermal: ThermalManager
     @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
@@ -53,6 +57,8 @@ struct ContentView: View {
     @State private var caffeineError: String?
     /// 방금 복사한 주소. 잠깐 "복사했습니다" 를 보여주고 지운다.
     @State private var copiedAddress: String?
+    /// 발열 탭의 센서 전체 목록을 펼쳤는가. 기본은 접힘 — 묶음 요약이면 대개 충분하다.
+    @State private var showsAllSensors = false
 
     /// 마지막으로 본 탭. `L10n` 이 언어를 `UserDefaults` 에 담아두는 것과 같은 이유로,
     /// 주로 쓰는 기능이 다음 실행에 바로 나오게 한다.
@@ -84,6 +90,7 @@ struct ContentView: View {
                     case .localhost: localhostTab
                     case .speedTest: speedTestTab
                     case .macInfo: macInfoTab
+                    case .thermal: thermalTab
                     }
                 }
                 .padding(Design.Inset.screen)
@@ -137,6 +144,7 @@ struct ContentView: View {
             caffeine.stopPolling()
             localhost.stopPolling()
             macInfo.stopPolling()
+            thermal.stopPolling()
         }
     }
 
@@ -203,7 +211,7 @@ struct ContentView: View {
         case .localhost: return localhost.isRunning
         case .speedTest: return speedTest.isRunning
         // 보여주기만 하는 Tool 이라 '돌고 있는' 상태가 없다.
-        case .macInfo: return false
+        case .macInfo, .thermal: return false
         }
     }
 
@@ -1212,6 +1220,128 @@ struct ContentView: View {
         if gb >= 1000 { return String(format: "%.2f TB", gb / 1000) }
         if gb >= 100 { return String(format: "%.0f GB", gb) }
         return String(format: "%.1f GB", gb)
+    }
+
+    // MARK: - 발열
+
+    /// OS 의 열 상태와 센서 온도.
+    ///
+    /// 판정은 열 상태만 한다. 온도는 숫자로 보여줄 뿐 색을 입히지 않는다 — 몇 도부터
+    /// 뜨거운지 우리가 정하면 지어낸 경계가 된다. 근거는 `docs/plans/thermal/spec.md`.
+    private var thermalTab: some View {
+        VStack(alignment: .leading, spacing: Design.Space.block) {
+            VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                HStack(spacing: Design.Space.inline) {
+                    Image(systemName: "thermometer.medium")
+                        .foregroundStyle(thermalColor)
+                        .frame(width: Design.Size.indicator * 1.6)
+                    Text(l10n(.thermalState))
+                    Spacer(minLength: Design.Space.inline)
+                    Text(l10n(thermalStateKey))
+                        .fontWeight(.semibold)
+                        .foregroundStyle(thermalColor)
+                }
+                Text(l10n(.thermalStateHelp))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Divider()
+
+            temperatureBlock
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .onAppear { thermal.startPolling() }
+        .onDisappear { thermal.stopPolling() }
+    }
+
+    @ViewBuilder
+    private var temperatureBlock: some View {
+        if let sensors = thermal.sensors, sensors.isEmpty {
+            Text(l10n(.thermalUnavailable))
+                .font(.caption)
+                .foregroundStyle(Design.Color.textSecondary)
+        } else if let sensors = thermal.sensors {
+            VStack(alignment: .leading, spacing: Design.Space.listRow) {
+                ForEach(thermal.summaries) { summary in
+                    usageHeader(symbol: symbol(for: summary.group),
+                                title: l10n(titleKey(for: summary.group)),
+                                value: summaryValue(summary))
+                }
+
+                DisclosureGroup(isExpanded: $showsAllSensors) {
+                    VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                        ForEach(sensors) { sensor in
+                            HStack {
+                                Text(sensor.name)
+                                Spacer(minLength: Design.Space.inline)
+                                Text(Self.celsius(sensor.celsius)).monospacedDigit()
+                            }
+                        }
+                    }
+                    .font(.caption)
+                    .textSelection(.enabled)
+                    .padding(.top, Design.Space.rowTight)
+                } label: {
+                    Text(l10n(.thermalAllSensors, sensors.count))
+                }
+
+                Text(l10n(.thermalSensorNote))
+                    .font(.caption2)
+                    .foregroundStyle(Design.Color.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        } else {
+            // 첫 읽기는 백그라운드에서 수십 ms 걸린다. 그 사이 빈 줄 대신 자리를 잡아 둔다.
+            usageHeader(symbol: "cpu", title: l10n(.thermalGroupDie), value: "—")
+        }
+    }
+
+    /// 센서가 하나뿐이면 최고·평균이 같으므로 숫자 하나만.
+    private func summaryValue(_ summary: ThermalManager.Summary) -> String {
+        guard summary.count > 1 else { return Self.celsius(summary.maxCelsius) }
+        return l10n(.thermalMaxAverage, Self.celsius(summary.maxCelsius), Self.celsius(summary.averageCelsius))
+    }
+
+    private func symbol(for group: ThermalManager.Group) -> String {
+        switch group {
+        case .die: return "cpu"
+        case .pmuDevice: return "sensor"
+        case .ssd: return "internaldrive"
+        case .battery: return "battery.75percent"
+        }
+    }
+
+    private func titleKey(for group: ThermalManager.Group) -> L10n.Key {
+        switch group {
+        case .die: return .thermalGroupDie
+        case .pmuDevice: return .thermalGroupPMUDevice
+        case .ssd: return .thermalGroupSSD
+        case .battery: return .thermalGroupBattery
+        }
+    }
+
+    private var thermalStateKey: L10n.Key {
+        switch thermal.state {
+        case .nominal: return .thermalStateNominal
+        case .fair: return .thermalStateFair
+        case .serious: return .thermalStateSerious
+        case .critical: return .thermalStateCritical
+        }
+    }
+
+    /// Apple 문서상 `serious` 부터 시스템이 성능을 줄인다. 그 전까지는 조치가 필요 없는 단계다.
+    private var thermalColor: Color {
+        switch thermal.state {
+        case .nominal, .fair: return Design.Color.statusRunning
+        case .serious: return Design.Color.statusWarning
+        case .critical: return Design.Color.statusError
+        }
+    }
+
+    private static func celsius(_ value: Double) -> String {
+        String(format: "%.1f°C", value)
     }
 
     // MARK: - 로컬호스트

@@ -203,3 +203,20 @@
 "info.macPrivate" = "プライベート";
 "info.macPrivateHelp" = "macOS がこのネットワークで使うプライベート Wi-Fi アドレスです。ルーターやネットワーク管理者に見えるのはこのアドレスで、機器固有のアドレスは下のハードウェア MAC です。クリックでコピーします。";
 "info.hardwareMAC" = "ハードウェア MAC";
+
+/* Thermal */
+"tab.thermal" = "発熱";
+"thermal.state" = "熱状態";
+"thermal.state.nominal" = "正常";
+"thermal.state.fair" = "やや高い";
+"thermal.state.serious" = "高い";
+"thermal.state.critical" = "危険";
+"thermal.stateHelp" = "macOS 自身の判定です。「高い」からはシステムが熱を下げるために性能を落とし、「危険」では冷却が必要です。何度から熱いかはこのアプリでは決めません。";
+"thermal.group.die" = "SoC ダイ";
+"thermal.group.pmuDevice" = "PMU センサー";
+"thermal.group.ssd" = "SSD";
+"thermal.group.battery" = "バッテリー";
+"thermal.maxAverage" = "最高 %@ · 平均 %@";
+"thermal.allSensors" = "すべてのセンサー (%d)";
+"thermal.sensorNote" = "センサー名とグループは Apple が公開していない値のため、macOS やチップによって異なる場合があります。意味のわからないセンサーはグループにせず、全体の一覧にだけ表示します。";
+"thermal.unavailable" = "温度センサーを読み取れませんでした";
