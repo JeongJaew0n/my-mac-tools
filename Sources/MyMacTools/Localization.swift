@@ -154,6 +154,17 @@ final class L10n: ObservableObject {
         case localhostNoMatch = "localhost.noMatch"
         case localhostClearFilter = "localhost.clearFilter"
         case localhostShowingCount = "localhost.showingCount"
+        case hostsTitle = "hosts.title"
+        case hostsEmpty = "hosts.empty"
+        case hostsReadFailed = "hosts.readFailed"
+        case hostsOpen = "hosts.open"
+        case hostsOpenWith = "hosts.openWith"
+        case hostsDefaultApp = "hosts.defaultApp"
+        case hostsChooseOther = "hosts.chooseOther"
+        case hostsChoosePrompt = "hosts.choosePrompt"
+        case hostsReveal = "hosts.reveal"
+        case hostsSaveNote = "hosts.saveNote"
+        case hostsOpenFailed = "hosts.openFailed"
 
         // 속도 측정
         case speedDownload = "speed.download"

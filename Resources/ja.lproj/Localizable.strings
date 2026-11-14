@@ -129,6 +129,17 @@
 "localhost.noMatch" = "条件に合うものはありません";
 "localhost.clearFilter" = "フィルタを解除";
 "localhost.showingCount" = "%2$d件中 %1$d件を表示";
+"hosts.title" = "hosts ファイル";
+"hosts.empty" = "項目がありません";
+"hosts.readFailed" = "ファイルを読み込めませんでした";
+"hosts.open" = "エディタで開く";
+"hosts.openWith" = "%@ で開く";
+"hosts.defaultApp" = "%@(デフォルト)";
+"hosts.chooseOther" = "ほかのアプリを選択…";
+"hosts.choosePrompt" = "開く";
+"hosts.reveal" = "Finder で表示";
+"hosts.saveNote" = "保存はエディタが行います。管理者権限が必要なため TextEdit では保存できず、VS Code などは保存時にパスワードを求めます。";
+"hosts.openFailed" = "開けませんでした: %@";
 
 /* 設定ウインドウ */
 "settings.tabsTitle" = "タブに表示する機能";

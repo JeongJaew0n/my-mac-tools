@@ -12,6 +12,7 @@ Sources/MyMacTools/
 ├── LidWorkManager.swift     Tool: 덮개 닫아도 작업 (pmset disablesleep)
 ├── ScreenCoverManager.swift Tool: 화면 가리기 (+ CoverView, Shortcut, ShortcutRecorder)
 ├── LocalhostManager.swift   Tool: 로컬호스트 (libproc 으로 LISTEN 소켓)
+├── HostsFile.swift          로컬호스트 안의 /etc/hosts 보기·편집기로 열기
 ├── SpeedTestManager.swift   Tool: 속도 측정 (macOS 내장 networkQuality)
 ├── MacInfoManager.swift     Tool: Mac 정보 (기종·메모리·저장공간·IP)
 ├── ThermalManager.swift     Tool: 발열 (열 상태 + IOHID 센서 온도)

@@ -129,6 +129,17 @@
 "localhost.noMatch" = "Nothing matches";
 "localhost.clearFilter" = "Clear Filter";
 "localhost.showingCount" = "showing %1$d of %2$d";
+"hosts.title" = "hosts File";
+"hosts.empty" = "No entries";
+"hosts.readFailed" = "Couldn't read the file";
+"hosts.open" = "Open in Editor";
+"hosts.openWith" = "Open with %@";
+"hosts.defaultApp" = "%@ (Default)";
+"hosts.chooseOther" = "Choose Another App…";
+"hosts.choosePrompt" = "Open";
+"hosts.reveal" = "Show in Finder";
+"hosts.saveNote" = "Your editor does the saving. It needs administrator rights, so TextEdit can't save it; editors such as VS Code ask for your password when saving.";
+"hosts.openFailed" = "Couldn't open: %@";
 
 /* Settings window */
 "settings.tabsTitle" = "Tools shown as tabs";

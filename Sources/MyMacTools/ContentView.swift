@@ -1462,6 +1462,10 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(Design.Color.statusError)
             }
+
+            Divider()
+
+            HostsFileSection(hosts: localhost.hosts, l10n: l10n)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // 포트 스캔이 둘 중 비싼 쪽이다(1.66ms). 이 탭을 보는 동안에만 돌린다.

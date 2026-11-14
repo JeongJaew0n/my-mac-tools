@@ -84,6 +84,8 @@ enum PortCategory: String, CaseIterable, Identifiable {
 @MainActor
 final class LocalhostManager: ObservableObject {
     @Published private(set) var ports: [LocalPort] = []
+    /// 같은 탭 아래의 `/etc/hosts`. 이름을 127.0.0.1 로 돌리는 파일이라 로컬 개발 서버와 함께 본다.
+    let hosts = HostsFile()
     /// 중지에 실패한 이유. 성공하면 비운다.
     @Published var lastError: String?
     /// 고른 범주.

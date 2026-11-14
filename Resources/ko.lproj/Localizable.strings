@@ -129,6 +129,17 @@
 "localhost.noMatch" = "조건에 맞는 것이 없습니다";
 "localhost.clearFilter" = "필터 지우기";
 "localhost.showingCount" = "%1$d / %2$d개 보임";
+"hosts.title" = "hosts 파일";
+"hosts.empty" = "항목이 없습니다";
+"hosts.readFailed" = "파일을 읽지 못했습니다";
+"hosts.open" = "편집기로 열기";
+"hosts.openWith" = "%@에서 열기";
+"hosts.defaultApp" = "%@ (기본)";
+"hosts.chooseOther" = "다른 앱 고르기…";
+"hosts.choosePrompt" = "열기";
+"hosts.reveal" = "Finder에서 보기";
+"hosts.saveNote" = "저장은 편집기가 합니다. 관리자 권한이 필요해 TextEdit로는 저장되지 않고, VS Code 등은 저장할 때 암호를 묻습니다.";
+"hosts.openFailed" = "열지 못했습니다: %@";
 
 /* 설정 창 */
 "settings.tabsTitle" = "탭에 표시할 기능";
