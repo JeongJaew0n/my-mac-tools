@@ -24,8 +24,10 @@ SOCKET_PATH = os.path.expanduser(
 USAGE = """사용법: mymactools <메서드> [키=값 ...] [--raw]
 
 읽기   status · sleep.get · lid.get · cover.get · caffeinate.list · ports.list
+       speedtest.status · mac.info · thermal.info
 쓰기   sleep.start · sleep.stop · cover.start · cover.stop
        caffeinate.stop pid=N · ports.stop pid=N · ports.open port=N
+       speedtest.start · speedtest.cancel · mac.publicIP
 
 예시
   mymactools status
@@ -69,17 +71,20 @@ def send(request):
     except OSError as error:
         sys.exit(f"소켓에 붙지 못했습니다: {error}\n앱이 방금 종료되었을 수 있습니다.")
 
-    client.sendall((json.dumps(request) + "\n").encode())
-
     chunks = []
-    while True:
-        chunk = client.recv(65536)
-        if not chunk:
-            break
-        chunks.append(chunk)
-        if chunk.endswith(b"\n"):
-            break
-    client.close()
+    try:
+        client.sendall((json.dumps(request) + "\n").encode())
+        while True:
+            chunk = client.recv(65536)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            if chunk.endswith(b"\n"):
+                break
+    except socket.timeout:
+        sys.exit("10초 안에 응답이 없습니다. 앱이 확인 창(관리자 암호 등)을 띄워 둔 채 기다리는 중일 수 있습니다.")
+    finally:
+        client.close()
 
     body = b"".join(chunks).decode().strip()
     if not body:
@@ -112,7 +117,13 @@ def main():
     if raw:
         print(json.dumps(response, ensure_ascii=False, indent=2, sort_keys=True))
     elif response.get("ok"):
-        print(json.dumps(response.get("result"), ensure_ascii=False, indent=2, sort_keys=True))
+        result = response.get("result")
+        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
+        # `caffeinate.stop` · `ports.stop` 은 끄지 못해도 응답 자체는 성공이다(`stopped: false`).
+        # 종료 코드로 갈라낼 수 있다는 약속을 지키려고 실패로 친다.
+        if isinstance(result, dict) and result.get("stopped") is False:
+            print(f"[notStopped] {result.get('reason', '')}", file=sys.stderr)
+            return 1
     else:
         error = response.get("error", {})
         # 종료 코드로 갈라낼 수 있게 한다. 에이전트가 stdout 을 파싱하지 않아도 된다.

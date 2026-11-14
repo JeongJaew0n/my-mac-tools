@@ -157,6 +157,10 @@ final class BlackWorkManager: ObservableObject {
         if let seconds = durationSeconds {
             arguments += ["-t", String(seconds)]
         }
+        // 앱이 끝나면 같이 끝나게 한다. `Process` 로 띄운 자식은 앱이 죽어도 launchd 밑으로
+        // 옮겨가 계속 돈다(실측). 시간 제한 없는 세션이면 맥이 영영 유휴 잠자기를 못 한다.
+        // `-w` 는 종료·강제 종료·크래시 모두에 듣는다. `-t` 와 함께 줘도 먼저 오는 쪽에 끝난다(실측).
+        arguments += ["-w", String(ProcessInfo.processInfo.processIdentifier)]
         proc.arguments = arguments
 
         proc.terminationHandler = { [weak self] finished in

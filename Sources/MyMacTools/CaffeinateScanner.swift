@@ -232,7 +232,7 @@ final class CaffeinateScanner: ObservableObject {
 
         var count: Int32 = 0
         withUnsafeMutableBytes(of: &count) { raw in
-            _ = buffer.withUnsafeBytes { source in
+            buffer.withUnsafeBytes { source in
                 raw.copyMemory(from: UnsafeRawBufferPointer(rebasing: source[0..<MemoryLayout<Int32>.size]))
             }
         }

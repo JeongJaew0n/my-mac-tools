@@ -24,8 +24,9 @@ final class APIServer {
     }
 
     private let handler: APIHandler
-    private var listener: CInt = -1
     private var source: DispatchSourceRead?
+    /// 우리가 bind 한 소켓 파일의 inode. 종료할 때 **우리 것일 때만** 지운다.
+    private var boundInode: ino_t?
     private let queue = DispatchQueue(label: "com.jjw.mymactools.api")
 
     init(handler: APIHandler) {
@@ -33,6 +34,12 @@ final class APIServer {
     }
 
     func start() {
+        // 클라이언트가 먼저 끊으면(10초 타임아웃·Ctrl-C) 응답을 쓰는 순간 SIGPIPE 가 와서
+        // **앱이 죽는다**(실측 — 종료 코드 141). 덮개를 켠 채 죽으면 맥이 잠들지 않는 상태로 남는다.
+        // 소켓마다 거는 `SO_NOSIGPIPE` 로는 모자랐다 — 이미 끊긴 연결을 accept 하면 옵션이
+        // 걸리지 않아 그대로 죽었다(실측). 프로세스 전체에서 무시하고, write 의 EPIPE 로 받는다.
+        signal(SIGPIPE, SIG_IGN)
+
         let url = Self.socketURL
         let path = url.path
 
@@ -44,8 +51,16 @@ final class APIServer {
             return
         }
 
+        // 다른 인스턴스(설치본과 `.build` 의 것 등)가 이미 듣고 있으면 빼앗지 않는다.
+        // 빼앗으면 요청이 엉뚱한 쪽으로 가고, 그쪽을 끄면 소켓이 사라져 살아 있는 원래 앱이
+        // "떠 있지 않다" 로 보인다.
+        if Self.isListening(path) {
+            NSLog("[api] 다른 인스턴스가 이미 듣고 있어 시작하지 않습니다: \(path)")
+            return
+        }
+
         // 앱이 강제 종료되면 소켓 파일이 남는다. 그 위에 다시 bind 하면 EADDRINUSE 이므로
-        // 시작할 때마다 지우고 만든다.
+        // 듣는 쪽이 없으면 지우고 만든다.
         try? FileManager.default.removeItem(at: url)
 
         let fd = socket(AF_UNIX, SOCK_STREAM, 0)
@@ -80,6 +95,7 @@ final class APIServer {
 
         // 이 사용자만 열 수 있게 한다. 이것이 이 API 의 인증이다.
         chmod(path, 0o600)
+        boundInode = Self.inode(of: path)
 
         guard listen(fd, 8) == 0 else {
             NSLog("[api] listen 실패: \(String(cString: strerror(errno)))")
@@ -87,9 +103,11 @@ final class APIServer {
             return
         }
 
-        listener = fd
         let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: queue)
-        source.setEventHandler { [weak self] in self?.acceptOne() }
+        source.setEventHandler { [weak self] in self?.acceptOne(fd) }
+        // GCD 는 fd 를 cancel handler 가 돈 **뒤에** 닫으라고 한다. 먼저 닫으면 그 번호가
+        // 재사용된 다른 fd 를 소스가 건드릴 수 있다.
+        source.setCancelHandler { close(fd) }
         source.resume()
         self.source = source
 
@@ -97,21 +115,55 @@ final class APIServer {
     }
 
     func stop() {
+        // fd 는 cancel handler 가 닫는다.
         source?.cancel()
         source = nil
-        if listener >= 0 {
-            close(listener)
-            listener = -1
+        // 그새 다른 인스턴스가 같은 경로에 새로 만들었으면 그것은 지우지 않는다.
+        if let boundInode, Self.inode(of: Self.socketURL.path) == boundInode {
+            try? FileManager.default.removeItem(at: Self.socketURL)
         }
-        try? FileManager.default.removeItem(at: Self.socketURL)
+    }
+
+    /// 그 경로에서 누가 듣고 있는가 — 붙어 보고 바로 끊는다.
+    private static func isListening(_ path: String) -> Bool {
+        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+        guard fd >= 0 else { return false }
+        defer { close(fd) }
+        var address = sockaddr_un()
+        address.sun_family = sa_family_t(AF_UNIX)
+        let capacity = MemoryLayout.size(ofValue: address.sun_path)
+        guard path.utf8.count < capacity else { return false }
+        _ = withUnsafeMutableBytes(of: &address.sun_path) { raw in
+            path.withCString { source in
+                strncpy(raw.baseAddress!.assumingMemoryBound(to: CChar.self), source, capacity - 1)
+            }
+        }
+        let size = socklen_t(MemoryLayout<sockaddr_un>.size)
+        return withUnsafePointer(to: &address) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { connect(fd, $0, size) == 0 }
+        }
+    }
+
+    private static func inode(of path: String) -> ino_t? {
+        var info = stat()
+        return stat(path, &info) == 0 ? info.st_ino : nil
     }
 
     // MARK: - Private
 
-    private func acceptOne() {
+    private func acceptOne(_ listener: CInt) {
         let client = accept(listener, nil, nil)
         guard client >= 0 else { return }
         defer { close(client) }
+
+        // SIGPIPE 는 `start()` 에서 프로세스 전체로 막았다. 소켓에도 걸어 두는 것은 겹으로다.
+        var one: Int32 = 1
+        setsockopt(client, SOL_SOCKET, SO_NOSIGPIPE, &one, socklen_t(MemoryLayout<Int32>.size))
+        // 요청은 큐 하나에서 차례로 처리한다. 붙어 놓고 아무것도 안 보내는 클라이언트 하나가
+        // 뒤의 요청을 모두 막지 않게 읽기·쓰기에 시한을 둔다. 클라이언트의 시한(10초)보다 짧게.
+        var limit = timeval(tv_sec: 5, tv_usec: 0)
+        setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &limit, socklen_t(MemoryLayout<timeval>.size))
+        setsockopt(client, SOL_SOCKET, SO_SNDTIMEO, &limit, socklen_t(MemoryLayout<timeval>.size))
 
         guard let line = readLine(from: client) else { return }
 

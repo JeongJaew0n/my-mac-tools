@@ -169,25 +169,33 @@ final class APIHandler {
 
     private func startSleep(_ params: [String: Any]) throws -> [String: Any] {
         // 준 것만 바꾼다. 안 준 값은 사용자가 창에서 골라둔 것을 그대로 쓴다.
-        if let hours = params["hours"] as? Int {
-            guard BlackWorkManager.hourOptions.contains(hours) else { throw Failure.badParams }
-            sleep.hours = hours
-        }
-        if let minutes = params["minutes"] as? Int {
-            guard BlackWorkManager.minuteOptions.contains(minutes) else { throw Failure.badParams }
-            sleep.minutes = minutes
-        }
-        if let seconds = params["displayDelaySeconds"] as? Int {
-            guard BlackWorkManager.displayDelayOptions.contains(seconds) else { throw Failure.badParams }
-            sleep.displayDelaySeconds = seconds
-        }
-        if let raw = params["screenMode"] as? String {
+        // **모두 검사한 뒤에 한꺼번에 반영한다.** 하나씩 반영하면 뒤의 값이 틀려 거부해도
+        // 앞의 값은 이미 창에 바뀌어 있다.
+        let hours = try Self.int(params, "hours")
+        let minutes = try Self.int(params, "minutes")
+        let seconds = try Self.int(params, "displayDelaySeconds")
+        let rawMode = try Self.string(params, "screenMode")
+        let sleepWhenDone = try Self.bool(params, "sleepWhenDone")
+
+        if let hours, !BlackWorkManager.hourOptions.contains(hours) { throw Failure.badParams }
+        if let minutes, !BlackWorkManager.minuteOptions.contains(minutes) { throw Failure.badParams }
+        if let seconds, !BlackWorkManager.displayDelayOptions.contains(seconds) { throw Failure.badParams }
+        let mode = try rawMode.map { raw in
             guard let mode = BlackWorkManager.ScreenMode(rawValue: raw) else { throw Failure.badParams }
-            sleep.screenMode = mode
+            return mode
         }
-        if let flag = params["sleepWhenDone"] as? Bool {
-            sleep.sleepWhenDone = flag
-        }
+        // 덮개가 켜져 있으면 `pmset sleepnow` 가 거부된다. 창에서는 그 토글이 잠기는 상태라,
+        // 대놓고 켜 달라는 요청은 받지 않는다.
+        lid.refreshFromSystem()
+        if sleepWhenDone == true, lid.isRunning { throw Failure.preconditionFailed }
+
+        if let hours { sleep.hours = hours }
+        if let minutes { sleep.minutes = minutes }
+        if let seconds { sleep.displayDelaySeconds = seconds }
+        if let mode { sleep.screenMode = mode }
+        if let sleepWhenDone { sleep.sleepWhenDone = sleepWhenDone }
+        // 안 준 값은 창에 남은 값이다. 그것이 `sleepWhenDone = true` 일 수 있으므로 규칙을 거친다.
+        Actions.enforceLidRule(lid, sleep)
 
         // 돌고 있어도 새 설정으로 갈아끼운다. `start()` 를 그냥 부르면 `guard !isRunning`
         // 에 걸려 **설정만 바뀌고 세션은 그대로**여서, 돌려주는 값과 실제 세션이 어긋난다.
@@ -195,8 +203,39 @@ final class APIHandler {
         return sleepState()
     }
 
+    // MARK: - 파라미터
+
+    // 키가 없으면 nil, 있는데 형이 틀리면 거부한다. 조용히 무시하면 `hours: "2"` 가
+    // 시간 제한 없는 세션으로 시작된다.
+    //
+    // JSON 의 숫자와 불은 모두 `NSNumber` 로 온다. `true as? Int` 는 1 이 되고 `1 as? Bool` 은
+    // true 가 되므로, 불인지 먼저 가른다.
+
+    private static func isBoolean(_ value: Any) -> Bool {
+        (value as AnyObject) === kCFBooleanTrue || (value as AnyObject) === kCFBooleanFalse
+    }
+
+    private static func int(_ params: [String: Any], _ key: String) throws -> Int? {
+        guard let value = params[key] else { return nil }
+        guard !isBoolean(value), let number = value as? NSNumber,
+              let int = Int(exactly: number.doubleValue) else { throw Failure.badParams }
+        return int
+    }
+
+    private static func bool(_ params: [String: Any], _ key: String) throws -> Bool? {
+        guard let value = params[key] else { return nil }
+        guard isBoolean(value), let flag = value as? Bool else { throw Failure.badParams }
+        return flag
+    }
+
+    private static func string(_ params: [String: Any], _ key: String) throws -> String? {
+        guard let value = params[key] else { return nil }
+        guard let string = value as? String else { throw Failure.badParams }
+        return string
+    }
+
     private func stopCaffeinate(_ params: [String: Any]) throws -> [String: Any] {
-        guard let pid = params["pid"] as? Int else { throw Failure.badParams }
+        guard let pid = try Self.int(params, "pid") else { throw Failure.badParams }
         caffeine.refresh()
         guard let target = caffeine.processes.first(where: { $0.pid == pid_t(pid) }) else {
             throw Failure.notFound
@@ -211,28 +250,32 @@ final class APIHandler {
         localhost.refresh()
 
         var ports = localhost.ports
-        if let raw = params["category"] as? String {
+        // 형이 틀린 `category` 를 무시하면 거르지 않은 전체가 나간다. 숫자 없는 `search` 를 막은 것과 같은 이유로 거부한다.
+        if let raw = try Self.string(params, "category") {
             guard let category = PortCategory(rawValue: raw) else { throw Failure.badParams }
             ports = ports.filter { category.matches($0) }
         }
         // 포트를 찾는 파라미터라 호출자가 숫자로 쓰는 것이 자연스럽다. 문자열만 받으면
         // `search=8501` 이 조용히 무시된다 — 실제로 그 버그를 먼저 만들었다.
+        // 불(`true`)은 숫자 1 로 읽히므로 `int` 로 가른다.
         let search: String?
-        switch params["search"] {
-        case let text as String: search = text
-        case let number as Int: search = String(number)
-        case nil: search = nil
-        default: throw Failure.badParams
+        if params["search"] is String {
+            search = try Self.string(params, "search")
+        } else {
+            search = try Self.int(params, "search").map(String.init)
         }
         if let search {
+            // 숫자가 하나도 없으면 거른 것 없이 전체가 나간다. 호출자가 그 첫 줄을 끄면
+            // 엉뚱한 프로세스가 죽으므로 받지 않는다.
             let digits = search.filter(\.isNumber)
-            if !digits.isEmpty { ports = ports.filter { String($0.port).contains(digits) } }
+            guard !digits.isEmpty else { throw Failure.badParams }
+            ports = ports.filter { String($0.port).contains(digits) }
         }
         return ports.map(describe)
     }
 
     private func stopPort(_ params: [String: Any]) throws -> [String: Any] {
-        guard let pid = params["pid"] as? Int else { throw Failure.badParams }
+        guard let pid = try Self.int(params, "pid") else { throw Failure.badParams }
         localhost.refresh()
         guard let target = localhost.ports.first(where: { $0.pid == pid_t(pid) }) else {
             throw Failure.notFound
@@ -248,7 +291,7 @@ final class APIHandler {
     }
 
     private func openPort(_ params: [String: Any]) throws -> [String: Any] {
-        guard let number = params["port"] as? Int, let port = UInt16(exactly: number) else {
+        guard let number = try Self.int(params, "port"), let port = UInt16(exactly: number) else {
             throw Failure.badParams
         }
         localhost.refresh()
@@ -383,8 +426,9 @@ final class APIHandler {
     }
 
     /// 화면과 같은 소수 한 자리. 센서가 주는 긴 꼬리(33.4140625)는 정밀도가 아니다.
+    /// 화면과 **같은 규칙**(`%.1f`)으로 자른다 — `.rounded()` 는 33.25 를 33.3 으로, 화면은 33.2 로 냈다.
     private static func rounded(_ celsius: Double) -> Double {
-        (celsius * 10).rounded() / 10
+        Double(String(format: "%.1f", celsius)) ?? celsius
     }
 
     private func publicIPState() -> [String: Any] {
@@ -435,10 +479,14 @@ final class APIHandler {
         switch failure {
         case .needsHuman where method.hasPrefix("intellij."):
             return "'\(method)' 은 켜져 있는 IntelliJ 를 끄고 다시 엽니다. API 로는 하지 않습니다. 앱에서 직접 눌러주세요."
+        case .needsHuman where method == "speedtest.start":
+            return "데이터 요금이 붙는 회선(개인 핫스팟 등)이라 사람의 확인 없이 측정하지 않습니다. 앱에서 직접 시작해주세요."
         case .needsHuman:
             return "'\(method)' 은 관리자 인증이 필요해 API 로는 하지 않습니다. 앱에서 직접 바꿔주세요."
         case .forbidden:
             return "시스템 구성요소이거나 이 앱 자신입니다. 앱에서 확인을 거쳐야 끌 수 있습니다."
+        case .preconditionFailed where method == "sleep.start":
+            return "덮개 기능이 켜져 있으면 '끝나면 Mac잠자기 모드' 를 켤 수 없습니다. 잠자기가 거부되기 때문입니다."
         case .preconditionFailed:
             return "조건이 맞지 않습니다. 화면 가리기는 사진을 먼저 골라야 합니다."
         case .notFound:

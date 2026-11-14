@@ -62,6 +62,22 @@ final class LidWorkManager: ObservableObject {
     private var endDate: Date?
     private var ticker: Timer?
 
+    /// 이 앱이 켠 세션의 흔적. **앱이 죽어도 남아야** 다음 실행이 이어받는다.
+    ///
+    /// 주인과 만료 시각을 메모리에만 두면, 켜 둔 채 앱이 죽었을 때(크래시·강제 종료) 다음 실행은
+    /// 남이 켠 것으로 보고 손대지 않는다. `disablesleep` 은 재부팅해도 남으므로 1시간으로 켠
+    /// 것이 영영 켜진 채로 남는다 — 가방 속에서 맥이 잠들지 않는다.
+    private struct Session: Codable {
+        /// 끝나는 시각. 시간 제한이 없으면 nil.
+        var endDate: Date?
+        /// 켠 프로세스. 같은 bundle id 라 같은 기록을 보는 다른 인스턴스(설치본과 `.build` 의 것)가
+        /// **살아 있는 주인의 세션을 가로채지 않게** 한다. 가로채면 그쪽을 끌 때 묻지 않고 꺼 버린다.
+        var ownerPID: Int32?
+        /// pid 는 재사용된다. 시작 시각까지 같아야 같은 프로세스다.
+        var ownerStarted: Date?
+    }
+    private static let sessionKey = "lidSession"
+
     init() {
         // 저장된 기본값으로 시작한다.
         let saved = ToolDefaults.load(ToolDefaults.lidKey, fallback: ToolDefaults.Lid.builtIn)
@@ -69,6 +85,34 @@ final class LidWorkManager: ObservableObject {
         minutes = saved.minutes
 
         refreshFromSystem()
+        resumeSavedSession()
+    }
+
+    /// 지난 실행이 켜 두고 끝났으면 이어받는다. 만료 시각이 지났으면 그 자리에서 끈다.
+    ///
+    /// 켠 프로세스가 **아직 살아 있으면** 이어받지 않는다 — 그것은 지난 실행이 아니라 지금 도는
+    /// 다른 인스턴스다.
+    private func resumeSavedSession() {
+        guard isRunning,
+              let data = UserDefaults.standard.data(forKey: Self.sessionKey),
+              let session = try? JSONDecoder().decode(Session.self, from: data) else { return }
+        if let owner = session.ownerPID, let started = session.ownerStarted,
+           owner != ProcessInfo.processInfo.processIdentifier,
+           let entry = ProcessSnapshot.entry(of: owner),
+           abs(ProcessSnapshot.startDate(of: entry).timeIntervalSince(started)) < 1 {
+            return
+        }
+        turnedOnByThisProcess = true
+        startCountdown(until: session.endDate)
+        saveSession()
+        if let end = session.endDate, end.timeIntervalSinceNow <= 0 { expire() }
+    }
+
+    private func saveSession() {
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let session = Session(endDate: endDate, ownerPID: pid,
+                              ownerStarted: ProcessSnapshot.entry(of: pid).map(ProcessSnapshot.startDate))
+        UserDefaults.standard.set(try? JSONEncoder().encode(session), forKey: Self.sessionKey)
     }
 
     // MARK: - 기본값
@@ -118,6 +162,7 @@ final class LidWorkManager: ObservableObject {
         if ticker != nil { clearCountdown() }
         autoStopFailed = false
         turnedOnByThisProcess = false
+        UserDefaults.standard.removeObject(forKey: Self.sessionKey)
     }
 
     @discardableResult
@@ -126,8 +171,13 @@ final class LidWorkManager: ObservableObject {
     @discardableResult
     func stop() -> ToggleOutcome { apply(false) }
 
+    /// 지금 커널 값을 읽고 뒤집는다. 창이 닫힌 동안에는 티커가 없어 밖에서 바뀐 값을 모른다 —
+    /// 낡은 값으로 뒤집으면 남이 켠 것을 "켜기" 로 덮어쓰고 주인 행세를 하게 된다.
     @discardableResult
-    func toggle() -> ToggleOutcome { apply(!isRunning) }
+    func toggle() -> ToggleOutcome {
+        refreshFromSystem()
+        return apply(!isRunning)
+    }
 
     // MARK: - Private
 
@@ -162,7 +212,8 @@ final class LidWorkManager: ObservableObject {
             if enabled {
                 turnedOnByThisProcess = true
                 autoStopFailed = false
-                startCountdownIfNeeded()
+                startCountdown(until: durationSeconds.map { Date().addingTimeInterval(TimeInterval($0)) })
+                saveSession()
             } else {
                 clearCountdown()
             }
@@ -207,12 +258,12 @@ final class LidWorkManager: ObservableObject {
     /// 티커가 매 초 커널을 읽어 표시를 현실과 맞추는 역할을 겸한다.
     /// IOKit 조회는 프로세스 기동보다 훨씬 싸서 1초 간격이 부담되지 않는다 —
     /// `BlackWorkManager` 가 `CGDisplayIsAsleep` 을 같은 이유로 매 초 읽는다.
-    private func startCountdownIfNeeded() {
+    private func startCountdown(until end: Date?) {
         clearCountdown()
 
-        if let seconds = durationSeconds {
-            endDate = Date().addingTimeInterval(TimeInterval(seconds))
-            remaining = TimeInterval(seconds)
+        if let end {
+            endDate = end
+            remaining = max(0, end.timeIntervalSinceNow)
         }
 
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
@@ -240,9 +291,13 @@ final class LidWorkManager: ObservableObject {
             return
         }
 
-        // 만료. 인증 창은 절대 띄우지 않는다 — 덮개를 닫아두고 자리를 비운 상황이
-        // 전형이라 아무도 암호를 칠 수 없고, 창만 떠 있는 채로 맥이 계속 깨어 있게 된다.
-        // 조용히 끌 수 없으면 끄지 못했다고 알리기만 하고 켜진 상태를 유지한다.
+        expire()
+    }
+
+    /// 만료. 인증 창은 절대 띄우지 않는다 — 덮개를 닫아두고 자리를 비운 상황이
+    /// 전형이라 아무도 암호를 칠 수 없고, 창만 떠 있는 채로 맥이 계속 깨어 있게 된다.
+    /// 조용히 끌 수 없으면 끄지 못했다고 알리기만 하고 켜진 상태를 유지한다.
+    private func expire() {
         if !revertWithoutPrompting() {
             // 실제 값을 먼저 확인한다. 못 껐으면 여전히 켜져 있으므로 아래 플래그가 살아남고,
             // 어쩌다 꺼져 있었다면 refreshFromSystem 이 알아서 정리한다.

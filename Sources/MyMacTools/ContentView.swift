@@ -61,6 +61,8 @@ struct ContentView: View {
     @State private var caffeineError: String?
     /// 방금 복사한 주소. 잠깐 "복사했습니다" 를 보여주고 지운다.
     @State private var copiedAddress: String?
+    /// 시스템 설정 → 손쉬운 사용 → "색상 없이 구별". 켜져 있으면 실행 중을 색 말고 모양으로도 보인다.
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     /// 발열 탭의 센서 전체 목록을 펼쳤는가. 기본은 접힘 — 묶음 요약이면 대개 충분하다.
     @State private var showsAllSensors = false
 
@@ -143,13 +145,31 @@ struct ContentView: View {
         // 처음부터 맞는 값을 보여준다.
         .onAppear {
             caffeine.refresh()
-            localhost.refresh()
+            // 숨긴 탭이면 점을 그릴 자리도 없다. 첫 스캔은 서명 조회까지 메인에서 하므로 아낀다.
+            if preferences.isVisible(.localhost) { localhost.refresh() }
         }
         .onDisappear {
             caffeine.stopPolling()
             localhost.stopPolling()
             macInfo.stopPolling()
             thermal.stopPolling()
+        }
+        // 측정은 약 21초 걸린다. 끝난 것을 화면 변화로만 알리면 VoiceOver 로는 놓친다.
+        // 속도 탭이 아니라 여기에 둔다 — 탭 본문은 하나만 그려져, 측정 중 다른 탭으로 가면 안내가 없었다.
+        .onChange(of: speedTest.state) { old, new in
+            guard case .running(let started) = old else { return }
+            switch new {
+            case .idle:
+                // 취소해도 idle 로 돌아온다. 그때 남아 있는 것은 지난 결과라 읽지 않는다.
+                guard let result = speedTest.latest, result.date >= started else { return }
+                AccessibilityNotification.Announcement(
+                    "\(l10n(.speedDownload)) \(Self.mbps(result.downloadBitsPerSecond)), "
+                    + "\(l10n(.speedUpload)) \(Self.mbps(result.uploadBitsPerSecond))").post()
+            case .failed(let reason):
+                AccessibilityNotification.Announcement(l10n(.speedFailed, reason)).post()
+            case .running:
+                break
+            }
         }
     }
 
@@ -183,6 +203,17 @@ struct ContentView: View {
                         Image(systemName: tab.symbol)
                             .font(.system(size: Design.Size.navIcon))
                             .foregroundStyle(isRunning(tab) ? Design.Color.statusRunning : Design.Color.textSecondary)
+                            // 초록과 회색은 색만 다르다. "색상 없이 구별" 을 켠 사람에게는 점을 하나 더 얹는다.
+                            .overlay(alignment: .topTrailing) {
+                                if differentiateWithoutColor && isRunning(tab) {
+                                    Circle()
+                                        .fill(Design.Color.statusRunning)
+                                        .frame(width: Design.Size.indicatorSmall / 2,
+                                               height: Design.Size.indicatorSmall / 2)
+                                        .offset(x: Design.Size.indicatorSmall / 2,
+                                                y: -Design.Size.indicatorSmall / 4)
+                                }
+                            }
                         if showsTitles {
                             Text(l10n(tab.titleKey))
                                 .fontWeight(activeTab == tab ? .semibold : .regular)
@@ -197,6 +228,11 @@ struct ContentView: View {
                 }
                 .buttonStyle(.plain)
                 .help(showsTitles ? "" : l10n(tab.titleKey))
+                // 아이콘만 그릴 때 VoiceOver 가 기호 이름("cup and saucer")을 읽지 않게 이름을 준다.
+                // 돌고 있다는 것은 아이콘 색으로만 보이므로 말로도 알린다.
+                .accessibilityLabel(l10n(tab.titleKey))
+                .accessibilityValue(isRunning(tab) ? l10n(.a11yRunning) : "")
+                .accessibilityAddTraits(activeTab == tab ? .isSelected : [])
                 .background {
                     // `.accessoryBar` 같은 기성 스타일에 맡기지 않고 직접 그린다.
                     // 선택 표시가 확실히 나오고, 위의 상태 점 색도 죽지 않는다.
@@ -337,12 +373,17 @@ struct ContentView: View {
     private func caffeineRow(_ process: CaffeinateProcess) -> some View {
         VStack(alignment: .leading, spacing: Design.Space.rowTight) {
             HStack(spacing: Design.Space.inline) {
-                Text("pid \(process.pid)")
+                // `Text("…\(정수)")` 는 현지화 키로 읽혀 "pid 33,400" 처럼 쉼표가 붙는다. 번호는 그대로 쓴다.
+                Text(verbatim: "pid \(process.pid)")
                     .font(.caption.monospacedDigit())
                 Spacer(minLength: 4)
-                Text(elapsed(since: process.started))
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(Design.Color.textSecondary)
+                // 목록이 그대로면 스캐너는 아무것도 발행하지 않는다. 그러면 이 줄도 다시 그려지지 않아
+                // 경과 시간이 굳었다(이 앱 세션이 돌 때만 1초마다 함께 갱신됐다). 스스로 1초마다 그린다.
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    Text(elapsed(since: process.started, now: context.date))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(Design.Color.textSecondary)
+                }
             }
 
             if process.argsUnreadable {
@@ -414,8 +455,8 @@ struct ContentView: View {
         }
     }
 
-    private func elapsed(since start: Date) -> String {
-        let seconds = max(0, Int(Date().timeIntervalSince(start)))
+    private func elapsed(since start: Date, now: Date) -> String {
+        let seconds = max(0, Int(now.timeIntervalSince(start)))
         if seconds < 60 { return "\(seconds)\(l10n(.unitSecond))" }
         if seconds < 3600 {
             return "\(seconds / 60)\(l10n(.unitMinute)) \(seconds % 60)\(l10n(.unitSecond))"
@@ -424,13 +465,21 @@ struct ContentView: View {
     }
 
     private var statusRow: some View {
-        HStack {
+        statusLine(isOn: manager.isRunning, l10n(statusKey))
+    }
+
+    /// 상태 줄 — 점 + 문장(DESIGN.md §6). 네 탭이 같은 것을 따로 그리며 간격이 조금씩 달랐다.
+    /// VoiceOver 가 점과 글을 따로 읽지 않게 한 덩어리로 묶는다.
+    private func statusLine(isOn: Bool, _ text: String) -> some View {
+        HStack(spacing: Design.Space.labelGap) {
             Circle()
-                .fill(manager.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
+                .fill(isOn ? Design.Color.statusRunning : Design.Color.statusIdle)
                 .frame(width: Design.Size.indicator, height: Design.Size.indicator)
-            Text(l10n(statusKey))
+                .accessibilityHidden(true)
+            Text(text)
                 .font(.body)
         }
+        .accessibilityElement(children: .combine)
     }
 
     /// 화면 모드마다 사실이 다르다. "화면 꺼짐" 은 끄는 모드에서만 참이고,
@@ -560,14 +609,8 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: Design.Space.block) {
             // 이 VStack 은 주의사항 목록 때문에 leading 정렬이다. 상태 줄만은 잠자기 방지
             // 탭과 같게 가운데에 두어야 해서 폭을 끝까지 펴고 그 안에서 가운데 정렬한다.
-            HStack {
-                Circle()
-                    .fill(lid.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
-                    .frame(width: Design.Size.indicator, height: Design.Size.indicator)
-                Text(l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
-                    .font(.body)
-            }
-            .frame(maxWidth: .infinity)
+            statusLine(isOn: lid.isRunning, l10n(lid.isRunning ? .lidStatusOn : .lidStatusOff))
+                .frame(maxWidth: .infinity)
 
             // 유지 시간. 켜져 있는 동안에는 못 바꾼다.
             HStack(spacing: Design.Space.inline) {
@@ -631,11 +674,13 @@ struct ContentView: View {
             // 잠자기 방지 탭과 같은 모양으로. 이 VStack 이 leading 정렬이라
             // 양쪽 Spacer 로 가운데에 둔다. `.frame(maxWidth:)` 을 버튼에 직접 걸면
             // 버튼 자체가 창 폭만큼 늘어나 모양이 달라진다.
+            // Return 단축키는 일부러 없다 — 시스템 설정을 바꾸는 동작이라(DESIGN.md §8.5).
             HStack {
                 Spacer()
                 Button(l10n(lid.isRunning ? .buttonStop : .buttonStart)) {
                     Actions.toggleLid(lid, manager)
                 }
+                .buttonStyle(PrimaryButtonStyle())
                 Spacer()
             }
         }
@@ -672,13 +717,7 @@ struct ContentView: View {
     /// 용도라는 점이 안 보이면, 자리를 비우는 보안 수단으로 잘못 쓰게 된다.
     private var coverTab: some View {
         VStack(spacing: Design.Space.blockLoose) {
-            HStack {
-                Circle()
-                    .fill(cover.isCovering ? Design.Color.statusRunning : Design.Color.statusIdle)
-                    .frame(width: Design.Size.indicator, height: Design.Size.indicator)
-                Text(l10n(cover.isCovering ? .coverStatusOn : .coverStatusOff))
-                    .font(.body)
-            }
+            statusLine(isOn: cover.isCovering, l10n(cover.isCovering ? .coverStatusOn : .coverStatusOff))
 
             VStack(spacing: Design.Space.formRow) {
                 HStack(spacing: Design.Space.inline) {
@@ -740,6 +779,7 @@ struct ContentView: View {
             Button(l10n(cover.isCovering ? .buttonStop : .buttonStart)) {
                 cover.toggle()
             }
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(cover.imagePath == nil)
         }
     }
@@ -807,7 +847,7 @@ struct ContentView: View {
             speedRow(symbol: "timer", label: l10n(.speedLatency),
                      value: "\(Int(result.baseRTTMilliseconds.rounded())) ms", prominent: false)
 
-            Text(Self.connectionLine(result) + " · " + l10n(.speedMeasuredAt, Self.when(result.date)))
+            Text(connectionLine(result) + " · " + l10n(.speedMeasuredAt, when(result.date)))
                 .font(.caption2)
                 .foregroundStyle(Design.Color.textSecondary)
                 .lineLimit(1)
@@ -895,7 +935,9 @@ struct ContentView: View {
                     ProgressView().controlSize(.small)
                     Button(l10n(.speedCancel)) { speedTest.cancel() }
                 } else {
+                    // 시스템 기본 버튼은 강조색 위에 흰 글자라 다크에서 1.98 로 읽히지 않는다(DESIGN.md §4).
                     Button(l10n(.speedStart)) { startSpeedTest() }
+                        .buttonStyle(PrimaryButtonStyle())
                         .keyboardShortcut(.defaultAction)
                 }
                 Spacer()
@@ -919,7 +961,7 @@ struct ContentView: View {
             }
             ForEach(speedTest.history) { result in
                 HStack(spacing: Design.Space.inline) {
-                    Text(Self.when(result.date))
+                    Text(when(result.date))
                         .foregroundStyle(Design.Color.textSecondary)
                     Spacer(minLength: 4)
                     Text("↓ " + Self.mbps(result.downloadBitsPerSecond))
@@ -949,20 +991,27 @@ struct ContentView: View {
         return value >= 100 ? String(format: "%.0f Mbps", value) : String(format: "%.1f Mbps", value)
     }
 
-    private static func connectionLine(_ result: SpeedResult) -> String {
-        let kind: String
-        switch result.interfaceType {
-        case "wifi": kind = "Wi-Fi"
-        case "wiredEthernet": kind = "Ethernet"
-        case "cellular": kind = "Cellular"
-        case "": kind = ""
-        default: kind = result.interfaceType
-        }
+    private func connectionLine(_ result: SpeedResult) -> String {
+        let kind = interfaceKindName(result.interfaceType) ?? result.interfaceType
         return kind.isEmpty ? result.interfaceName : "\(kind) (\(result.interfaceName))"
     }
 
-    private static func when(_ date: Date) -> String {
+    /// 인터페이스 종류의 이름. 속도 기록(문자열로 저장)과 Mac 정보(`NWInterface`)가 함께 쓴다.
+    /// macOS 의 이름을 따른다 — 한국어판은 "이더넷" · "셀룰러" 다.
+    private func interfaceKindName(_ type: String) -> String? {
+        switch type {
+        case "wifi": return "Wi-Fi"
+        case "wiredEthernet": return l10n(.interfaceEthernet)
+        case "cellular": return l10n(.interfaceCellular)
+        default: return nil
+        }
+    }
+
+    /// 앱 언어로 쓴다. 지정하지 않으면 시스템 언어를 따라, 앱을 일본어로 두어도 "오후 3:12" 가 나왔다.
+    /// 앱 언어가 "시스템" 이면 지역·24시간제 설정까지 그대로 따른다 — 언어 코드만으로 만든 locale 은 그것을 잃는다.
+    private func when(_ date: Date) -> String {
         let formatter = DateFormatter()
+        formatter.locale = l10n.language == .system ? .autoupdatingCurrent : Locale(identifier: l10n.activeCode)
         formatter.dateStyle = Calendar.current.isDateInToday(date) ? .none : .short
         formatter.timeStyle = .short
         return formatter.string(from: date)
@@ -1163,6 +1212,8 @@ struct ContentView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(address, forType: .string)
         copiedAddress = address
+        // "복사했습니다" 는 1.5초 뒤 사라지는 글자뿐이라 VoiceOver 로는 알 수 없었다.
+        AccessibilityNotification.Announcement(l10n(.infoCopied)).post()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             if copiedAddress == address { copiedAddress = nil }
         }
@@ -1179,12 +1230,14 @@ struct ContentView: View {
 
     /// `Wi-Fi (en0)`. 종류를 모르면 이름만.
     private func interfaceLabel(_ interface: String) -> String {
+        let type: String
         switch macInfo.kind(of: interface) {
-        case .wifi: return "Wi-Fi (\(interface))"
-        case .wiredEthernet: return "Ethernet (\(interface))"
-        case .cellular: return "Cellular (\(interface))"
+        case .wifi: type = "wifi"
+        case .wiredEthernet: type = "wiredEthernet"
+        case .cellular: type = "cellular"
         default: return interface
         }
+        return interfaceKindName(type).map { "\($0) (\(interface))" } ?? interface
     }
 
     /// `압력 정상 · 여유 42%`. 여유 비율을 못 읽으면 압력만.
@@ -1365,15 +1418,10 @@ struct ContentView: View {
     private var localhostTab: some View {
         VStack(alignment: .leading, spacing: Design.Space.block) {
             VStack(alignment: .leading, spacing: Design.Space.rowTight) {
-                HStack(spacing: Design.Space.labelGap) {
-                    Circle()
-                        .fill(localhost.isRunning ? Design.Color.statusRunning : Design.Color.statusIdle)
-                        .frame(width: Design.Size.indicator, height: Design.Size.indicator)
-                    Text(localhost.ports.isEmpty
-                         ? l10n(.localhostStatusNone)
-                         : l10n(.localhostStatusCount, localhost.ports.count))
-                        .font(.body)
-                }
+                statusLine(isOn: localhost.isRunning,
+                           localhost.ports.isEmpty
+                           ? l10n(.localhostStatusNone)
+                           : l10n(.localhostStatusCount, localhost.ports.count))
                 // 커널이 다른 사용자의 fd 목록을 막는다. 안 보이는 것이 있다는 사실을
                 // 화면에서 밝힌다 — 목록이 전부라고 믿으면 틀린 결론을 낸다.
                 Text(l10n(.localhostOwnUserOnly))
@@ -1390,9 +1438,17 @@ struct ContentView: View {
             } else if localhost.visiblePorts.isEmpty {
                 // 듣는 것이 없는 것과 필터에 걸러진 것은 다른 상태다. 같은 문구를
                 // 쓰면 포트를 놓쳤는지 필터 때문인지 알 수 없다.
-                Text(l10n(.localhostNoMatch))
-                    .font(.caption)
-                    .foregroundStyle(Design.Color.textSecondary)
+                HStack(spacing: Design.Space.inline) {
+                    Text(l10n(.localhostNoMatch))
+                        .font(.caption)
+                        .foregroundStyle(Design.Color.textSecondary)
+                    // 걸러서 0개면 되돌리는 길을 바로 옆에 둔다. 범주 메뉴와 검색창을 각각 찾아 되돌려야 했다.
+                    Button(l10n(.localhostClearFilter)) {
+                        localhost.category = .all
+                        localhost.search = ""
+                    }
+                    .controlSize(.small)
+                }
             } else {
                 VStack(alignment: .leading, spacing: Design.Space.listItem) {
                     ForEach(localhost.visiblePorts) { port in
@@ -1430,6 +1486,8 @@ struct ContentView: View {
                 TextField(l10n(.localhostSearchPrompt), text: $localhost.search)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: .infinity)
+                    // 검색창에서 Esc 로 지운다. macOS 검색 필드의 관례다.
+                    .onExitCommand { localhost.search = "" }
             }
 
             // 걸러낸 뒤 몇 개가 남았는지 알려준다. 필터를 걸어둔 것을 잊고 "포트가
@@ -1446,14 +1504,15 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: Design.Space.rowTight) {
             HStack(spacing: Design.Space.inline) {
                 // 이 화면을 여는 이유가 "몇 번이 잡혀 있나" 라서 포트를 가장 크게 둔다.
-                Text("\(port.port)")
+                // 현지화 키로 읽히면 "5,000" 이 된다. 포트 번호에 쉼표가 있으면 읽지도 옮겨 적지도 못한다.
+                Text(verbatim: "\(port.port)")
                     .font(.title3.monospacedDigit())
                 Spacer(minLength: 4)
                 Button(l10n(.localhostOpen)) { localhost.open(port) }
                     .controlSize(.small)
             }
 
-            Text("\(port.processName) (pid \(port.pid))")
+            Text(verbatim: "\(port.processName) (pid \(port.pid))")
                 .font(.caption)
                 .lineLimit(1)
                 .truncationMode(.middle)

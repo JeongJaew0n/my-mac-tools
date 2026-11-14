@@ -63,7 +63,10 @@ final class Preferences: ObservableObject {
 
     init() {
         let saved = UserDefaults.standard.stringArray(forKey: Self.storageKey) ?? []
-        hidden = Set(saved.compactMap(Tab.init(rawValue:)))
+        let restored = Set(saved.compactMap(Tab.init(rawValue:)))
+        // 설정 창은 마지막 하나를 못 숨기게 막지만, `defaults write` 로 고치면 다 숨길 수 있다.
+        // 그러면 탭바가 비고 되돌릴 길도 없으므로 다 숨긴 값은 받지 않는다.
+        hidden = restored.isSuperset(of: Tab.allCases) ? [] : restored
         appearance = UserDefaults.standard.string(forKey: Self.appearanceKey)
             .flatMap(AppAppearance.init(rawValue:)) ?? .system
         // `didSet` 은 init 에서 돌지 않으므로 저장된 값을 여기서 한 번 적용한다.

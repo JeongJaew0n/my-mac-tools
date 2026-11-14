@@ -191,6 +191,9 @@ final class ScreenCoverManager: ObservableObject {
             // 화면 보호기(1000)·메뉴 막대(24) 위라 Dock 과 메뉴 막대를 덮는다.
             window.level = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
             window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
+            // ⌘H 로 앱이 숨어도 커버는 남는다. 숨으면 화면은 드러나는데 상태는 "가리는 중" 으로
+            // 남아 디스플레이 잠자기 차단도 계속되고, 단축키도 `isCovering` 에 막혀 반응이 없었다.
+            window.canHide = false
             window.backgroundColor = .black
             window.isOpaque = true
             window.hasShadow = false
@@ -264,10 +267,18 @@ final class ScreenCoverManager: ObservableObject {
         let keypadEnter: UInt16 = 76
         let escape: UInt16 = 53
 
-        // `Cmd` 조합은 그냥 흘려보낸다. 여기서 삼키면 `Cmd-Q` 까지 막히는데,
-        // 해제 경로가 고장났을 때 앱을 끄는 것이 마지막 탈출구다. 커버는 앱과 수명을
-        // 같이하므로 앱이 꺼지면 커버도 사라진다.
-        if event.modifierFlags.contains(.command) { return false }
+        // `Cmd-Q` 만 흘려보낸다. 해제 경로가 고장났을 때 앱을 끄는 것이 마지막 탈출구다.
+        // 커버는 앱과 수명을 같이하므로 앱이 꺼지면 커버도 사라진다.
+        // 나머지 `Cmd` 조합(⌘W·⌘M·⌘, …)은 삼킨다 — 흘려보내면 커버 창이 닫히거나 설정 창이
+        // 커버 위로 올라와, 덮인 상태인데 화면이 드러난다.
+        // ⌘Tab 은 시스템이 먼저 가져가 여기서는 막을 수 없다.
+        // Q 의 자리는 자판 배열마다 다르다(AZERTY 등). 자리(키 코드)와 글자 둘 다 본다.
+        let qKey: UInt16 = 12
+        if event.modifierFlags.contains(.command) {
+            let isQuit = event.type == .keyDown
+                && (event.keyCode == qKey || event.charactersIgnoringModifiers?.lowercased() == "q")
+            return !isQuit
+        }
 
         switch (event.type, event.keyCode) {
         case (.keyDown, enter), (.keyDown, keypadEnter):

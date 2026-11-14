@@ -141,6 +141,10 @@ final class SpeedTestManager: ObservableObject {
         do {
             try proc.run()
         } catch {
+            // 실행이 안 됐으면 쓰기 쪽이 우리 프로세스에 열린 채 남아, 위의 두 읽기가 EOF 를
+            // 영영 못 받는다 — 시도할 때마다 스레드 둘과 fd 넷이 샌다. 닫아서 읽기를 끝낸다.
+            try? output.fileHandleForWriting.close()
+            try? errors.fileHandleForWriting.close()
             state = .failed("\(error.localizedDescription)")
             return
         }
@@ -173,10 +177,14 @@ final class SpeedTestManager: ObservableObject {
         }
 
         // 실패를 "0 Mbps" 로 그리지 않는다. 오프라인·서버 오류는 이유를 그대로 보여준다.
-        guard reason == .exit, status == 0,
-              let result = SpeedResult.parse(output, at: started) else {
-            let detail = error.isEmpty ? "networkQuality exited with \(status)" : error
-            state = .failed(detail)
+        guard reason == .exit, status == 0 else {
+            state = .failed(error.isEmpty ? "networkQuality exited with \(status)" : error)
+            return
+        }
+        // 정상 종료인데 결과가 모자랄 수 있다 — 출력 필드는 "결과에 따라" 달라진다(man).
+        // 예전엔 이때도 "exited with 0" 이라고 나와 무엇이 잘못인지 알 수 없었다.
+        guard let result = SpeedResult.parse(output, at: started) else {
+            state = .failed(Self.describeUnusable(output))
             return
         }
 
@@ -186,6 +194,16 @@ final class SpeedTestManager: ObservableObject {
         }
         persist()
         state = .idle
+    }
+
+    /// 쓸 수 없는 결과의 이유. JSON 에 오류 코드가 있으면 그것을 보인다.
+    private static func describeUnusable(_ output: Data) -> String {
+        let json = (try? JSONSerialization.jsonObject(with: output)) as? [String: Any]
+        if let code = json?["error_code"] {
+            let domain = json?["error_domain"].map { "\($0) " } ?? ""
+            return "networkQuality error \(domain)\(code)"
+        }
+        return "networkQuality returned an incomplete result"
     }
 
     private func persist() {

@@ -269,17 +269,20 @@ final class LocalhostManager: ObservableObject {
         let address: String
         let family: String
 
-        if ini.insi_vflag & UInt8(INI_IPV4) != 0 {
-            family = "IPv4"
-            var raw = in_addr(s_addr: ini.insi_laddr.ina_46.i46a_addr4.s_addr)
-            var text = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
-            inet_ntop(AF_INET, &raw, &text, socklen_t(INET_ADDRSTRLEN))
-            address = String(cString: text)
-        } else if ini.insi_vflag & UInt8(INI_IPV6) != 0 {
+        // IPv6 를 먼저 본다. `::` 에 V6ONLY 없이 bind 한 듀얼 스택 소켓(Node 의 기본 `listen`)은
+        // 두 플래그가 다 서 있다(vflag 3, 실측). IPv4 를 먼저 보면 `IPv4 0.0.0.0` 으로 나오는데,
+        // 소켓은 IPv6 이고 lsof 도 IPv6 `*:포트` 로 보인다.
+        if ini.insi_vflag & UInt8(INI_IPV6) != 0 {
             family = "IPv6"
             var raw = ini.insi_laddr.ina_6
             var text = [CChar](repeating: 0, count: Int(INET6_ADDRSTRLEN))
             inet_ntop(AF_INET6, &raw, &text, socklen_t(INET6_ADDRSTRLEN))
+            address = String(cString: text)
+        } else if ini.insi_vflag & UInt8(INI_IPV4) != 0 {
+            family = "IPv4"
+            var raw = in_addr(s_addr: ini.insi_laddr.ina_46.i46a_addr4.s_addr)
+            var text = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
+            inet_ntop(AF_INET, &raw, &text, socklen_t(INET_ADDRSTRLEN))
             address = String(cString: text)
         } else {
             return nil

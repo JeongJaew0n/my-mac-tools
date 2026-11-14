@@ -3,7 +3,7 @@ import AppKit
 
 /// 종료를 가로채기 위한 델리게이트.
 ///
-/// `BlackWorkManager` 는 자식 프로세스라 앱이 죽으면 같이 죽지만,
+/// `BlackWorkManager` 의 caffeinate 는 `-w <앱 pid>` 로 앱이 끝나면 같이 끝나지만,
 /// `LidWorkManager` 가 건드리는 `disablesleep` 은 시스템 설정이라 재부팅해도 남는다.
 /// 켜진 채로 종료하면 맥이 영영 잠들지 않게 되므로 반드시 한 번 묻는다.
 ///
@@ -82,6 +82,8 @@ struct MyMacToolsApp: App {
     @StateObject private var intellij = IntelliJThemeManager()
     @StateObject private var l10n = L10n()
     @StateObject private var preferences = Preferences()
+    /// 본 창이 보여줄 탭. `ContentView` 와 같은 키라 메뉴에서 바꾸면 창이 따라간다.
+    @AppStorage("selectedTab") private var selectedTab: Tab = .screenOff
 
     /// `창 열기` 가 닫힌 창을 다시 띄우려면 id 가 필요하다.
     static let mainWindowID = "main"
@@ -113,7 +115,8 @@ struct MyMacToolsApp: App {
         guard appDelegate.statusItem == nil else { return }
         appDelegate.statusItem = StatusItemController(
             manager: manager, lid: lid, cover: cover, l10n: l10n,
-            openWindow: { openWindowAction(id: Self.mainWindowID) })
+            openWindow: { showMainWindow() },
+            openSettings: { openWindowAction(id: Self.settingsWindowID) })
     }
 
     /// API 서버를 한 번만 띄운다.
@@ -130,6 +133,31 @@ struct MyMacToolsApp: App {
         let server = APIServer(handler: handler)
         server.start()
         appDelegate.api = server
+    }
+
+    /// 탭을 고르고 본 창을 앞으로 낸다.
+    @MainActor
+    private func showTab(_ tab: Tab) {
+        selectedTab = tab
+        showMainWindow()
+    }
+
+    /// 본 창을 앞으로 낸다. 창이 닫혀 있을 때만 새로 연다 —
+    /// `WindowGroup` 의 `openWindow` 는 부를 때마다 창을 하나 더 만든다.
+    ///
+    /// 최소화된 창과 ⌘H 로 숨긴 앱의 창도 "있는 창" 이다. 그것을 못 보고 새로 열면 숨긴 창이
+    /// 나중에 함께 돌아와 본 창이 둘이 된다.
+    @MainActor
+    private func showMainWindow() {
+        if NSApp.isHidden { NSApp.unhide(nil) }
+        if let window = NSApp.windows.first(where: {
+            $0.identifier?.rawValue.hasPrefix(Self.mainWindowID) == true && ($0.isVisible || $0.isMiniaturized)
+        }) {
+            if window.isMiniaturized { window.deminiaturize(nil) }
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            openWindowAction(id: Self.mainWindowID)
+        }
     }
 
     var body: some Scene {
@@ -157,6 +185,17 @@ struct MyMacToolsApp: App {
         .defaultSize(width: Design.Window.width,
                      height: Design.Window.contentHeight + Design.Window.titleBarHeight)
         .commands {
+            // 보기 메뉴에 탭마다 항목과 ⌘1… 을 둔다. HIG(The menu bar)가 탭형 앱에 권하는 꼴이고,
+            // 이것이 없으면 탭을 바꾸는 데 마우스가 있어야 했다. 번호는 **보이는 탭의 순서**다 —
+            // 숨긴 탭은 빠지고 뒤의 탭이 당겨진다.
+            CommandGroup(before: .toolbar) {
+                ForEach(Array(preferences.visibleTabs.prefix(9).enumerated()), id: \.element) { index, tab in
+                    Button(l10n(tab.titleKey)) { showTab(tab) }
+                        .keyboardShortcut(KeyEquivalent(Character(String(index + 1))), modifiers: .command)
+                }
+                Divider()
+            }
+
             // `설정` 을 메뉴 막대에 독립 항목으로 둔다. `언어` 와 같은 방식이다.
             CommandMenu(l10n(.settingsMenu)) {
                 Button(l10n(.settingsOpen)) {

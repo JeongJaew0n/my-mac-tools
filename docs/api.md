@@ -64,8 +64,17 @@ import json, socket
 sock = socket.socket(socket.AF_UNIX)
 sock.connect("/Users/<너>/Library/Application Support/MyMacTools/api.sock")
 sock.sendall(b'{"method":"ports.list"}\n')
-print(json.loads(sock.recv(1 << 20))["result"])
+data = b""
+while not data.endswith(b"\n"):      # 응답이 길면 recv 한 번에 다 오지 않는다
+    chunk = sock.recv(65536)
+    if not chunk:
+        break
+    data += chunk
+print(json.loads(data)["result"])
 ```
+
+서버는 연결마다 읽기·쓰기에 **5초 시한**을 둔다. 붙어 놓고 요청을 보내지 않는 연결은 끊긴다
+(요청은 차례로 처리하므로, 그런 연결 하나가 뒤의 요청을 모두 막지 않게 한 것이다).
 
 ## 메서드
 
@@ -86,7 +95,19 @@ print(json.loads(sock.recv(1 << 20))["result"])
 
 `ports.list` 의 `category` 는 `all` · `system` · `wellKnown` · `terminal` · `other` 중 하나다.
 `search` 는 숫자만 쓴다 — 문자열이든 숫자든 받고, 포트 번호에 **부분 일치**한다
-(`87` 은 `8765` 도 `9876` 도 잡는다).
+(`87` 은 `8765` 도 `9876` 도 잡는다). 숫자가 하나도 없으면(`search=http`) `badParams` 다 —
+걸러진 것 없이 전체가 나가면 호출자가 엉뚱한 줄을 집기 때문이다.
+
+결과 필드 (값이 없으면 키가 빠지는 것은 따로 적었다):
+
+| 메서드 | 필드 |
+|---|---|
+| `sleep.get` | `running` `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone`, 돌고 있고 시간 제한이 있으면 `remainingSeconds`, 화면 끄기를 기다리는 중이면 `screenOffInSeconds` |
+| `lid.get` | `running` `turnedOnByThisApp` |
+| `cover.get` | `covering` `fillMode` `imagePath`(고르지 않았으면 `""`) |
+| `caffeinate.list` | `pid` `flags`(`"-t 300"` 처럼 값을 붙인 옵션 목록) `utility` `parent` `parentPath` `startedAt` `isThisApp` `canStop` `argsUnreadable` |
+| `ports.list` | `port` `pid` `process` `processPath` `addresses` `families` `isSystem` `startedFromTerminal` `isWellKnown` `bundleIdentifier` `canStop` |
+| `speedtest.status` | `running` `expensiveNetwork`, 측정 중이면 `elapsedSeconds`, 실패했으면 `error`, 잰 적이 있으면 `latest`(`measuredAt` `downloadMbps` `uploadMbps` `responsivenessRPM` `baseRTTms` `interface` `interfaceType` `endpoint` `usage[]` `secondsPerGigabyteDown` `secondsPerGigabyteUp`) |
 
 `mac.info` 의 숫자는 **바이트**다. 메모리 `usedBytes` 는 활성 상태 보기의 "사용된 메모리",
 `pressure` 는 `normal` · `warning` · `critical` (OS 판정), `freePercent` 는
@@ -98,7 +119,7 @@ print(json.loads(sock.recv(1 << 20))["result"])
 `thermal.info` 의 `state` 는 `nominal` · `fair` · `serious` · `critical` (`ProcessInfo.thermalState`,
 OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `group` 은 `die`(SoC 다이) ·
 `pmuDevice` · `ssd` · `battery` 중 센서가 있는 것만 온다. `sensors` 는 `{name, celsius}` 전부(이름순,
-같은 이름이 둘씩 올 수 있다). 온도는 소수 한 자리. **온도로 뜨겁다 아니다를 판정하지 말고 `state` 를 본다.**
+같은 이름의 **서로 다른** 센서가 둘씩 올 수 있다 — 중복이 아니다, `count` 는 둘 다 센다). 온도는 소수 한 자리(화면과 같은 반올림). **온도로 뜨겁다 아니다를 판정하지 말고 `state` 를 본다.**
 센서를 못 읽으면(비공개 API) `groups`·`sensors` 가 빈 배열이고 `state` 는 그대로 온다.
 
 `intellij.info` 의 `palette` 는 색 역할 → `#RRGGBB` (역할 이름은 `IntelliJThemeTemplate.Role`).
@@ -124,6 +145,16 @@ OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `gr
 `screenMode` 는 `system` · `keepOff` · `keepOn`.
 `hours` 0–24, `minutes` 0–50(10 단위), `displayDelaySeconds` 3·5·7·10.
 
+`sleep.start` 는 **형까지 본다.** `hours: "2"`, `hours: 1.5`, `sleepWhenDone: 1` 은 `badParams` 다
+(예전에는 조용히 무시돼 시간 제한 없는 세션이 시작될 수 있었다). 값은 **모두 검사한 뒤 한꺼번에**
+반영하므로, 거부되면 창의 값도 그대로다. 덮개 기능이 켜져 있을 때 `sleepWhenDone=true` 는
+`preconditionFailed` 다 — 그 상태에서는 잠자기가 거부된다. 따로 주지 않았는데 창에 남은 값이
+`true` 면 조용히 끈다(창과 같은 규칙).
+
+`caffeinate.stop` · `ports.stop` 의 결과는 `{"stopped": true}` 또는 `{"stopped": false, "reason": "…"}` 다.
+끄려 했지만 커널이 거부한 경우(권한 등)가 뒤의 것이다. 클라이언트는 `stopped: false` 를
+`[notStopped] 이유` 와 **종료 코드 1** 로 낸다. `ports.open` 의 결과는 `{"opened": "http://localhost:<포트>"}`.
+
 **시간 늘리기**는 `sleep.start` 를 다시 부르면 된다. 멈출 필요가 없다. 주는 시간은
 남은 시간에 더해지는 것이 아니라 **지금부터 다시 센다.**
 
@@ -143,6 +174,7 @@ scripts/mymactools sleep.start hours=2   # 남은 시간과 무관하게, 지금
 | `ports.stop` (이 앱 자신) | `forbidden` | 자기를 끄는 호출이 된다 |
 | `speedtest.start` (데이터 요금 회선) | `needsHuman` | 1회에 약 150 MB 를 쓴다. 앱은 사람에게 묻고 시작한다 |
 | `intellij.apply` · `intellij.restore` | `needsHuman` | 켜져 있는 IntelliJ 를 끄고 다시 연다. 작업 중인 다른 앱을 에이전트 호출이 끄면 사용자는 왜 꺼졌는지 모른다 |
+| `sleep.start sleepWhenDone=true` (덮개 켜짐) | `preconditionFailed` | 덮개 기능이 `disablesleep` 을 켜 두면 `pmset sleepnow` 가 거부된다 |
 
 `ports.list` 의 각 줄에 `canStop` 이 함께 온다. 부르기 전에 걸러낼 수 있다.
 
@@ -160,15 +192,18 @@ scripts/mymactools sleep.start hours=2   # 남은 시간과 무관하게, 지금
 | `internalError` | 그 외 |
 
 클라이언트는 실패하면 stderr 에 `[코드] 메시지` 를 쓰고 **종료 코드 1** 을 준다.
-stdout 을 파싱하지 않고 종료 코드로 갈라낼 수 있다.
+`stopped: false` 도 실패로 친다(`[notStopped]`). stdout 을 파싱하지 않고 종료 코드로 갈라낼 수 있다.
+10초 안에 응답이 없으면 그렇게 말하고 종료 코드 1 이다 — 앱이 관리자 암호 창 같은 것을 띄워 둔 채
+기다리는 중일 수 있다.
 
 ## 에이전트에게 주는 예시
 
-포트를 잡고 있는 프로세스를 찾아 끄기.
+포트를 잡고 있는 프로세스를 찾아 끄기. `search` 는 **부분 일치**라 `3000` 이 `13000` 도 잡는다 —
+반드시 포트 번호가 **같은** 줄만 고른다.
 
 ```bash
 PID=$(scripts/mymactools ports.list search=3000 \
-      | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r[0]["pid"] if r else "")')
+      | python3 -c 'import json,sys; r=[p for p in json.load(sys.stdin) if p["port"] == 3000 and p["canStop"]]; print(r[0]["pid"] if r else "")')
 [ -n "$PID" ] && scripts/mymactools ports.stop pid="$PID"
 ```
 

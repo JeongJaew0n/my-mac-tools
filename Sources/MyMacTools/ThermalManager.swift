@@ -42,7 +42,9 @@ final class ThermalManager: ObservableObject {
     }
 
     struct Sensor: Equatable, Identifiable {
-        /// 같은 이름이 두 번씩 나온다(서비스가 둘). 이름만으로는 구분이 안 되어 순번을 붙인다.
+        /// IOKit 레지스트리 ID. 같은 이름이 둘씩 나오는데 **서로 다른 센서**다(ID 가 다르고 값도
+        /// 1°C 남짓 다르다, 실측). 이름으로도 순번으로도 구분이 안 된다 — 순번은 센서 하나가 한 틱
+        /// 빠지면 뒤가 밀려 SwiftUI 가 다른 줄과 짝지었다.
         var id: String
         var name: String
         var celsius: Double
@@ -82,6 +84,8 @@ final class ThermalManager: ObservableObject {
     private let reader = TemperatureReader()
     /// 앞선 읽기가 안 끝났으면 다음 틱은 건너뛴다. 큐에 읽기가 쌓이지 않게.
     private var isReading = false
+    /// `refreshNow` 가 올린다. 그보다 먼저 시작한 백그라운드 읽기가 늦게 도착해 새 값을 덮지 않게.
+    private var generation = 0
 
     init() {
         state = State(ProcessInfo.processInfo.thermalState)
@@ -120,11 +124,13 @@ final class ThermalManager: ObservableObject {
         guard !isReading else { return }
         isReading = true
         let reader = reader
+        let started = generation
         queue.async { [weak self] in
             let sensors = Self.sorted(reader.read())
             Task { @MainActor in
                 guard let self else { return }
                 self.isReading = false
+                guard self.generation == started else { return }
                 if self.sensors != sensors { self.sensors = sensors }
             }
         }
@@ -133,16 +139,22 @@ final class ThermalManager: ObservableObject {
     /// 지금 값을 기다려서 읽는다. API 처럼 답을 바로 돌려줘야 할 때만 쓴다.
     func refreshNow() {
         let reader = reader
+        generation += 1
         sensors = queue.sync { Self.sorted(reader.read()) }
         state = State(ProcessInfo.processInfo.thermalState)
     }
 
-    private nonisolated static func sorted(_ readings: [(name: String, celsius: Double)]) -> [Sensor] {
-        // `tdie2` 가 `tdie10` 앞에 오게 사람 순서로 센다.
+    private nonisolated static func sorted(_ readings: [TemperatureReader.Reading]) -> [Sensor] {
+        // `tdie2` 가 `tdie10` 앞에 오게 사람 순서로 센다. 같은 이름끼리는 ID 순 — 줄이 자리를 바꾸지 않게.
         readings
-            .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-            .enumerated()
-            .map { Sensor(id: "\($0.offset)", name: $0.element.name, celsius: $0.element.celsius) }
+            .sorted {
+                switch $0.name.localizedStandardCompare($1.name) {
+                case .orderedAscending: return true
+                case .orderedDescending: return false
+                case .orderedSame: return $0.id < $1.id
+                }
+            }
+            .map { Sensor(id: $0.id, name: $0.name, celsius: $0.celsius) }
     }
 }
 
@@ -154,12 +166,19 @@ final class ThermalManager: ObservableObject {
 /// 한 큐에서만 부른다(`ThermalManager.queue`). 그래서 상태를 잠그지 않는다.
 private final class TemperatureReader: @unchecked Sendable {
 
+    struct Reading {
+        var id: String
+        var name: String
+        var celsius: Double
+    }
+
     private typealias CreateClient = @convention(c) (CFAllocator?) -> Unmanaged<AnyObject>?
     private typealias SetMatching = @convention(c) (AnyObject, CFDictionary) -> Int32
     private typealias CopyServices = @convention(c) (AnyObject) -> Unmanaged<CFArray>?
     private typealias CopyProperty = @convention(c) (AnyObject, CFString) -> Unmanaged<AnyObject>?
     private typealias CopyEvent = @convention(c) (AnyObject, Int64, Int32, Int64) -> Unmanaged<AnyObject>?
     private typealias GetFloatValue = @convention(c) (AnyObject, Int32) -> Double
+    private typealias GetRegistryID = @convention(c) (AnyObject) -> Unmanaged<AnyObject>?
 
     /// `kIOHIDEventTypeTemperature`.
     private static let temperatureEvent: Int64 = 15
@@ -171,6 +190,8 @@ private final class TemperatureReader: @unchecked Sendable {
         let copyProperty: CopyProperty
         let copyEvent: CopyEvent
         let getFloatValue: GetFloatValue
+        /// 없으면 서비스 순번으로 대신한다.
+        let getRegistryID: GetRegistryID?
     }
 
     private var loaded = false
@@ -178,17 +199,28 @@ private final class TemperatureReader: @unchecked Sendable {
     private var client: AnyObject?
     private var services: [AnyObject] = []
 
-    func read() -> [(name: String, celsius: Double)] {
+    func read() -> [Reading] {
         load()
-        guard let functions else { return [] }
-        return services.compactMap { service in
+        guard let functions, let client else { return [] }
+        let readings = read(functions)
+        guard readings.isEmpty else { return readings }
+        // 비었으면 서비스 목록을 다시 받는다. 처음 열거가 비었거나 잠자기 뒤 서비스가 다시
+        // 등록됐을 수 있다 — 한 번만 받아 두면 앱을 다시 켤 때까지 "읽지 못함" 에 머문다.
+        services = (functions.copyServices(client)?.takeRetainedValue() as? [AnyObject]) ?? []
+        return read(functions)
+    }
+
+    private func read(_ functions: Functions) -> [Reading] {
+        services.enumerated().compactMap { index, service in
             guard let event = functions.copyEvent(service, Self.temperatureEvent, 0, 0)?.takeRetainedValue()
             else { return nil }
             let celsius = functions.getFloatValue(event, Self.temperatureField)
             // 센서가 꺼져 있으면 0 이나 말이 안 되는 값을 준다. 숫자로 보이지 않는다.
             guard celsius.isFinite, celsius > 0, celsius < 150 else { return nil }
             let name = functions.copyProperty(service, "Product" as CFString)?.takeRetainedValue() as? String
-            return (name ?? "?", celsius)
+            // Get 규칙이라 소유하지 않는다.
+            let id = functions.getRegistryID?(service)?.takeUnretainedValue() as? NSNumber
+            return Reading(id: id.map { "\($0)" } ?? "#\(index)", name: name ?? "?", celsius: celsius)
         }
     }
 
@@ -203,12 +235,14 @@ private final class TemperatureReader: @unchecked Sendable {
               let copyEvent = dlsym(handle, "IOHIDServiceClientCopyEvent"),
               let getFloatValue = dlsym(handle, "IOHIDEventGetFloatValue")
         else { return }
+        let getRegistryID = dlsym(handle, "IOHIDServiceClientGetRegistryID")
 
         let functions = Functions(
             copyServices: unsafeBitCast(copyServices, to: CopyServices.self),
             copyProperty: unsafeBitCast(copyProperty, to: CopyProperty.self),
             copyEvent: unsafeBitCast(copyEvent, to: CopyEvent.self),
-            getFloatValue: unsafeBitCast(getFloatValue, to: GetFloatValue.self))
+            getFloatValue: unsafeBitCast(getFloatValue, to: GetFloatValue.self),
+            getRegistryID: getRegistryID.map { unsafeBitCast($0, to: GetRegistryID.self) })
         guard let client = unsafeBitCast(create, to: CreateClient.self)(kCFAllocatorDefault)?.takeRetainedValue()
         else { return }
         // 0xff00 / 5 — Apple 벤더 페이지의 온도 센서.

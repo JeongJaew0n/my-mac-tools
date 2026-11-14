@@ -153,7 +153,9 @@ defaults delete com.jjw.mymactools "NSWindow Frame main-AppWindow-1"
 ## 6. 반복되는 조각
 
 ### 상태 줄
-점(`Size.statusDot` = 10) + 글(`.body`). **두 탭 모두 가운데 정렬**이다.
+점(`Size.indicator` = 10) + 글(`.body`), 간격 `Space.labelGap`. 코드는 `ContentView.statusLine(isOn:_:)`
+하나다 — VoiceOver 가 한 문장으로 읽게 묶여 있다. 잠자기 방지·덮어도 작업·화면 가리기는 **가운데 정렬**,
+로컬호스트는 목록 머리라 왼쪽이다.
 덮어도 작업 탭은 주의사항 때문에 `VStack(alignment: .leading)` 이라,
 상태 줄만 `.frame(maxWidth: .infinity)` 로 펴서 가운데에 맞춘다.
 
@@ -170,6 +172,8 @@ Text(라벨)  Spacer(minLength: 4)  Picker().labelsHidden().fixedSize()  Text(�
 
 ### 기본 동작 버튼
 탭마다 하나. **글자 폭만큼, 가운데.** 창 폭을 채우지 않는다.
+켜고 끄는 탭 넷(잠자기 방지·덮어도 작업·화면 가리기·속도 측정)이 모두 `PrimaryButtonStyle` 이다.
+Return 단축키는 잠자기 방지·속도 측정에만 있다(§8.5).
 
 아이콘이 상태 점을 겸한다 — 돌고 있으면 초록, 아니면 `secondary`. 320pt 에 탭 넷이라
 점·아이콘·글자를 다 넣을 자리가 없다. 직접 그리는 탭바라 `.tabItem` 과 달리 색이

@@ -27,6 +27,15 @@ enum ProcessSnapshot {
         return Array(buffer.prefix(size / MemoryLayout<kinfo_proc>.stride))
     }
 
+    /// 프로세스 하나. 없으면 nil.
+    static func entry(of pid: pid_t) -> kinfo_proc? {
+        var name: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
+        var entry = kinfo_proc()
+        var size = MemoryLayout<kinfo_proc>.stride
+        guard sysctl(&name, 4, &entry, &size, nil, 0) == 0, size > 0 else { return nil }
+        return entry
+    }
+
     /// 커널이 들고 있는 짧은 이름. 16자로 잘려 있다.
     static func shortName(of entry: kinfo_proc) -> String {
         withUnsafeBytes(of: entry.kp_proc.p_comm) { raw in

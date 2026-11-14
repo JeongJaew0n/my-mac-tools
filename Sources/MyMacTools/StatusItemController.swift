@@ -34,21 +34,26 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let cover: ScreenCoverManager
     private let l10n: L10n
     private let openWindow: () -> Void
+    private let openSettings: () -> Void
 
     private var statusItem: NSStatusItem?
     private var dot: RunningDot?
     private var cancellables: Set<AnyCancellable> = []
+    /// 마지막으로 쓴 툴팁 내용.
+    private var lastDescription: String?
 
     init(manager: BlackWorkManager,
          lid: LidWorkManager,
          cover: ScreenCoverManager,
          l10n: L10n,
-         openWindow: @escaping () -> Void) {
+         openWindow: @escaping () -> Void,
+         openSettings: @escaping () -> Void) {
         self.manager = manager
         self.lid = lid
         self.cover = cover
         self.l10n = l10n
         self.openWindow = openWindow
+        self.openSettings = openSettings
         super.init()
         install()
         observe()
@@ -114,6 +119,26 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
     private func refreshDot() {
         dot?.isHidden = !anyRunning
+        refreshDescription()
+    }
+
+    /// 마우스를 올렸을 때 · VoiceOver 가 읽을 때 무엇이 돌고 있는지 말로 알린다.
+    /// 초록 점은 5pt 라 놓치기 쉽고 색만으로는 구분 못 하는 사람도 있다.
+    ///
+    /// 이름만 쓴다. 남은 시간을 넣으면 매초 바뀌어, 마우스를 올려 둔 동안 툴팁이 매초 다시 떴다.
+    /// 남은 시간은 메뉴를 열면 보인다. 바뀔 때만 쓴다 — 이 함수는 티커 때문에 매초 불린다.
+    private func refreshDescription() {
+        guard let button = statusItem?.button else { return }
+        var running: [String] = []
+        if manager.isRunning { running.append(l10n(.tabScreenOff)) }
+        if lid.isRunning { running.append(l10n(.tabLid)) }
+        if cover.isCovering { running.append(l10n(.tabCover)) }
+        let summary = running.isEmpty ? l10n(.menuNothingRunning) : running.joined(separator: " · ")
+        guard summary != lastDescription else { return }
+        lastDescription = summary
+        button.toolTip = "MyMacTools — " + summary
+        button.setAccessibilityLabel("MyMacTools")
+        button.setAccessibilityValue(summary)
     }
 
     // MARK: - 메뉴
@@ -140,6 +165,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
         menu.addItem(.separator())
         add(menu, title: l10n(.menuOpenWindow), on: false, action: #selector(showWindow))
+        add(menu, title: l10n(.settingsOpen), on: false, action: #selector(showSettings))
         add(menu, title: l10n(.menuQuit), on: false, action: #selector(quit))
     }
 
@@ -205,6 +231,11 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     @objc private func showWindow() {
         openWindow()
         // 창만 띄우면 다른 앱 뒤에 열릴 수 있다.
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func showSettings() {
+        openSettings()
         NSApp.activate(ignoringOtherApps: true)
     }
 

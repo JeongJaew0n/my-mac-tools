@@ -40,6 +40,10 @@ final class L10n: ObservableObject {
         case tabMacInfo = "tab.macInfo"
         case tabThermal = "tab.thermal"
 
+        // 접근성 — 화면에는 안 보이고 VoiceOver 가 읽는다
+        case a11yRunning = "a11y.running"
+        case menuNothingRunning = "menu.nothingRunning"
+
         case statusWorking = "status.working"
         case statusWorkingScreenOn = "status.workingScreenOn"
         case statusWorkingPlain = "status.workingPlain"
@@ -148,6 +152,7 @@ final class L10n: ObservableObject {
         case localhostCategoryOther = "localhost.category.other"
         case localhostSearchPrompt = "localhost.searchPrompt"
         case localhostNoMatch = "localhost.noMatch"
+        case localhostClearFilter = "localhost.clearFilter"
         case localhostShowingCount = "localhost.showingCount"
 
         // 속도 측정
@@ -204,6 +209,8 @@ final class L10n: ObservableObject {
         case infoCopied = "info.copied"
         case infoMemoryHelp = "info.memoryHelp"
         case infoStorageHelp = "info.storageHelp"
+        case interfaceEthernet = "interface.ethernet"
+        case interfaceCellular = "interface.cellular"
 
         // 발열
         case thermalState = "thermal.state"

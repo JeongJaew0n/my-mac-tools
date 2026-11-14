@@ -127,6 +127,7 @@
 "localhost.category.other" = "Other";
 "localhost.searchPrompt" = "Port number";
 "localhost.noMatch" = "Nothing matches";
+"localhost.clearFilter" = "Clear Filter";
 "localhost.showingCount" = "showing %1$d of %2$d";
 
 /* Settings window */
@@ -199,6 +200,8 @@
 "info.copied" = "Copied";
 "info.memoryHelp" = "Same measure as Activity Monitor's Memory Used (app + wired + compressed). macOS keeps spare memory as cache, so looking nearly full is normal; judge headroom by pressure.";
 "info.storageHelp" = "Same measure as Finder. Purgeable caches count as available.";
+"interface.ethernet" = "Ethernet";
+"interface.cellular" = "Cellular";
 "info.mac" = "MAC Address";
 "info.macPrivate" = "Private";
 "info.macPrivateHelp" = "The private Wi-Fi address macOS uses on this network. Routers and network admins see this one; the device's own address is the hardware MAC below. Click to copy.";
@@ -206,6 +209,8 @@
 
 /* Thermal */
 "tab.thermal" = "Thermal";
+"a11y.running" = "Running";
+"menu.nothingRunning" = "Nothing running";
 "thermal.state" = "Thermal state";
 "thermal.state.nominal" = "Normal";
 "thermal.state.fair" = "Slightly elevated";

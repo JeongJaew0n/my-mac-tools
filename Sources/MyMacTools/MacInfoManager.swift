@@ -96,6 +96,10 @@ final class MacInfoManager: ObservableObject {
         }
 
         // 메모리 압력은 OS 의 판정을 그대로 쓴다. 경계를 우리가 정하지 않는다.
+        //
+        // 소스는 **바뀔 때만** 알린다. 이미 경고인 채로 앱이 뜨면 다음 전환까지 "정상" 으로
+        // 남았다(실측 — 커널은 경고(2)인데 화면은 정상). 같은 판정을 sysctl 로 먼저 읽는다.
+        if let level = Self.pressureLevel() { pressure = level }
         pressureSource.setEventHandler { [weak self] in
             guard let self else { return }
             let event = self.pressureSource.data
@@ -139,6 +143,7 @@ final class MacInfoManager: ObservableObject {
         let nextMemory = Memory(usedBytes: Self.usedMemoryBytes() ?? memory.usedBytes,
                                 freePercent: Self.sysctlInt("kern.memorystatus_level"))
         if nextMemory != memory { memory = nextMemory }
+        if let level = Self.pressureLevel(), level != pressure { pressure = level }
 
         let nextStorage = Self.storage()
         if nextStorage != storage { storage = nextStorage }
@@ -289,6 +294,17 @@ final class MacInfoManager: ObservableObject {
         var buffer = [CChar](repeating: 0, count: size)
         guard sysctlbyname(name, &buffer, &size, nil, 0) == 0 else { return nil }
         return String(cString: buffer)
+    }
+
+    /// 커널의 메모리 압력 판정. 메모리 압력 소스와 같은 값(`DISPATCH_MEMORYPRESSURE_*`)을 준다 —
+    /// 1 정상 · 2 경고 · 4 위험.
+    nonisolated private static func pressureLevel() -> Pressure? {
+        switch sysctlInt("kern.memorystatus_vm_pressure_level") {
+        case 1: return .normal
+        case 2: return .warning
+        case 4: return .critical
+        default: return nil
+        }
     }
 
     nonisolated private static func sysctlInt(_ name: String) -> Int? {

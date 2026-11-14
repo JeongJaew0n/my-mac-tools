@@ -127,6 +127,7 @@
 "localhost.category.other" = "その他";
 "localhost.searchPrompt" = "ポート番号";
 "localhost.noMatch" = "条件に合うものはありません";
+"localhost.clearFilter" = "フィルタを解除";
 "localhost.showingCount" = "%2$d件中 %1$d件を表示";
 
 /* 設定ウインドウ */
@@ -199,6 +200,8 @@
 "info.copied" = "コピーしました";
 "info.memoryHelp" = "アクティビティモニタの「使用済みメモリ」と同じ基準です(アプリ + 確保 + 圧縮)。macOS は余ったメモリをキャッシュに使うため、ほぼ埋まって見えるのは正常で、実際の余裕はプレッシャーで判断します。";
 "info.storageHelp" = "Finder と同じ基準です。削除可能なキャッシュは空き容量に含まれます。";
+"interface.ethernet" = "Ethernet";
+"interface.cellular" = "モバイル通信";
 "info.mac" = "MAC アドレス";
 "info.macPrivate" = "プライベート";
 "info.macPrivateHelp" = "macOS がこのネットワークで使うプライベート Wi-Fi アドレスです。ルーターやネットワーク管理者に見えるのはこのアドレスで、機器固有のアドレスは下のハードウェア MAC です。クリックでコピーします。";
@@ -206,6 +209,8 @@
 
 /* Thermal */
 "tab.thermal" = "発熱";
+"a11y.running" = "実行中";
+"menu.nothingRunning" = "実行中の機能なし";
 "thermal.state" = "熱状態";
 "thermal.state.nominal" = "正常";
 "thermal.state.fair" = "やや高い";

@@ -12,7 +12,7 @@
 - `ProcessInfo.thermalState` → `nominal`. 권한 없이 읽힌다.
 - `pmset -g therm` → "No thermal warning level has been recorded". 이 맥에서는 쓸 값이 없다.
 - IOHID 온도 센서 46개 (sudo 없음): `PMU tdie1~10` 32~35°C, `PMU tdev1~8` 25~28°C,
-  `PMU tcal` 51.9°C(고정), `NAND CH0 temp` 27°C, `gas gauge battery` 24~25°C. 이름마다 두 번씩 나온다.
+  `PMU tcal` 51.9°C(고정), `NAND CH0 temp` 27°C, `gas gauge battery` 24~25°C. 이름마다 두 번씩 나온다 — 처음엔 중복으로 봤으나 레지스트리 ID 가 다른 별개 센서였다(재리뷰).
 - 한 번 훑는 데 약 35ms.
 
 ## 기각한 대안
