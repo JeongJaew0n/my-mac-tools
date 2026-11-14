@@ -67,9 +67,43 @@ final class BlackWorkManager: ObservableObject {
     /// 화면 끄기 유지 단계.
     @Published private(set) var screenPhase: ScreenPhase = .idle
 
+    /// '화면 끈 채로 작업' 전역 단축키. 지정하지 않으면 `nil`.
+    @Published private(set) var shortcut: Shortcut?
+    /// 단축키가 눌리면 부른다. 덮개 규칙을 지키려면 덮개 관리자가 필요해 앱이 채운다
+    /// (`Actions.toggleScreenOffFromShortcut`).
+    var onShortcut: (() -> Void)?
+
+    private static let shortcutKey = "screenOffShortcut"
+
     init() {
         // 저장된 기본값으로 시작한다. 저장한 적이 없으면 위의 초기값 그대로다.
         apply(ToolDefaults.load(ToolDefaults.sleepKey, fallback: ToolDefaults.Sleep.builtIn))
+        shortcut = UserDefaults.standard.data(forKey: Self.shortcutKey)
+            .flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
+        applyShortcut()
+    }
+
+    // MARK: - 단축키
+
+    /// `nil` 을 주면 지운다. 화면 가리기와 겹치는지는 부르는 쪽이 먼저 본다.
+    func setShortcut(_ value: Shortcut?) {
+        shortcut = value
+        if let value, let data = try? JSONEncoder().encode(value) {
+            UserDefaults.standard.set(data, forKey: Self.shortcutKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.shortcutKey)
+        }
+        applyShortcut()
+    }
+
+    private func applyShortcut() {
+        guard let shortcut else {
+            HotKeyCenter.shared.unregister(.screenOff)
+            return
+        }
+        HotKeyCenter.shared.register(shortcut, for: .screenOff) { [weak self] in
+            self?.onShortcut?()
+        }
     }
 
     // MARK: - 기본값

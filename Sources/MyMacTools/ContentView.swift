@@ -63,6 +63,8 @@ struct ContentView: View {
     @State private var copiedAddress: String?
     /// 시스템 설정 → 손쉬운 사용 → "색상 없이 구별". 켜져 있으면 실행 중을 색 말고 모양으로도 보인다.
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    /// 다른 단축키와 겹쳐 받지 않은 자리. 그 자리 아래에 이유를 보인다.
+    @State private var shortcutConflict: HotKeyCenter.Slot?
     /// 발열 탭의 센서 전체 목록을 펼쳤는가. 기본은 접힘 — 묶음 요약이면 대개 충분하다.
     @State private var showsAllSensors = false
 
@@ -269,6 +271,8 @@ struct ContentView: View {
                         save: { manager.saveAsDefault() },
                         restore: { Actions.restoreSleepDefault(manager, lid: lid) })
 
+            screenOffShortcutRow
+
             Button(l10n(manager.isRunning ? .buttonStop : .buttonStart)) {
                 manager.toggle()
             }
@@ -284,6 +288,38 @@ struct ContentView: View {
         // 이 탭 안에 카페인 목록이 있다. 다른 탭을 보는 동안에는 훑지 않는다.
         .onAppear { caffeine.startPolling() }
         .onDisappear { caffeine.stopPolling() }
+    }
+
+    /// '화면 끈 채로 작업' 단축키. 설정 블록 밖에 둔다 — 세션 값이 아니라서 도는 동안에도 바꿀 수 있다.
+    private var screenOffShortcutRow: some View {
+        VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+            HStack(spacing: Design.Space.inline) {
+                Text(l10n(.sleepShortcutLabel))
+                Spacer(minLength: 4)
+                ShortcutRecorder(
+                    shortcut: manager.shortcut,
+                    placeholder: l10n(.coverShortcutNone),
+                    recordingLabel: l10n(.coverShortcutRecording)) { value in
+                        guard !(value?.hasSameKeys(as: cover.shortcut) ?? false) else {
+                            shortcutConflict = .screenOff
+                            return
+                        }
+                        shortcutConflict = nil
+                        manager.setShortcut(value)
+                    }
+            }
+
+            Text(l10n(.sleepShortcutHint))
+                .font(.caption2)
+                .foregroundStyle(Design.Color.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if shortcutConflict == .screenOff {
+                Text(l10n(.sleepShortcutTaken))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.statusError)
+            }
+        }
     }
 
     // MARK: - 기본값 저장·되돌리기
@@ -751,8 +787,20 @@ struct ContentView: View {
                     ShortcutRecorder(
                         shortcut: cover.shortcut,
                         placeholder: l10n(.coverShortcutNone),
-                        recordingLabel: l10n(.coverShortcutRecording),
-                        onChange: cover.setShortcut)
+                        recordingLabel: l10n(.coverShortcutRecording)) { value in
+                            guard !(value?.hasSameKeys(as: manager.shortcut) ?? false) else {
+                                shortcutConflict = .cover
+                                return
+                            }
+                            shortcutConflict = nil
+                            cover.setShortcut(value)
+                        }
+                }
+
+                if shortcutConflict == .cover {
+                    Text(l10n(.coverShortcutTaken))
+                        .font(.caption)
+                        .foregroundStyle(Design.Color.statusError)
                 }
 
                 Text(l10n(.coverShortcutHint))

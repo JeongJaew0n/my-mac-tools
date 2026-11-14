@@ -53,6 +53,19 @@ enum Actions {
         manager.toggle()
     }
 
+    /// '화면 끈 채로 작업' 단축키. 메뉴바와 같은 규칙에 **화면 모드만 `keepOff` 로** 덮어쓴다.
+    ///
+    /// 끌 때는 모드를 가리지 않고 끈다 — 화면이 꺼진 채 일하다 돌아와 같은 키를 누르면
+    /// 화면이 켜진 채로 끝나야 한다. 근거는 `docs/plans/screen-off-shortcut/spec.md`.
+    static func toggleScreenOffFromShortcut(_ manager: BlackWorkManager, lid: LidWorkManager) {
+        if !manager.isRunning {
+            manager.restoreDefault()
+            manager.screenMode = .keepOff
+            enforceLidRule(lid, manager)
+        }
+        manager.toggle()
+    }
+
     /// 덮개 기능도 같은 규칙이다.
     static func toggleLidFromMenu(_ lid: LidWorkManager, _ manager: BlackWorkManager) {
         if !lid.isRunning { lid.restoreDefault() }

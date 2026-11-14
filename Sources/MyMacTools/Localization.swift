@@ -111,6 +111,10 @@ final class L10n: ObservableObject {
         case coverShortcutNone = "cover.shortcutNone"
         case coverShortcutRecording = "cover.shortcutRecording"
         case coverShortcutHint = "cover.shortcutHint"
+        case coverShortcutTaken = "cover.shortcutTaken"
+        case sleepShortcutLabel = "sleep.shortcutLabel"
+        case sleepShortcutHint = "sleep.shortcutHint"
+        case sleepShortcutTaken = "sleep.shortcutTaken"
 
         // 현재 실행중인 카페인
         case caffeineSectionTitle = "caffeine.sectionTitle"

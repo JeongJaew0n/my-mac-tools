@@ -170,6 +170,9 @@ struct MyMacToolsApp: App {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
                     appDelegate.speedTest = speedTest
+                    manager.onShortcut = { [manager, lid] in
+                        Actions.toggleScreenOffFromShortcut(manager, lid: lid)
+                    }
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
                     installStatusItem()

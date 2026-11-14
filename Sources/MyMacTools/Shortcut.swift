@@ -14,6 +14,12 @@ struct Shortcut: Equatable, Codable {
 
     var flags: NSEvent.ModifierFlags { NSEvent.ModifierFlags(rawValue: modifiers) }
 
+    /// 같은 키 조합인가. 표시 글자는 자판 배열에 따라 달라질 수 있어 보지 않는다.
+    func hasSameKeys(as other: Shortcut?) -> Bool {
+        guard let other else { return false }
+        return keyCode == other.keyCode && modifiers == other.modifiers
+    }
+
     /// `⌃⌥⌘C` 처럼. 순서는 macOS 관례를 따른다.
     var display: String {
         var text = ""
@@ -49,7 +55,7 @@ struct Shortcut: Equatable, Codable {
     }
 }
 
-/// 전역 단축키를 하나만 등록해 쓴다.
+/// 전역 단축키를 자리(`Slot`)별로 하나씩 등록해 쓴다.
 ///
 /// Carbon 의 `RegisterEventHotKey` 를 쓴다. `NSEvent` 의 전역 모니터와 달리
 /// **손쉬운 사용 권한이 필요 없고**(권한 없는 상태에서 `noErr` 로 등록되는 것을 확인했다),
@@ -57,49 +63,56 @@ struct Shortcut: Equatable, Codable {
 final class HotKeyCenter {
     static let shared = HotKeyCenter()
 
+    /// 단축키를 거는 자리. raw 값이 `EventHotKeyID.id` 다 — 눌린 키가 어느 자리인지 이것으로 가른다.
+    enum Slot: UInt32 {
+        case cover = 1
+        case screenOff = 2
+    }
+
     private static let signature: OSType = 0x4D4D5448  // 'MMTH'
 
-    private var hotKey: EventHotKeyRef?
+    private var hotKeys: [Slot: EventHotKeyRef] = [:]
+    private var actions: [Slot: () -> Void] = [:]
     private var handler: EventHandlerRef?
-    private var action: (() -> Void)?
 
     private init() {}
 
-    /// 등록에 성공하면 `true`.
+    /// 등록에 성공하면 `true`. 그 자리에 있던 것은 먼저 푼다.
     ///
     /// 같은 조합을 이미 **시스템이** 쓰고 있어도 `noErr` 가 돌아온다. 예컨대 `⌘Space` 를
     /// 등록해도 성공으로 보고되지만 실제로는 Spotlight 이 먼저 먹는다. 그래서 등록 성공이
     /// 곧 "이 키가 눌리면 우리가 받는다" 를 뜻하지는 않는다. 사용자에게 알려줄 방법이 없어
     /// 그대로 둔다.
     @discardableResult
-    func register(_ shortcut: Shortcut, action: @escaping () -> Void) -> Bool {
-        unregister()
+    func register(_ shortcut: Shortcut, for slot: Slot, action: @escaping () -> Void) -> Bool {
+        unregister(slot)
         installHandlerIfNeeded()
-        self.action = action
 
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(
             UInt32(shortcut.keyCode),
             shortcut.carbonModifiers,
-            EventHotKeyID(signature: Self.signature, id: 1),
+            EventHotKeyID(signature: Self.signature, id: slot.rawValue),
             GetEventDispatcherTarget(),
             0,
             &ref)
 
-        guard status == noErr, let ref else {
-            self.action = nil
-            return false
-        }
-        hotKey = ref
+        guard status == noErr, let ref else { return false }
+        hotKeys[slot] = ref
+        actions[slot] = action
         return true
     }
 
-    func unregister() {
-        if let hotKey {
+    func unregister(_ slot: Slot) {
+        if let hotKey = hotKeys.removeValue(forKey: slot) {
             UnregisterEventHotKey(hotKey)
         }
-        hotKey = nil
-        action = nil
+        actions[slot] = nil
+    }
+
+    private func fire(_ id: UInt32) {
+        guard let slot = Slot(rawValue: id) else { return }
+        actions[slot]?()
     }
 
     private func installHandlerIfNeeded() {
@@ -109,10 +122,17 @@ final class HotKeyCenter {
             eventKind: UInt32(kEventHotKeyPressed))
         InstallEventHandler(
             GetEventDispatcherTarget(),
-            { _, _, userData in
-                guard let userData else { return noErr }
+            { _, event, userData in
+                guard let event, let userData else { return noErr }
+                // 어느 자리의 키인지 이벤트에서 꺼낸다. 하나만 걸던 때는 볼 필요가 없었다.
+                var pressed = EventHotKeyID()
+                let status = GetEventParameter(
+                    event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+                    nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed)
+                guard status == noErr, pressed.signature == HotKeyCenter.signature else { return noErr }
                 let center = Unmanaged<HotKeyCenter>.fromOpaque(userData).takeUnretainedValue()
-                DispatchQueue.main.async { center.action?() }
+                let id = pressed.id
+                DispatchQueue.main.async { center.fire(id) }
                 return noErr
             },
             1,

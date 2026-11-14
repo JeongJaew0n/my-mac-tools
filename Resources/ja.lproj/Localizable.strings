@@ -81,6 +81,10 @@
 "cover.shortcutNone" = "なし";
 "cover.shortcutRecording" = "キーを押してください…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ のいずれかを含める。カバーのみ。Delete で消去。";
+"cover.shortcutTaken" = "すでに「画面オフで作業」のショートカットです。別の組み合わせを押してください。";
+"sleep.shortcutLabel" = "画面オフで作業";
+"sleep.shortcutHint" = "どこでも押すと保存した既定値で開始し、画面は「オフのまま維持」。実行中なら停止します。⌘ ⌥ ⌃ のいずれかを含む。Delete で消去。";
+"sleep.shortcutTaken" = "すでに画面カバーのショートカットです。別の組み合わせを押してください。";
 
 /* メニューバー */
 "menu.openWindow" = "ウインドウを開く";

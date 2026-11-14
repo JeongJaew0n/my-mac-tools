@@ -81,6 +81,10 @@
 "cover.shortcutNone" = "None";
 "cover.shortcutRecording" = "Press a key…";
 "cover.shortcutHint" = "Must include ⌘, ⌥ or ⌃. Covers only. Delete clears it.";
+"cover.shortcutTaken" = "Already used for Work with Screen Off. Press another combination.";
+"sleep.shortcutLabel" = "Work with Screen Off";
+"sleep.shortcutHint" = "Press anywhere to start with your saved defaults, display set to Keep it off. Press again to stop. Include ⌘, ⌥ or ⌃; Delete clears.";
+"sleep.shortcutTaken" = "Already used for Cover. Press another combination.";
 
 /* Menu bar */
 "menu.openWindow" = "Open Window";

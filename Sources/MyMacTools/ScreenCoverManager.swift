@@ -103,10 +103,10 @@ final class ScreenCoverManager: ObservableObject {
     /// 조합에 따라 되기도 안 되기도 하는 동작이 된다.
     private func applyShortcut() {
         guard let shortcut else {
-            HotKeyCenter.shared.unregister()
+            HotKeyCenter.shared.unregister(.cover)
             return
         }
-        HotKeyCenter.shared.register(shortcut) { [weak self] in
+        HotKeyCenter.shared.register(shortcut, for: .cover) { [weak self] in
             guard let self, !self.isCovering else { return }
             self.start()
             // 사진이 없거나 못 읽으면 덮이지 않는다. 그때는 창을 앞으로 내보내

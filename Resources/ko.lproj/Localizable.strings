@@ -81,6 +81,10 @@
 "cover.shortcutNone" = "없음";
 "cover.shortcutRecording" = "키를 누르세요…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ 중 하나 포함. 덮기만 합니다. Delete 로 지움.";
+"cover.shortcutTaken" = "이미 '화면 끈 채로 작업' 단축키입니다. 다른 조합을 누르세요.";
+"sleep.shortcutLabel" = "화면 끈 채로 작업";
+"sleep.shortcutHint" = "어디서든 누르면 저장한 기본값으로 켜되 화면은 '끈 상태로 유지'. 돌고 있으면 끕니다. ⌘ ⌥ ⌃ 중 하나 포함, Delete 로 지움.";
+"sleep.shortcutTaken" = "이미 화면 가리기 단축키입니다. 다른 조합을 누르세요.";
 
 /* 메뉴바 */
 "menu.openWindow" = "창 열기";
