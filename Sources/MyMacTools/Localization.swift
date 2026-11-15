@@ -58,6 +58,7 @@ final class L10n: ObservableObject {
         case unitSecond = "unit.second"
 
         case toggleSleepWhenDone = "toggle.sleepWhenDone"
+        case toggleMuteWhileOff = "toggle.muteWhileOff"
         case labelScreenMode = "label.screenMode"
         case screenModeSystem = "screenMode.system"
         case screenModeKeepOff = "screenMode.keepOff"
@@ -93,6 +94,7 @@ final class L10n: ObservableObject {
         case progressNoLimit = "progress.noLimit"
         case progressReblank = "progress.reblank"
         case statusKeepOffFailed = "status.keepOffFailed"
+        case statusMuteFailed = "status.muteFailed"
 
         // 화면 가리기
         case coverStatusOn = "cover.statusOn"

@@ -102,7 +102,7 @@ print(json.loads(data)["result"])
 
 | 메서드 | 필드 |
 |---|---|
-| `sleep.get` | `running` `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone`, 돌고 있고 시간 제한이 있으면 `remainingSeconds`, 화면 끄기를 기다리는 중이면 `screenOffInSeconds` |
+| `sleep.get` | `running` `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone` `muteWhileOff`(화면을 끌 때 음소거), 돌고 있고 시간 제한이 있으면 `remainingSeconds`, 화면 끄기를 기다리는 중이면 `screenOffInSeconds` |
 | `lid.get` | `running` `turnedOnByThisApp` |
 | `cover.get` | `covering` `fillMode` `imagePath`(고르지 않았으면 `""`) |
 | `caffeinate.list` | `pid` `flags`(`"-t 300"` 처럼 값을 붙인 옵션 목록) `utility` `parent` `parentPath` `startedAt` `isThisApp` `canStop` `argsUnreadable` |
@@ -131,7 +131,7 @@ OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `gr
 
 | 메서드 | 파라미터 | 비고 |
 |---|---|---|
-| `sleep.start` | `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone` | 모두 선택. **준 것만 바꾸고** 시작한다. 이미 돌고 있으면 **새 설정으로 갈아끼운다** |
+| `sleep.start` | `hours` `minutes` `screenMode` `displayDelaySeconds` `sleepWhenDone` `muteWhileOff` | 모두 선택. **준 것만 바꾸고** 시작한다. 이미 돌고 있으면 **새 설정으로 갈아끼운다** |
 | `sleep.stop` | — | |
 | `cover.start` | — | 사진을 먼저 골라야 한다 |
 | `cover.stop` | — | |

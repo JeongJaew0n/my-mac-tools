@@ -281,6 +281,12 @@ struct ContentView: View {
 
             progress
 
+            if manager.muteFailed {
+                Text(l10n(.statusMuteFailed))
+                    .font(.caption)
+                    .foregroundStyle(Design.Color.statusError)
+            }
+
             Divider()
 
             caffeineSection
@@ -583,6 +589,10 @@ struct ContentView: View {
                     .foregroundStyle(Design.Color.textSecondary)
             }
             .disabled(manager.screenMode != .keepOff)
+
+            // 음소거도 화면을 끌 때의 일이라 지연 시간과 같이 잠긴다. 끝나면 시작 전 소리 상태로 돌아간다.
+            Toggle(l10n(.toggleMuteWhileOff), isOn: $manager.muteWhileOff)
+                .disabled(manager.screenMode != .keepOff)
 
             // 덮개 기능이 켜져 있으면 `pmset sleepnow` 가 kIOReturnNotPermitted 로 거부된다.
             // 눌러도 아무 일이 없으므로 아예 잠가두고 caption 으로 이유를 알린다.

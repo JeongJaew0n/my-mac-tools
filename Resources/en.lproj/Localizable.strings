@@ -14,6 +14,7 @@
 
 /* Controls */
 "toggle.sleepWhenDone" = "Sleep when time is up";
+"toggle.muteWhileOff" = "Mute when the screen turns off";
 "button.start" = "Start";
 "button.stop" = "Stop";
 
@@ -33,6 +34,7 @@
 /* Keep screen off */
 "progress.reblank" = "Screen goes off again in %ds";
 "status.keepOffFailed" = "Could not keep the screen off";
+"status.muteFailed" = "Could not mute the output device";
 
 /* Keep working with the lid closed */
 "lid.statusOn" = "On — keeps running with the lid closed";

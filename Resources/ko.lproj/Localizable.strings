@@ -14,6 +14,7 @@
 
 /* Controls */
 "toggle.sleepWhenDone" = "끝나면 Mac잠자기 모드";
+"toggle.muteWhileOff" = "화면 끌 때 음소거";
 "button.start" = "시작";
 "button.stop" = "정지";
 
@@ -33,6 +34,7 @@
 /* Keep screen off */
 "progress.reblank" = "%d초 후 화면을 다시 끕니다";
 "status.keepOffFailed" = "화면을 계속 끌 수 없습니다";
+"status.muteFailed" = "출력 장치를 음소거하지 못했습니다";
 
 /* 덮개 닫아도 작업 진행 */
 "lid.statusOn" = "켜짐 — 덮개를 닫아도 계속 동작";

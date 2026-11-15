@@ -14,6 +14,7 @@
 
 /* Controls */
 "toggle.sleepWhenDone" = "終了時にスリープ";
+"toggle.muteWhileOff" = "画面オフ時に消音";
 "button.start" = "開始";
 "button.stop" = "停止";
 
@@ -33,6 +34,7 @@
 /* Keep screen off */
 "progress.reblank" = "%d秒後に画面を再びオフにします";
 "status.keepOffFailed" = "画面をオフのままにできませんでした";
+"status.muteFailed" = "出力装置を消音できませんでした";
 
 /* ふたを閉じても作業を継続 */
 "lid.statusOn" = "オン — ふたを閉じても動作します";

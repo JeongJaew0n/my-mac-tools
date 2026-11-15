@@ -58,6 +58,8 @@ final class BlackWorkManager: ObservableObject {
     @Published var screenMode: ScreenMode = .system
     /// 유지 시간이 끝나면 잠자기로 보낼지 여부. 무제한(0h 00m)이면 의미 없다.
     @Published var sleepWhenDone = false
+    /// 화면을 끌 때 음소거할지. `keepOff` 에서만 의미가 있다. 끝나면 시작 전 상태로 되돌린다.
+    @Published var muteWhileOff = false
 
     @Published private(set) var isRunning = false
     /// 세션 남은 시간(초). 무제한이거나 정지 상태면 nil.
@@ -66,6 +68,8 @@ final class BlackWorkManager: ObservableObject {
     @Published private(set) var displayCountdown: Int?
     /// 화면 끄기 유지 단계.
     @Published private(set) var screenPhase: ScreenPhase = .idle
+    /// 음소거하려 했는데 출력 장치가 음소거를 못 했다. 다음 세션에서 비운다.
+    @Published private(set) var muteFailed = false
 
     /// '화면 끈 채로 작업' 전역 단축키. 지정하지 않으면 `nil`.
     @Published private(set) var shortcut: Shortcut?
@@ -112,7 +116,8 @@ final class BlackWorkManager: ObservableObject {
     private var snapshot: ToolDefaults.Sleep {
         ToolDefaults.Sleep(hours: hours, minutes: minutes,
                            displayDelaySeconds: displayDelaySeconds,
-                           screenMode: screenMode.rawValue, sleepWhenDone: sleepWhenDone)
+                           screenMode: screenMode.rawValue, sleepWhenDone: sleepWhenDone,
+                           muteWhileOff: muteWhileOff)
     }
 
     /// 저장된 기본값. 없으면 코드에 박힌 값.
@@ -156,12 +161,15 @@ final class BlackWorkManager: ObservableObject {
         displayDelaySeconds = value.displayDelaySeconds
         screenMode = ScreenMode(rawValue: value.screenMode) ?? .system
         sleepWhenDone = value.sleepWhenDone
+        muteWhileOff = value.muteWhileOff
     }
 
     private var process: Process?
     private var endDate: Date?
     private var ticker: Timer?
     private var reblankFailures = 0
+    /// 이 세션이 음소거하기 전 상태. 음소거하지 않았으면 `nil`.
+    private var mutedFrom: OutputMute.Previous?
 
     /// 화면이 다시 꺼지기까지 남은 초. 유예 중이 아니면 nil.
     var screenGraceRemaining: Int? {
@@ -212,6 +220,7 @@ final class BlackWorkManager: ObservableObject {
 
         process = proc
         isRunning = true
+        muteFailed = false
         // 화면 끄기 카운트다운은 끄는 모드에서만 건다.
         displayCountdown = screenMode == .keepOff ? displayDelaySeconds : nil
         if let seconds = durationSeconds {
@@ -272,6 +281,11 @@ final class BlackWorkManager: ObservableObject {
     /// 세션 종료(수동 정지 · 시간 만료 양쪽) 후 상태를 되돌린다. 여러 번 불려도 안전하다.
     private func reset() {
         stopTicker()
+        if let mutedFrom {
+            OutputMute.restore(mutedFrom)
+        }
+        mutedFrom = nil
+        muteFailed = false
         process = nil
         endDate = nil
         remaining = nil
@@ -304,6 +318,7 @@ final class BlackWorkManager: ObservableObject {
             if next <= 0 {
                 displayCountdown = nil
                 turnOffDisplay()
+                muteIfWanted()
                 screenPhase = screenMode == .keepOff ? .verifying : .idle
             } else {
                 displayCountdown = next
@@ -364,6 +379,15 @@ final class BlackWorkManager: ObservableObject {
             return
         }
         remaining = max(0, endDate.timeIntervalSinceNow)
+    }
+
+    /// 화면을 처음 끌 때 한 번만 부른다. 유예 뒤에 다시 끌 때는 이미 음소거돼 있다.
+    ///
+    /// `muteWhileOff` 는 이때 **살아있는 값**을 읽는다 — 설정 블록은 세션 중에 잠겨 있어 바뀌지 않는다.
+    private func muteIfWanted() {
+        guard muteWhileOff, screenMode == .keepOff, mutedFrom == nil else { return }
+        mutedFrom = OutputMute.mute()
+        muteFailed = mutedFrom == nil
     }
 
     private func sleepSystem() {

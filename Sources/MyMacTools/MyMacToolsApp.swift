@@ -19,6 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var api: APIServer?
     /// 종료할 때 측정을 멈추려고 들고 있는다.
     var speedTest: SpeedTestManager?
+    /// 종료할 때 세션이 걸어둔 음소거를 되돌리려고 들고 있는다.
+    var screenOff: BlackWorkManager?
 
     /// 종료할 때 소켓 파일을 치운다. 남겨두면 다음 실행이 낡은 파일 위에 bind 하려 한다.
     ///
@@ -29,6 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         api?.stop()
         // 이 알림은 메인 스레드에서 온다.
         MainActor.assumeIsolated { speedTest?.cancel() }
+        // caffeinate 는 `-w` 로 알아서 끝나지만 음소거는 남는다. 정지가 되돌린다.
+        screenOff?.stop()
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
@@ -170,6 +174,7 @@ struct MyMacToolsApp: App {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
                     appDelegate.speedTest = speedTest
+                    appDelegate.screenOff = manager
                     manager.onShortcut = { [manager, lid] in
                         Actions.toggleScreenOffFromShortcut(manager, lid: lid)
                     }

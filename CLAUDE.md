@@ -21,6 +21,7 @@ Sources/MyMacTools/
 ├── IntelliJThemeView.swift  IntelliJ 색 화면 (ContentView 가 길어 따로 둔다)
 ├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
 ├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
+├── OutputMute.swift         잠자기 방지 안의 '화면 끌 때 음소거' (CoreAudio)
 ├── APIServer.swift          에이전트용 유닉스 소켓 서버
 ├── APIHandler.swift         API 메서드 처리 (docs/api.md 와 함께 고친다)
 ├── StatusItemController.swift  메뉴바 항목

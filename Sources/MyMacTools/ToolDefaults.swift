@@ -15,10 +15,13 @@ enum ToolDefaults {
         var displayDelaySeconds: Int
         var screenMode: String
         var sleepWhenDone: Bool
+        /// 화면을 끌 때 음소거할지. 나중에 생긴 항목이라 옛 저장값에는 없다(아래 `init(from:)`).
+        var muteWhileOff: Bool
 
         /// 코드에 박힌 값. 저장된 것이 없을 때 쓴다.
         static let builtIn = Sleep(hours: 0, minutes: 0, displayDelaySeconds: 5,
-                                   screenMode: "system", sleepWhenDone: false)
+                                   screenMode: "system", sleepWhenDone: false,
+                                   muteWhileOff: false)
     }
 
     /// 덮어도 작업이 기억하는 것.
@@ -42,4 +45,19 @@ enum ToolDefaults {
 
     static let sleepKey = "default.sleep"
     static let lidKey = "default.lid"
+}
+
+extension ToolDefaults.Sleep {
+    /// 항목이 하나 없다고 저장값 전체를 버리지 않는다. 자동 생성된 디코더는 `muteWhileOff`
+    /// 가 없는 옛 저장값에서 실패하고, `load` 는 그때 코드에 박힌 값으로 돌아가 사용자가
+    /// 저장한 시간·화면 모드까지 사라진다. 확장에 둬야 멤버별 생성자가 남는다.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        hours = try container.decode(Int.self, forKey: .hours)
+        minutes = try container.decode(Int.self, forKey: .minutes)
+        displayDelaySeconds = try container.decode(Int.self, forKey: .displayDelaySeconds)
+        screenMode = try container.decode(String.self, forKey: .screenMode)
+        sleepWhenDone = try container.decode(Bool.self, forKey: .sleepWhenDone)
+        muteWhileOff = try container.decodeIfPresent(Bool.self, forKey: .muteWhileOff) ?? false
+    }
 }

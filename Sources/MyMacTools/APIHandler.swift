@@ -151,6 +151,7 @@ final class APIHandler {
             "screenMode": sleep.screenMode.rawValue,
             "displayDelaySeconds": sleep.displayDelaySeconds,
             "sleepWhenDone": sleep.sleepWhenDone,
+            "muteWhileOff": sleep.muteWhileOff,
         ]
         if let remaining = sleep.remaining { state["remainingSeconds"] = Int(remaining) }
         if let countdown = sleep.displayCountdown { state["screenOffInSeconds"] = countdown }
@@ -176,6 +177,7 @@ final class APIHandler {
         let seconds = try Self.int(params, "displayDelaySeconds")
         let rawMode = try Self.string(params, "screenMode")
         let sleepWhenDone = try Self.bool(params, "sleepWhenDone")
+        let muteWhileOff = try Self.bool(params, "muteWhileOff")
 
         if let hours, !BlackWorkManager.hourOptions.contains(hours) { throw Failure.badParams }
         if let minutes, !BlackWorkManager.minuteOptions.contains(minutes) { throw Failure.badParams }
@@ -194,6 +196,7 @@ final class APIHandler {
         if let seconds { sleep.displayDelaySeconds = seconds }
         if let mode { sleep.screenMode = mode }
         if let sleepWhenDone { sleep.sleepWhenDone = sleepWhenDone }
+        if let muteWhileOff { sleep.muteWhileOff = muteWhileOff }
         // 안 준 값은 창에 남은 값이다. 그것이 `sleepWhenDone = true` 일 수 있으므로 규칙을 거친다.
         Actions.enforceLidRule(lid, sleep)
 
