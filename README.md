@@ -576,7 +576,14 @@ scripts/mymactools sleep.start hours=1 screenMode=keepOn
 swift build -c release      # 바이너리만
 ./scripts/build-app.sh      # .app 번들 (아이콘·문자열 조립 + ad-hoc 서명)
 ./scripts/build-tokens.py   # 디자인 토큰 → Design.swift, tokens.css
+./scripts/test.sh           # 시험 전부: swift test + 토큰 생성물 확인
 ```
+
+시험은 swift-testing 이고 `Tests/MyMacToolsTests/` 에 있습니다. Xcode 없이 명령줄 도구만
+있으면 `swift test` 만으로는 `Testing` 모듈을 못 찾습니다 — `scripts/test.sh` 가 그 경로를
+넘깁니다. 시험은 순수 로직과 읽기·거절 경로만 다룹니다. 화면을 끄거나 caffeinate·pmset 을
+부르는 시험은 없습니다(사용자의 맥이 바뀌므로). 무엇을 왜 시험하는지는
+[`docs/plans/test-suite/spec.md`](docs/plans/test-suite/spec.md).
 
 `Sources/MyMacTools/Design.swift` 는 **생성물입니다.** 간격·모서리·크기를 바꾸려면
 `design/tokens.json` 을 고치고 위 스크립트를 돌리세요. 값만 갈아끼워 다른 디자인을

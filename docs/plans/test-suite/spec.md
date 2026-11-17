@@ -1,0 +1,27 @@
+# spec — 시험 묶음
+
+## 요구사항
+세션마스터 전달(사용자 지시, 2026-11-17): "swift test 등 시험을 전부 돌리세요. 빠진 시험이 있으면 더하세요."
+지금까지 시험 대상이 없었다(`Package.swift` 에 시험 타깃 없음). 확인은 그때그때 만든 일회용 프로그램으로 했다.
+
+## 확정된 결정
+| 결정 축 | 확정 내용 | 근거 |
+|---|---|---|
+| 틀 | swift-testing(`import Testing`) | 이 맥은 Xcode 없이 명령줄 도구만 있다. XCTest 는 없고 swift-testing 은 `CommandLineTools/Library/Developer/Frameworks` 에 있다(실측) |
+| 실행 | `scripts/test.sh` — 명령줄 도구뿐이면 그 프레임워크 경로를 넘겨 `swift test`, 이어서 `build-tokens.py --check` | 경로를 `Package.swift` 에 박으면 Xcode 가 있는 맥에서 틀린 경로가 된다 |
+| 대상 | 실행 타깃을 `@testable import MyMacTools` | SwiftPM 이 실행 타깃의 시험을 지원한다 |
+| 범위 | 순수 로직과 **읽기·거절 경로**만 | 시험이 화면을 끄거나 caffeinate·pmset·관리자 인증을 부르면 사용자의 맥이 바뀐다 |
+
+## 시험하는 것
+- 현지화: `L10n.Key` 전부가 ko/en/ja 에 있고, 세 언어의 키 묶음과 형식 지정자(`%@`·`%d`)가 같다
+- 기본값: 옛 저장값(항목이 빠진 것)도 읽힌다, 저장·읽기 왕복
+- 단축키: 표시 순서, Carbon 수정자, 같은 조합 판별, 수정자 없는 키 거절
+- caffeinate 인자 해석, IntelliJ 테마 생성(남은 자리표시자 없음·JSON 으로 읽힘), IP 꼴 판별
+- API: 응답 꼴, 모르는 메서드, 잘못된 요청, `sleep.start` 의 형 검사(거절되면 값이 그대로), 사람이 해야 하는 메서드(`needsHuman`)
+
+## 시험하지 않는 것
+| 것 | 이유 |
+|---|---|
+| 세션 시작·화면 끄기·음소거 실제 동작 | 사용자의 화면과 소리를 바꾼다. 필요할 때 일회용 프로그램으로 확인했다 |
+| 덮개(`pmset disablesleep`) | 관리자 권한 |
+| 진짜 키 입력 | 합성 키로는 Carbon 핫키가 발동하지 않는다 |

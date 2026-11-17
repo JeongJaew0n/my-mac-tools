@@ -33,8 +33,9 @@ Sources/MyMacTools/
 ├── Localization.swift       L10n.Key 와 언어 전환
 └── Design.swift             디자인 토큰 — **생성물이다. 직접 고치지 않는다**
 Resources/                   Info.plist, 아이콘, ko/en/ja lproj
+Tests/MyMacToolsTests/       swift-testing 시험 — `scripts/test.sh` 로 돌린다
 design/                      디자인 토큰 출처 (tokens.json, themes/)
-scripts/                     build-app.sh, install-sudoers.sh, build-tokens.py,
+scripts/                     build-app.sh, install-sudoers.sh, build-tokens.py, test.sh,
                              mymactools (API 클라이언트)
 docs/                        계획·용어·트러블슈팅 (아래 docs 규칙 참고)
 ```
