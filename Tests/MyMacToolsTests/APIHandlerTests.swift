@@ -55,6 +55,41 @@ struct APIHandlerTests {
         #expect(before == (sleep.hours, sleep.minutes, sleep.screenMode, sleep.muteWhileOff, sleep.sleepWhenDone))
     }
 
+    /// 끄기·열기는 대상이 확실할 때만 한다. 형이 틀리거나 목록에 없으면 아무것도 하지 않는다.
+    /// pid·포트는 쓰이지 않는 값을 골랐다 — 목록에 있으면 실제로 꺼지므로 `notFound` 만 기대한다.
+    @Test(arguments: [
+        (#"{"method":"caffeinate.stop"}"#, "badParams"),
+        (#"{"method":"caffeinate.stop","params":{"pid":"123"}}"#, "badParams"),
+        (#"{"method":"caffeinate.stop","params":{"pid":2147483000}}"#, "notFound"),
+        (#"{"method":"ports.stop"}"#, "badParams"),
+        (#"{"method":"ports.stop","params":{"pid":2147483000}}"#, "notFound"),
+        (#"{"method":"ports.open","params":{"port":70000}}"#, "badParams"),
+        (#"{"method":"ports.open","params":{"port":"80"}}"#, "badParams"),
+        (#"{"method":"ports.list","params":{"category":"nope"}}"#, "badParams"),
+        (#"{"method":"ports.list","params":{"search":"abc"}}"#, "badParams"),
+    ])
+    func targetedActionsNeedAValidTarget(_ request: String, _ code: String) throws {
+        #expect(try errorCode(request) == code)
+    }
+
+    /// 사진이 없으면 덮지 않는다. 시험 프로세스에는 저장된 사진이 없다.
+    @Test func coverStartNeedsAnImage() throws {
+        UserDefaults.standard.removeObject(forKey: "coverImagePath")
+        let handler = APIHandler(sleep: sleep, lid: LidWorkManager(), cover: ScreenCoverManager(),
+                                 caffeine: CaffeinateScanner(), localhost: LocalhostManager(),
+                                 speedTest: SpeedTestManager(), macInfo: MacInfoManager(),
+                                 thermal: ThermalManager(), intellij: IntelliJThemeManager())
+        let data = handler.respond(to: Data(#"{"method":"cover.start"}"#.utf8))
+        let response = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect((response["error"] as? [String: Any])?["code"] as? String == "preconditionFailed")
+    }
+
+    /// 상태를 읽는 메서드는 늘 `ok` 다.
+    @Test(arguments: ["sleep.get", "lid.get", "cover.get", "speedtest.status", "intellij.info"])
+    func readMethodsSucceed(_ method: String) throws {
+        #expect(try call(#"{"method":"\#(method)"}"#)["ok"] as? Bool == true)
+    }
+
     /// 관리자 인증이나 다른 앱을 끄는 일은 사람에게 돌려보낸다.
     @Test(arguments: ["lid.start", "lid.stop", "intellij.apply", "intellij.restore"])
     func humanOnlyMethods(_ method: String) throws {
