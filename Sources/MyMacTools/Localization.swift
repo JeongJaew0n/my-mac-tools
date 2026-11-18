@@ -117,6 +117,7 @@ final class L10n: ObservableObject {
         case sleepShortcutLabel = "sleep.shortcutLabel"
         case sleepShortcutHint = "sleep.shortcutHint"
         case sleepShortcutTaken = "sleep.shortcutTaken"
+        case shortcutRegisterFailed = "shortcut.registerFailed"
 
         // 현재 실행중인 카페인
         case caffeineSectionTitle = "caffeine.sectionTitle"
@@ -171,6 +172,7 @@ final class L10n: ObservableObject {
         case hostsReveal = "hosts.reveal"
         case hostsSaveNote = "hosts.saveNote"
         case hostsOpenFailed = "hosts.openFailed"
+        case hostsNoApp = "hosts.noApp"
 
         // 속도 측정
         case speedDownload = "speed.download"

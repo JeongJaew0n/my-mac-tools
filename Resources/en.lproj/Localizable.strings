@@ -87,6 +87,7 @@
 "sleep.shortcutLabel" = "Work with Screen Off";
 "sleep.shortcutHint" = "Press anywhere to start with your saved defaults, display set to Keep it off. Press again to stop. Include ⌘, ⌥ or ⌃; Delete clears.";
 "sleep.shortcutTaken" = "Already used for Cover. Press another combination.";
+"shortcut.registerFailed" = "Couldn't register this combination. The previous shortcut is kept.";
 
 /* Menu bar */
 "menu.openWindow" = "Open Window";
@@ -146,6 +147,7 @@
 "hosts.reveal" = "Show in Finder";
 "hosts.saveNote" = "Your editor does the saving. It needs administrator rights, so TextEdit can't save it; editors such as VS Code ask for your password when saving.";
 "hosts.openFailed" = "Couldn't open: %@";
+"hosts.noApp" = "No app is set to open this file. Pick one with Choose Another App…";
 
 /* Settings window */
 "settings.tabsTitle" = "Tools shown as tabs";

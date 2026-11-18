@@ -19,45 +19,61 @@ final class HostsFile: ObservableObject {
     /// 사용자가 고른 편집기. 없으면 시스템 기본으로 연다.
     @Published private(set) var chosenEditor: URL?
     /// 열기에 실패한 이유. 다시 열면 비운다.
-    @Published private(set) var lastError: String?
+    @Published private(set) var openProblem: OpenProblem?
+    /// macOS 가 이 파일에 주는 기본 앱. hosts 는 확장자가 없는 `public.data` 라 대개 TextEdit 다.
+    ///
+    /// `reload()` 때 한 번 묻고 기억한다. 계산 속성으로 두면 화면을 그릴 때마다 여러 번 묻는다.
+    @Published private(set) var defaultEditor: URL?
+
+    enum OpenProblem: Equatable {
+        /// 열 앱이 없다 — 기본 앱도 없고 고른 것도 없다.
+        case noApp
+        /// macOS 가 돌려준 이유. 이미 사용자 언어로 되어 있다.
+        case failed(String)
+    }
 
     init() {
         chosenEditor = Self.restoreEditor()
-    }
-
-    /// macOS 가 이 파일에 주는 기본 앱. hosts 는 확장자가 없는 `public.data` 라 대개 TextEdit 다.
-    var defaultEditor: URL? {
-        NSWorkspace.shared.urlForApplication(toOpen: Self.url)
+        defaultEditor = NSWorkspace.shared.urlForApplication(toOpen: Self.url)
     }
 
     /// 버튼이 실제로 열 앱.
     var editor: URL? { chosenEditor ?? defaultEditor }
 
     /// 탭을 열 때와 앱이 다시 앞으로 올 때 부른다. 편집기에서 고치고 돌아오면 바로 보이게.
+    ///
+    /// 읽기와 나누기는 메인 스레드 밖에서 한다. 광고 차단용 hosts 는 수만 줄이라, 앱으로
+    /// 돌아올 때마다 메인에서 읽으면 창이 멈춘다.
     func reload() {
-        guard let text = try? String(contentsOf: Self.url, encoding: .utf8) else {
-            entries = []
-            readFailed = true
-            return
+        defaultEditor = NSWorkspace.shared.urlForApplication(toOpen: Self.url)
+        let url = Self.url
+        Task {
+            let parsed = await Task.detached(priority: .userInitiated) { Self.parse(url) }.value
+            readFailed = parsed == nil
+            entries = parsed ?? []
         }
-        readFailed = false
-        entries = text
+    }
+
+    /// 주석·빈 줄을 뺀 항목 줄. 못 읽으면 `nil`.
+    nonisolated private static func parse(_ url: URL) -> [String]? {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        return text
             .split(whereSeparator: \.isNewline)
             .map { $0.split(whereSeparator: \.isWhitespace).joined(separator: " ") }
             .filter { !$0.isEmpty && !$0.hasPrefix("#") }
     }
 
     func open() {
-        lastError = nil
+        openProblem = nil
         guard let app = editor else {
-            lastError = "no application"
+            openProblem = .noApp
             return
         }
         NSWorkspace.shared.open([Self.url], withApplicationAt: app,
                                 configuration: NSWorkspace.OpenConfiguration()) { [weak self] _, error in
             guard let error else { return }
             let reason = error.localizedDescription
-            Task { @MainActor in self?.lastError = reason }
+            Task { @MainActor in self?.openProblem = .failed(reason) }
         }
     }
 
@@ -133,7 +149,8 @@ struct HostsFileSection: View {
                     .font(.caption)
                     .foregroundStyle(Design.Color.textSecondary)
             } else {
-                VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                // 보이는 줄만 만든다. 탭 전체가 스크롤 뷰 안이라 줄이 수만 개여도 한꺼번에 그리지 않는다.
+                LazyVStack(alignment: .leading, spacing: Design.Space.rowTight) {
                     ForEach(Array(hosts.entries.enumerated()), id: \.offset) { _, line in
                         Text(verbatim: line)
                             .font(.caption.monospaced())
@@ -161,10 +178,16 @@ struct HostsFileSection: View {
                 .foregroundStyle(Design.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if let error = hosts.lastError {
-                Text(l10n(.hostsOpenFailed, error))
-                    .font(.caption)
-                    .foregroundStyle(Design.Color.statusError)
+            if let problem = hosts.openProblem {
+                Group {
+                    switch problem {
+                    case .noApp: Text(l10n(.hostsNoApp))
+                    case .failed(let reason): Text(l10n(.hostsOpenFailed, reason))
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(Design.Color.statusError)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

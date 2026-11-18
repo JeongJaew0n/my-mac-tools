@@ -87,6 +87,7 @@
 "sleep.shortcutLabel" = "화면 끈 채로 작업";
 "sleep.shortcutHint" = "어디서든 누르면 저장한 기본값으로 켜되 화면은 '끈 상태로 유지'. 돌고 있으면 끕니다. ⌘ ⌥ ⌃ 중 하나 포함, Delete 로 지움.";
 "sleep.shortcutTaken" = "이미 화면 가리기 단축키입니다. 다른 조합을 누르세요.";
+"shortcut.registerFailed" = "이 조합은 등록되지 않았습니다. 쓰던 단축키를 그대로 둡니다.";
 
 /* 메뉴바 */
 "menu.openWindow" = "창 열기";
@@ -146,6 +147,7 @@
 "hosts.reveal" = "Finder에서 보기";
 "hosts.saveNote" = "저장은 편집기가 합니다. 관리자 권한이 필요해 TextEdit로는 저장되지 않고, VS Code 등은 저장할 때 암호를 묻습니다.";
 "hosts.openFailed" = "열지 못했습니다: %@";
+"hosts.noApp" = "이 파일을 열 기본 앱이 없습니다. '다른 앱 고르기…'로 고르세요.";
 
 /* 설정 창 */
 "settings.tabsTitle" = "탭에 표시할 기능";

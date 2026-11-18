@@ -64,7 +64,9 @@ struct ContentView: View {
     /// 시스템 설정 → 손쉬운 사용 → "색상 없이 구별". 켜져 있으면 실행 중을 색 말고 모양으로도 보인다.
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
     /// 다른 단축키와 겹쳐 받지 않은 자리. 그 자리 아래에 이유를 보인다.
-    @State private var shortcutConflict: HotKeyCenter.Slot?
+    /// 단축키를 바꾸지 못한 이유. **어느 자리든 바꾸는 데 성공하면 비운다** — 상대 자리를
+    /// 바꿔 겹침이 풀렸는데 안내가 남아 있으면 거짓말이 된다.
+    @State private var shortcutProblem: ShortcutProblem?
     /// 발열 탭의 센서 전체 목록을 펼쳤는가. 기본은 접힘 — 묶음 요약이면 대개 충분하다.
     @State private var showsAllSensors = false
 
@@ -306,12 +308,7 @@ struct ContentView: View {
                     shortcut: manager.shortcut,
                     placeholder: l10n(.coverShortcutNone),
                     recordingLabel: l10n(.coverShortcutRecording)) { value in
-                        guard !(value?.hasSameKeys(as: cover.shortcut) ?? false) else {
-                            shortcutConflict = .screenOff
-                            return
-                        }
-                        shortcutConflict = nil
-                        manager.setShortcut(value)
+                        record(manager.setShortcut(value), slot: .screenOff)
                     }
             }
 
@@ -320,11 +317,30 @@ struct ContentView: View {
                 .foregroundStyle(Design.Color.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            if shortcutConflict == .screenOff {
-                Text(l10n(.sleepShortcutTaken))
+            if let message = shortcutMessage(.screenOff) {
+                Text(message)
                     .font(.caption)
                     .foregroundStyle(Design.Color.statusError)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+        }
+    }
+
+    struct ShortcutProblem: Equatable {
+        let slot: HotKeyCenter.Slot
+        let outcome: HotKeyCenter.Outcome
+    }
+
+    private func record(_ outcome: HotKeyCenter.Outcome, slot: HotKeyCenter.Slot) {
+        shortcutProblem = outcome == .done ? nil : ShortcutProblem(slot: slot, outcome: outcome)
+    }
+
+    private func shortcutMessage(_ slot: HotKeyCenter.Slot) -> String? {
+        guard let problem = shortcutProblem, problem.slot == slot else { return nil }
+        switch problem.outcome {
+        case .done: return nil
+        case .taken: return l10n(slot == .cover ? .coverShortcutTaken : .sleepShortcutTaken)
+        case .failed: return l10n(.shortcutRegisterFailed)
         }
     }
 
@@ -798,19 +814,15 @@ struct ContentView: View {
                         shortcut: cover.shortcut,
                         placeholder: l10n(.coverShortcutNone),
                         recordingLabel: l10n(.coverShortcutRecording)) { value in
-                            guard !(value?.hasSameKeys(as: manager.shortcut) ?? false) else {
-                                shortcutConflict = .cover
-                                return
-                            }
-                            shortcutConflict = nil
-                            cover.setShortcut(value)
+                            record(cover.setShortcut(value), slot: .cover)
                         }
                 }
 
-                if shortcutConflict == .cover {
-                    Text(l10n(.coverShortcutTaken))
+                if let message = shortcutMessage(.cover) {
+                    Text(message)
                         .font(.caption)
                         .foregroundStyle(Design.Color.statusError)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Text(l10n(.coverShortcutHint))

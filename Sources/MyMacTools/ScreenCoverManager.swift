@@ -79,41 +79,33 @@ final class ScreenCoverManager: ObservableObject {
         imagePath = defaults.string(forKey: Self.imagePathKey)
         fillMode = defaults.string(forKey: Self.fillModeKey)
             .flatMap(FillMode.init(rawValue:)) ?? .fill
-        shortcut = defaults.data(forKey: Self.shortcutKey)
-            .flatMap { try? JSONDecoder().decode(Shortcut.self, from: $0) }
-        applyShortcut()
+        shortcut = Shortcut.load(key: Self.shortcutKey)
+        HotKeyCenter.shared.set(shortcut, for: .cover) { [weak self] in self?.coverFromShortcut() }
     }
 
     // MARK: - 단축키
 
-    /// `nil` 을 주면 지운다.
-    func setShortcut(_ value: Shortcut?) {
+    /// `nil` 을 주면 지운다. 걸리지 않았으면(`.done` 이 아니면) 저장도 표시도 바꾸지 않는다 —
+    /// 안 그러면 누르면 아무 일도 없는 조합이 화면에 지정된 것처럼 보인다.
+    @discardableResult
+    func setShortcut(_ value: Shortcut?) -> HotKeyCenter.Outcome {
+        let outcome = HotKeyCenter.shared.set(value, for: .cover) { [weak self] in self?.coverFromShortcut() }
+        guard outcome == .done else { return outcome }
         shortcut = value
-        let defaults = UserDefaults.standard
-        if let value, let data = try? JSONEncoder().encode(value) {
-            defaults.set(data, forKey: Self.shortcutKey)
-        } else {
-            defaults.removeObject(forKey: Self.shortcutKey)
-        }
-        applyShortcut()
+        Shortcut.save(value, key: Self.shortcutKey)
+        return outcome
     }
 
     /// 단축키는 **덮기만** 한다. 해제는 화면에 떠 있는 세 가지로 한다.
     /// 덮고 나서 같은 키를 눌러 풀리게 하면, 커버가 키를 삼키는 동작과 얽혀
     /// 조합에 따라 되기도 안 되기도 하는 동작이 된다.
-    private func applyShortcut() {
-        guard let shortcut else {
-            HotKeyCenter.shared.unregister(.cover)
-            return
-        }
-        HotKeyCenter.shared.register(shortcut, for: .cover) { [weak self] in
-            guard let self, !self.isCovering else { return }
-            self.start()
-            // 사진이 없거나 못 읽으면 덮이지 않는다. 그때는 창을 앞으로 내보내
-            // 사용자가 이유를 볼 수 있게 한다. 아무 일도 안 일어나면 고장으로 보인다.
-            if !self.isCovering {
-                NSApp.activate(ignoringOtherApps: true)
-            }
+    private func coverFromShortcut() {
+        guard !isCovering else { return }
+        start()
+        // 사진이 없거나 못 읽으면 덮이지 않는다. 그때는 창을 앞으로 내보내
+        // 사용자가 이유를 볼 수 있게 한다. 아무 일도 안 일어나면 고장으로 보인다.
+        if !isCovering {
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 
