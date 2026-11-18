@@ -112,6 +112,7 @@ struct IntelliJThemeView: View {
                     // 다른 펼침과 같이 글자 뒤 빈 자리까지 눌리게 한다.
                     Spacer(minLength: 0)
                 }
+                .frame(minHeight: Design.Size.hitMin)
                 .contentShape(Rectangle())
                 .onTapGesture { showsAllColors.toggle() }
             }

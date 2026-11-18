@@ -4,6 +4,7 @@
 :root {
   --primitive-dimension-dotMd: 10px;
   --primitive-dimension-dotSm: 8px;
+  --primitive-dimension-hit: 24px;
   --primitive-dimension-iconSm: 11px;
   --primitive-radius-md: 12px;
   --primitive-radius-none: 0px;
@@ -42,6 +43,7 @@
   --semantic-radius-chip: 3px;
   --semantic-radius-control: 6px;
   --semantic-radius-panel: 12px;
+  --semantic-size-hitMin: 24px;
   --semantic-size-indicator: 10px;
   --semantic-size-indicatorSmall: 8px;
   --semantic-size-navIcon: 11px;
@@ -60,7 +62,7 @@
   --primitive-color-charcoal: #1E1E1E;
   --primitive-color-sky200: #BDDDFC;
   --primitive-color-sky400: #88BDF2;
-  --primitive-color-slate400: #809AB4;
+  --primitive-color-slate400: #819BB4;
   --primitive-color-slate500: #6A89A7;
   --primitive-color-slate600: #54728F;
   --primitive-color-slate700: #384959;
@@ -87,6 +89,6 @@
     --semantic-color-statusRunning: #30D158;
     --semantic-color-statusWarning: #FF9230;
     --semantic-color-surface: rgba(56, 73, 89, 0.45);
-    --semantic-color-textSecondary: #809AB4;
+    --semantic-color-textSecondary: #819BB4;
   }
 }

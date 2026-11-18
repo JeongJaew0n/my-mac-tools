@@ -3,7 +3,7 @@
 
     scripts/build-tokens.py                       # 기본 테마로 생성
     scripts/build-tokens.py --theme normalized    # 테마를 얹어서 생성
-    scripts/build-tokens.py --check               # 생성물이 최신인지만 확인 (CI 용)
+    scripts/build-tokens.py --check               # 생성물이 최신인지·대비가 기준을 넘는지 확인 (CI 용)
 
 출처는 `design/tokens.json` 하나다. 거기서 두 가지를 만든다.
 
@@ -149,6 +149,52 @@ def resolve_colors(flat):
         return {mode: one for mode in MODES}
 
     return {key: color_of(key, frozenset()) for key in flat if is_color_key(key)}
+
+
+# 대비 기준(WCAG). 글자 4.5, 모양(토글·초점 같은 강조색 자체) 3.
+# 바탕은 창 바탕이다 — NSColor.windowBackgroundColor 실측값과 같은 원시 색(docs/plans/color-tokens/spec.md).
+WINDOW_BACKGROUND = {"light": "primitive.color.white", "dark": "primitive.color.charcoal"}
+CONTRAST_PAIRS = [
+    # (글자·모양, 바탕, 최소, 무엇)
+    ("semantic.color.textSecondary", None, 4.5, "보조 글자 / 창 바탕"),
+    ("semantic.color.textSecondary", "semantic.color.surface", 4.5, "보조 글자 / 면"),
+    ("semantic.color.onAccent", "semantic.color.accent", 4.5, "강조색 위 글자 / 강조색"),
+    ("semantic.color.onSelection", "semantic.color.selection", 4.5, "선택 글자 / 선택 바탕"),
+    ("semantic.color.accent", None, 3.0, "강조색(모양) / 창 바탕"),
+]
+
+
+def check_contrast(colors):
+    """대비가 기준에 못 미치는 쌍을 돌려준다. 반투명 색은 아래 바탕에 섞어서 잰다."""
+    def rgb(hexcode):
+        return [int(hexcode[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+
+    def over(side, below):
+        if side[0] != "rgb":
+            raise SystemExit(f"대비 검사: 시스템 색은 값을 몰라 잴 수 없습니다: {side}")
+        alpha = side[2]
+        return [alpha * c + (1 - alpha) * b for c, b in zip(rgb(side[1]), below)]
+
+    def luminance(channels):
+        def linear(c):
+            return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+        r, g, b = (linear(c) for c in channels)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    def ratio(a, b):
+        light, dark = sorted((luminance(a), luminance(b)), reverse=True)
+        return (light + 0.05) / (dark + 0.05)
+
+    failures, report = [], []
+    for fg_key, bg_key, minimum, label in CONTRAST_PAIRS:
+        for mode in MODES:
+            window = rgb(colors[WINDOW_BACKGROUND[mode]][mode][1])
+            background = over(colors[bg_key][mode], window) if bg_key else window
+            value = ratio(over(colors[fg_key][mode], background), background)
+            report.append((label, mode, value, minimum))
+            if value < minimum:
+                failures.append(f"{label} ({mode}) {value:.2f} < {minimum}")
+    return failures, report
 
 
 def swift_number(value):
@@ -311,7 +357,7 @@ def main():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--theme", help="design/themes/<이름>.json 을 얹는다")
     parser.add_argument("--check", action="store_true",
-                        help="생성물이 최신인지만 확인한다. 다르면 종료 코드 1")
+                        help="생성물이 최신인지 확인한다. 다르거나 대비가 기준 미달이면 종료 코드 1")
     args = parser.parse_args()
 
     document = load(TOKENS)
@@ -326,6 +372,14 @@ def main():
         theme_name = theme.get("$name", args.theme)
 
     resolved, flat, colors = resolve(document)
+
+    # 대비가 기준에 못 미치면 생성도 확인도 하지 않는다. 테마나 원시 색을 바꾸다 모르게 깨지는 것을 막는다.
+    failures, report = check_contrast(colors)
+    if failures:
+        print("대비가 기준에 못 미칩니다:", file=sys.stderr)
+        for line in failures:
+            print(f"  {line}", file=sys.stderr)
+        return 1
     swift = render_swift(resolved, flat, theme_name, colors)
     css = render_css(resolved, theme_name, colors)
 
@@ -339,7 +393,7 @@ def main():
             print("생성물이 토큰과 다릅니다:", ", ".join(stale), file=sys.stderr)
             print("scripts/build-tokens.py 를 돌리세요.", file=sys.stderr)
             return 1
-        print("최신입니다.")
+        print(f"최신입니다. 대비 {len(report)}쌍 통과 (최저 {min(r[2] for r in report):.2f}).")
         return 0
 
     CSS_OUT.parent.mkdir(parents=True, exist_ok=True)

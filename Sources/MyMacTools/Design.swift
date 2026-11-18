@@ -53,6 +53,8 @@ enum Design {
     }
 
     enum Size {
+        /// 직접 그린 누르는 곳의 최소 높이. 글자만 한 줄이면 이보다 낮다. 시스템 컨트롤은 macOS 가 크기를 정하므로 걸지 않는다
+        static let hitMin: CGFloat = 24
         /// 본문의 상태 점
         static let indicator: CGFloat = 10
         /// 탐색 항목의 상태 점. 본문보다 작게 두어 위계를 만든다
@@ -140,7 +142,7 @@ enum Design {
         static let statusRunning = NSColor.systemGreen
         static let statusWarning = NSColor.systemOrange
         static let surface = adaptive(light: rgb(0xBD, 0xDD, 0xFC, 0.32), dark: rgb(0x38, 0x49, 0x59, 0.45))
-        static let textSecondary = adaptive(light: rgb(0x54, 0x72, 0x8F), dark: rgb(0x80, 0x9A, 0xB4))
+        static let textSecondary = adaptive(light: rgb(0x54, 0x72, 0x8F), dark: rgb(0x81, 0x9B, 0xB4))
     }
 }
 

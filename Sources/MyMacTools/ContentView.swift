@@ -228,6 +228,8 @@ struct ContentView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Design.Inset.navItemY)
+                    // 여백까지 합친 높이의 하한. 지금은 아이콘·글자 + 여백이 이미 넘어 아무 일도 안 한다.
+                    .frame(minHeight: Design.Size.hitMin)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -422,6 +424,8 @@ struct ContentView: View {
                 // 열리는지 눈으로 알 수 없다.
                 Spacer(minLength: 0)
             }
+            // 글자 한 줄 높이로는 누르는 곳이 너무 낮다(약 15pt). 하한까지 넓힌다.
+            .frame(minHeight: Design.Size.hitMin)
             // `DisclosureGroup` 은 화살표만 눌린다. 제목을 눌러도 열고 닫히게 한다.
             .contentShape(Rectangle())
             .onTapGesture { caffeine.isExpanded.toggle() }
@@ -1272,6 +1276,9 @@ struct ContentView: View {
                 Text(copiedAddress == address ? l10n(.infoCopied) : address)
                     .font(.body.monospacedDigit())
                     .foregroundStyle(copiedAddress == address ? Design.Color.statusRunning : Color.primary)
+                    // plain 버튼은 글자 위만 눌린다. 누르는 곳을 하한 높이까지 넓힌다.
+                    .frame(minHeight: Design.Size.hitMin)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .help(l10n(.infoCopy))
