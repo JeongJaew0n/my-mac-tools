@@ -25,11 +25,12 @@
 
 | 용어 | 정의 | 비고 |
 |---|---|---|
-| **Tool** | 이 앱의 기능 묶음 단위. 현재 `screenOff`(잠자기 방지) · `lid`(덮개 닫아도 작업) · `cover`(화면 가리기) · `localhost`(로컬호스트) · `speedTest`(속도 측정) · `macInfo`(Mac 정보) · `thermal`(발열) · `intellijTheme`(IntelliJ 색) 여덟 | `Tab` 과 다름 — Tab 은 Tool 의 UI 표현(`enum Tab`)이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지 먼저 정한다 |
+| **Tool** | 이 앱의 기능 묶음 단위. 현재 `screenOff`(잠자기 방지) · `lid`(덮개 닫아도 작업) · `cover`(화면 가리기) · `localhost`(로컬호스트) · `speedTest`(속도 측정) · `macInfo`(Mac 정보) · `thermal`(발열) · `intellijTheme`(IntelliJ 색) · `captureEdit`(캡처 편집) 아홉 | `Tab` 과 다름 — Tab 은 Tool 의 UI 표현(`enum Tab`)이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지 먼저 정한다 |
 | ScreenMode | 잠자기 방지 세션 동안 **화면**을 어떻게 할지. `system`(맥북 기본설정대로) · `keepOff`(끈 상태로 유지) · `keepOn`(계속 켜두기) 셋 중 하나이며 서로 배타적이다 | 시스템 잠자기 차단과 별개다. 시스템은 `caffeinate -i` 로 항상 막고, ScreenMode 는 `-d` 를 붙일지와 `displaysleepnow` 를 쓸지를 가른다 |
 | ScreenPhase | `keepOff` 일 때 화면 끄기를 유지하는 내부 단계. `idle` → `verifying` → `watching` → `grace(n)` | ScreenMode 와 다름 — Mode 는 사용자가 고르는 설정, Phase 는 그 설정을 지키려고 앱이 오가는 상태다 |
 | muteWhileOff | 잠자기 방지의 '화면 끌 때 음소거' 설정. `keepOff` 에서 화면을 처음 끌 때 기본 출력 장치를 음소거하고, 세션이 끝나면 시작 전 상태로 되돌린다 | 시스템 음량을 바꾸는 기능이 아니다 — 음소거 여부만 건드리고, 원래 음소거였으면 끝나도 그대로다 |
-| 단축키 자리 (`HotKeyCenter.Slot`) | 전역 단축키를 거는 자리. `cover`(화면 가리기 — 누르면 덮는다) · `screenOff`('화면 끈 채로 작업' — 누르면 저장한 기본값에 ScreenMode `keepOff` 로 켜고, 돌고 있으면 끈다) 둘이다. 두 자리는 같은 조합을 쓸 수 없다 | '화면 끈 채로 작업' 은 단축키 이름이지 새 모드가 아니다 — 켜는 세션은 ScreenMode `keepOff` 그대로다 |
+| 단축키 자리 (`HotKeyCenter.Slot`) | 전역 단축키를 거는 자리. `cover`(화면 가리기 — 누르면 덮는다) · `screenOff`('화면 끈 채로 작업' — 누르면 저장한 기본값에 ScreenMode `keepOff` 로 켜고, 돌고 있으면 끈다) · `captureEdit`(캡처 편집 — 클립보드 그림을 편집 창으로 연다) 셋이다. 두 자리는 같은 조합을 쓸 수 없다 | '화면 끈 채로 작업' 은 단축키 이름이지 새 모드가 아니다 — 켜는 세션은 ScreenMode `keepOff` 그대로다 |
+| 그린 것 (`Mark`) | 캡처 편집에서 그림 위에 얹은 것 하나 — 펜 선·네모·화살표·글자. 그림의 **포인트 좌표**로 기억하고, 내보낼 때 원본 픽셀 배율로 그린다 | 그림 자체는 바꾸지 않는다. 되돌리기는 마지막 `Mark` 를 빼는 것이다 |
 | 열 상태 | 발열 Tool 의 **OS 판정** — `ProcessInfo.thermalState` 의 정상·약간 높음·높음·위험 | 센서 온도(°C)와 다름 — 온도는 숫자일 뿐 판정이 아니다. 몇 도부터 뜨거운지는 우리가 정하지 않고 이 단계만 판정으로 쓴다 |
 | 색 역할 | IntelliJ 색 Tool 에서 사용자가 고르는 색 하나 (`IntelliJThemeTemplate.Role`). 예: 키워드 · 함수 · 패널 배경. 역할 하나가 테마 JSON · 스킴 XML 의 여러 자리에 들어간다 | 이 앱 자신의 디자인 토큰 '역할 이름'(`Design.Color.accent`)과 다름 — 그건 MyMacTools 화면의 색이고, 색 역할은 IntelliJ 에 내보낼 색이다 |
 | 팔레트 | 지금 편집 중인 색 역할 값 전체. 바꿀 때마다 자동으로 보존된다 | 프리셋과 다름 — 팔레트는 하나뿐이고 이름이 없다. 불러오기는 프리셋을 팔레트로 복사하는 것이다 |
