@@ -10,6 +10,8 @@
     <string>MyMacTools</string>
     <key>CFBundleDisplayName</key>
     <string>MyMacTools</string>
+    <key>MyMacToolsRepository</key>
+    <string>JeongJaew0n/my-mac-tools</string>
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>

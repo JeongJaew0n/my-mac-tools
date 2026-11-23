@@ -355,3 +355,28 @@
 "capture.width.thin" = "細い";
 "capture.width.regular" = "普通";
 "capture.width.thick" = "太い";
+
+/* 업데이트 */
+"update.menu" = "アップデート…";
+"update.title" = "アップデート";
+"update.installed" = "現在の版: %@";
+"update.installedUnknown" = "現在の版: 不明(コミット情報のないビルド)";
+"update.localChanges" = "未コミットの変更を含む";
+"update.checking" = "GitHub を確認中…";
+"update.upToDate" = "最新の版です。";
+"update.available" = "新しいコミット %d 件";
+"update.unknownNote" = "現在の版が不明なため main の最新コミットだけを表示します。アップデートするとその版になります。";
+"update.blocked" = "実行中: %@。アップデートするとアプリが再起動して止まるので、先に止めてください。";
+"update.button" = "アップデート";
+"update.later" = "後で";
+"update.recheck" = "再確認";
+"update.fetching" = "GitHub から取得中…";
+"update.building" = "この Mac でビルド中…";
+"update.verifying" = "ビルド結果を確認中…";
+"update.restarting" = "入れ替えて再起動中…";
+"update.failedNetwork" = "GitHub に問い合わせできませんでした: %@";
+"update.failedNoTools" = "コマンドラインツール(git・swift)がないためビルドできません。ターミナルで xcode-select --install を実行してください。";
+"update.failedCommand" = "取得またはビルドに失敗しました。現在のアプリはそのままです。";
+"update.failedVerify" = "ビルド結果を確認できませんでした(%@)。現在のアプリはそのままです。";
+"update.failedNotWritable" = "アプリの場所に書き込めません: %@";
+"update.rolledBack" = "更新したアプリが起動しなかったため、前の版に戻しました。";

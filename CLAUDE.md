@@ -22,6 +22,8 @@ Sources/MyMacTools/
 ├── CaptureEditManager.swift Tool: 캡처 편집 (단축키, 열기, 그림 없음 안내 창)
 ├── CaptureDocument.swift    캡처 편집의 모델 — 그린 것(Mark), 클립보드 읽기, PNG 내보내기
 ├── CaptureEditorWindow.swift 캡처 편집 창 (도구 막대·그림판·키 처리)
+├── UpdateManager.swift      앱 메뉴 "업데이트…" — GitHub main 과 비교, 이 맥에서 빌드, 바꾸기 도우미
+├── UpdateView.swift         업데이트 창
 ├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
 ├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
 ├── OutputMute.swift         잠자기 방지 안의 '화면 끌 때 음소거' (CoreAudio)

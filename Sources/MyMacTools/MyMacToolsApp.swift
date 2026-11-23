@@ -85,6 +85,7 @@ struct MyMacToolsApp: App {
     @StateObject private var thermal = ThermalManager()
     @StateObject private var intellij = IntelliJThemeManager()
     @StateObject private var capture = CaptureEditManager()
+    @StateObject private var update = UpdateManager()
     @StateObject private var l10n = L10n()
     @StateObject private var preferences = Preferences()
     /// 본 창이 보여줄 탭. `ContentView` 와 같은 키라 메뉴에서 바꾸면 창이 따라간다.
@@ -94,6 +95,8 @@ struct MyMacToolsApp: App {
     static let mainWindowID = "main"
     /// 설정 창.
     static let settingsWindowID = "settings"
+    /// 업데이트 창.
+    static let updateWindowID = "update"
 
     /// 툴팁이 뜨기까지의 지연(밀리초).
     ///
@@ -109,6 +112,8 @@ struct MyMacToolsApp: App {
         UserDefaults.standard.register(defaults: [
             "NSInitialToolTipDelay": Self.toolTipDelayMilliseconds
         ])
+        // 업데이트 도우미가 기다리는 "켜졌다" 신호. 창이 뜨기 전, 가장 이른 때에 쓴다.
+        UpdateManager.markLaunched()
     }
 
     /// 상태 막대 항목을 한 번만 만든다.
@@ -182,6 +187,8 @@ struct MyMacToolsApp: App {
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
                     capture.use(l10n)
+                    // 지난 업데이트가 되돌려졌으면 그 사실을 바로 보인다.
+                    if update.rolledBack { openWindowAction(id: Self.updateWindowID) }
                     installStatusItem()
                     installAPIServer()
                 }
@@ -195,6 +202,13 @@ struct MyMacToolsApp: App {
         .defaultSize(width: Design.Window.width,
                      height: Design.Window.contentHeight + Design.Window.titleBarHeight)
         .commands {
+            // 앱 메뉴(MyMacTools) 의 "MyMacTools 에 관하여" 바로 아래.
+            CommandGroup(after: .appInfo) {
+                Button(l10n(.updateMenu)) {
+                    openWindowAction(id: Self.updateWindowID)
+                }
+            }
+
             // 보기 메뉴에 탭마다 항목과 ⌘1… 을 둔다. HIG(The menu bar)가 탭형 앱에 권하는 꼴이고,
             // 이것이 없으면 탭을 바꾸는 데 마우스가 있어야 했다. 번호는 **보이는 탭의 순서**다 —
             // 숨긴 탭은 빠지고 뒤의 탭이 당겨진다.
@@ -236,5 +250,13 @@ struct MyMacToolsApp: App {
             SettingsView(preferences: preferences, l10n: l10n)
         }
         .windowResizability(.contentSize)
+
+        Window(l10n(.updateTitle), id: Self.updateWindowID) {
+            UpdateView(update: update, sleep: manager, lid: lid, cover: cover, speedTest: speedTest,
+                       capture: capture, l10n: l10n,
+                       close: { NSApp.windows.first { $0.identifier?.rawValue == Self.updateWindowID }?.close() })
+        }
+        .defaultSize(width: Design.Window.width,
+                     height: Design.Window.contentHeight + Design.Window.titleBarHeight)
     }
 }

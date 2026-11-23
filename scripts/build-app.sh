@@ -18,6 +18,17 @@ mkdir -p "${MACOS}" "${RESOURCES}"
 cp "${BUILD_DIR}/release/MyMacTools" "${MACOS}/${APP_NAME}"
 cp "Resources/Info.plist" "${CONTENTS}/Info.plist"
 
+# 어느 커밋으로 빌드했는지 새긴다. 앱 메뉴의 "업데이트…" 가 GitHub main 과 비교한다
+# (docs/plans/app-update/spec.md). 커밋 안 한 수정이 섞였으면 그것도 적는다.
+COMMIT="$(git rev-parse HEAD 2>/dev/null || true)"
+if [ -n "${COMMIT}" ]; then
+    /usr/libexec/PlistBuddy -c "Add :MyMacToolsCommit string ${COMMIT}" "${CONTENTS}/Info.plist"
+    if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+        /usr/libexec/PlistBuddy -c "Add :MyMacToolsDirty bool true" "${CONTENTS}/Info.plist"
+    fi
+    echo "  commit: ${COMMIT}"
+fi
+
 # 앱 아이콘. 원본 PNG 하나에서 필요한 크기를 만들어 .icns 로 굽는다.
 # 원본이 더 새로울 때만 다시 굽는다(재실행해도 안전, 매 빌드마다 갈지 않음).
 # 번들은 매번 rm -rf 되므로 캐시는 .build 아래에 둔다. 그래야 원본이 그대로일 때 건너뛴다.

@@ -355,3 +355,28 @@
 "capture.width.thin" = "Thin";
 "capture.width.regular" = "Regular";
 "capture.width.thick" = "Thick";
+
+/* 업데이트 */
+"update.menu" = "Update…";
+"update.title" = "Update";
+"update.installed" = "Installed: %@";
+"update.installedUnknown" = "Installed: unknown (built without a commit)";
+"update.localChanges" = "includes uncommitted changes";
+"update.checking" = "Checking GitHub…";
+"update.upToDate" = "You're up to date.";
+"update.available" = "%d new commits";
+"update.unknownNote" = "The installed version is unknown, so only the latest commit on main is shown. Updating switches to it.";
+"update.blocked" = "Running: %@. Updating restarts the app and would stop them, so stop them first.";
+"update.button" = "Update";
+"update.later" = "Later";
+"update.recheck" = "Check Again";
+"update.fetching" = "Downloading from GitHub…";
+"update.building" = "Building on this Mac…";
+"update.verifying" = "Checking the build…";
+"update.restarting" = "Replacing and restarting…";
+"update.failedNetwork" = "Couldn't reach GitHub: %@";
+"update.failedNoTools" = "The command line tools (git, swift) are missing, so it can't build. Install them with xcode-select --install in Terminal.";
+"update.failedCommand" = "Download or build failed. The installed app is unchanged.";
+"update.failedVerify" = "Couldn't verify the build (%@). The installed app is unchanged.";
+"update.failedNotWritable" = "Can't write where the app is: %@";
+"update.rolledBack" = "The updated app didn't start, so the previous version was restored.";

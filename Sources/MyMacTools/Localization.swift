@@ -379,6 +379,31 @@ final class L10n: ObservableObject {
         case captureWidthThin = "capture.width.thin"
         case captureWidthRegular = "capture.width.regular"
         case captureWidthThick = "capture.width.thick"
+
+        // 업데이트
+        case updateMenu = "update.menu"
+        case updateTitle = "update.title"
+        case updateInstalled = "update.installed"
+        case updateInstalledUnknown = "update.installedUnknown"
+        case updateLocalChanges = "update.localChanges"
+        case updateChecking = "update.checking"
+        case updateUpToDate = "update.upToDate"
+        case updateAvailable = "update.available"
+        case updateUnknownNote = "update.unknownNote"
+        case updateBlocked = "update.blocked"
+        case updateButton = "update.button"
+        case updateLater = "update.later"
+        case updateRecheck = "update.recheck"
+        case updateFetching = "update.fetching"
+        case updateBuilding = "update.building"
+        case updateVerifying = "update.verifying"
+        case updateRestarting = "update.restarting"
+        case updateFailedNetwork = "update.failedNetwork"
+        case updateFailedNoTools = "update.failedNoTools"
+        case updateFailedCommand = "update.failedCommand"
+        case updateFailedVerify = "update.failedVerify"
+        case updateFailedNotWritable = "update.failedNotWritable"
+        case updateRolledBack = "update.rolledBack"
     }
 
     /// `.lproj` 로 존재하는 언어 코드

@@ -355,3 +355,28 @@
 "capture.width.thin" = "가늘게";
 "capture.width.regular" = "보통";
 "capture.width.thick" = "굵게";
+
+/* 업데이트 */
+"update.menu" = "업데이트…";
+"update.title" = "업데이트";
+"update.installed" = "지금 판: %@";
+"update.installedUnknown" = "지금 판: 알 수 없음 (커밋 정보가 없는 빌드)";
+"update.localChanges" = "커밋하지 않은 수정 포함";
+"update.checking" = "GitHub 에서 확인하는 중…";
+"update.upToDate" = "최신 판입니다.";
+"update.available" = "새 커밋 %d개";
+"update.unknownNote" = "지금 판을 알 수 없어 main 의 최신 커밋만 보입니다. 업데이트하면 그 판으로 바뀝니다.";
+"update.blocked" = "돌고 있는 것: %@. 업데이트하면 앱이 다시 켜져 끊기므로, 끈 뒤 다시 하세요.";
+"update.button" = "업데이트";
+"update.later" = "나중에";
+"update.recheck" = "다시 확인";
+"update.fetching" = "GitHub 에서 받는 중…";
+"update.building" = "이 맥에서 빌드하는 중…";
+"update.verifying" = "빌드 결과를 확인하는 중…";
+"update.restarting" = "바꾸고 다시 켜는 중…";
+"update.failedNetwork" = "GitHub 에 묻지 못했습니다: %@";
+"update.failedNoTools" = "명령줄 도구(git·swift)가 없어 빌드할 수 없습니다. 터미널에서 xcode-select --install 로 설치하세요.";
+"update.failedCommand" = "받기나 빌드가 실패했습니다. 지금 앱은 그대로입니다.";
+"update.failedVerify" = "빌드 결과를 확인하지 못했습니다(%@). 지금 앱은 그대로입니다.";
+"update.failedNotWritable" = "앱이 있는 곳에 쓸 수 없습니다: %@";
+"update.rolledBack" = "지난 업데이트에서 새 앱이 켜지지 않아 이전 판으로 되돌렸습니다.";
