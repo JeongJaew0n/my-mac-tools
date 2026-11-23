@@ -19,6 +19,9 @@ Sources/MyMacTools/
 ├── IntelliJThemeManager.swift Tool: IntelliJ 색 (팔레트·프리셋, 테마 플러그인 적용)
 ├── IntelliJThemeTemplate.swift  IntelliJ 테마 JSON·스킴 XML 틀 + 색 역할 43개
 ├── IntelliJThemeView.swift  IntelliJ 색 화면 (ContentView 가 길어 따로 둔다)
+├── CaptureEditManager.swift Tool: 캡처 편집 (단축키, 열기, 그림 없음 안내 창)
+├── CaptureDocument.swift    캡처 편집의 모델 — 그린 것(Mark), 클립보드 읽기, PNG 내보내기
+├── CaptureEditorWindow.swift 캡처 편집 창 (도구 막대·그림판·키 처리)
 ├── CaffeinateScanner.swift  잠자기 방지 안의 카페인 목록
 ├── ProcessSnapshot.swift    프로세스 열거·이름 해석 (위 둘이 함께 쓴다)
 ├── OutputMute.swift         잠자기 방지 안의 '화면 끌 때 음소거' (CoreAudio)

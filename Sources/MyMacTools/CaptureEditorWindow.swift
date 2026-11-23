@@ -204,6 +204,8 @@ struct CaptureEditorView: View {
 
             Button(l10n(.captureCopy), action: copy)
                 .buttonStyle(PrimaryButtonStyle())
+                // 두 줄로 감기면 도구 막대 높이가 언어마다 달라진다(영어에서 확인). 한 줄로 두고 창이 넓어진다.
+                .fixedSize()
         }
     }
 

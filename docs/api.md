@@ -141,6 +141,7 @@ OS 판정). `groups` 는 `{group, maxCelsius, averageCelsius, count}` 이고 `gr
 | `speedtest.start` | — | 인터넷 속도 측정을 **시작만** 하고 곧바로 돌아온다 |
 | `speedtest.cancel` | — | 측정을 멈춘다 |
 | `mac.publicIP` | — | 공인 IP 를 `api.ipify.org` 에 **묻기만** 하고 곧바로 돌아온다. 결과는 `mac.info` 의 `publicIP` |
+| `capture.edit` | — | 클립보드의 그림을 **사용자 화면에** 캡처 편집 창으로 연다. 결과 `{"state": "opened"}`, 이미 열려 있으면 `"alreadyOpen"`(앞으로 낸다). 그림이 없으면 `preconditionFailed` 이고 화면에도 안내가 잠깐 뜬다 |
 
 `screenMode` 는 `system` · `keepOff` · `keepOn`.
 `hours` 0–24, `minutes` 0–50(10 단위), `displayDelaySeconds` 3·5·7·10.
