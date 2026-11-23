@@ -21,6 +21,14 @@
   --primitive-space-7: 12px;
   --primitive-space-8: 16px;
   --primitive-space-9: 20px;
+  --product-capture-arrowHeadAngle: 25px;
+  --product-capture-arrowHeadMin: 10px;
+  --product-capture-arrowHeadRatio: 4px;
+  --product-capture-noticeSeconds: 2px;
+  --product-capture-strokeRegular: 4px;
+  --product-capture-strokeThick: 8px;
+  --product-capture-strokeThin: 2px;
+  --product-capture-windowFraction: 0.5px;
   --product-window-contentHeight: 336px;
   --product-window-minContentHeight: 240px;
   --product-window-minWidth: 320px;
@@ -59,7 +67,11 @@
   --semantic-space-none: 0px;
   --semantic-space-overlayRow: 12px;
   --semantic-space-rowTight: 3px;
+  --primitive-color-black: #000000;
   --primitive-color-charcoal: #1E1E1E;
+  --primitive-color-markBlue: #007AFF;
+  --primitive-color-markRed: #FF3B30;
+  --primitive-color-markYellow: #FFCC00;
   --primitive-color-sky200: #BDDDFC;
   --primitive-color-sky400: #88BDF2;
   --primitive-color-slate400: #819BB4;
@@ -70,6 +82,11 @@
   --semantic-color-accent: #384959;
   --semantic-color-onAccent: #FFFFFF;
   --semantic-color-onSelection: #384959;
+  --semantic-color-penBlack: #000000;
+  --semantic-color-penBlue: #007AFF;
+  --semantic-color-penRed: #FF3B30;
+  --semantic-color-penWhite: #FFFFFF;
+  --semantic-color-penYellow: #FFCC00;
   --semantic-color-selection: #BDDDFC;
   --semantic-color-statusError: #FF383C;
   --semantic-color-statusIdle: #8E8E93;

@@ -83,10 +83,9 @@
 "cover.shortcutNone" = "None";
 "cover.shortcutRecording" = "Press a key…";
 "cover.shortcutHint" = "Must include ⌘, ⌥ or ⌃. Covers only. Delete clears it.";
-"cover.shortcutTaken" = "Already used for Work with Screen Off. Press another combination.";
 "sleep.shortcutLabel" = "Work with Screen Off";
 "sleep.shortcutHint" = "Press anywhere to start with your saved defaults, display set to Keep it off. Press again to stop. Include ⌘, ⌥ or ⌃; Delete clears.";
-"sleep.shortcutTaken" = "Already used for Cover. Press another combination.";
+"shortcut.takenBy" = "Already used for %@. Press another combination.";
 "shortcut.registerFailed" = "Couldn't register this combination. The previous shortcut is kept.";
 
 /* Menu bar */
@@ -329,3 +328,30 @@
 "intellij.role.notNullAssertion" = "!!";
 "intellij.role.mutableUnderline" = "var underline";
 "intellij.role.smartCastBackground" = "Smart cast background";
+
+/* 캡처 편집 */
+"tab.captureEdit" = "Capture Edit";
+"capture.open" = "Open Clipboard Image";
+"capture.editing" = "Editor is open";
+"capture.shortcutLabel" = "Open Shortcut";
+"capture.shortcutHint" = "Must include ⌘, ⌥ or ⌃. Delete clears it.";
+"capture.howTo" = "Take a screenshot to the clipboard with ⌃⌘⇧3, then press the shortcut to open the editor. Press Enter or ⌘C to put the result back on the clipboard.";
+"capture.noImage" = "No image on the clipboard";
+"capture.copyFailed" = "Couldn't put the image on the clipboard";
+"capture.copy" = "Copy and Close";
+"capture.undo" = "Undo";
+"capture.keys" = "Enter or ⌘C copy and close · Esc close · ⌘Z undo";
+"capture.textPrompt" = "Type, then Enter";
+"capture.lastCopied" = "Copied to the clipboard (%@)";
+"capture.tool.pen" = "Pen";
+"capture.tool.rectangle" = "Rectangle";
+"capture.tool.arrow" = "Arrow";
+"capture.tool.text" = "Text";
+"capture.pen.red" = "Red";
+"capture.pen.yellow" = "Yellow";
+"capture.pen.blue" = "Blue";
+"capture.pen.black" = "Black";
+"capture.pen.white" = "White";
+"capture.width.thin" = "Thin";
+"capture.width.regular" = "Regular";
+"capture.width.thick" = "Thick";

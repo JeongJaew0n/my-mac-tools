@@ -83,10 +83,9 @@
 "cover.shortcutNone" = "없음";
 "cover.shortcutRecording" = "키를 누르세요…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ 중 하나 포함. 덮기만 합니다. Delete 로 지움.";
-"cover.shortcutTaken" = "이미 '화면 끈 채로 작업' 단축키입니다. 다른 조합을 누르세요.";
 "sleep.shortcutLabel" = "화면 끈 채로 작업";
 "sleep.shortcutHint" = "어디서든 누르면 저장한 기본값으로 켜되 화면은 '끈 상태로 유지'. 돌고 있으면 끕니다. ⌘ ⌥ ⌃ 중 하나 포함, Delete 로 지움.";
-"sleep.shortcutTaken" = "이미 화면 가리기 단축키입니다. 다른 조합을 누르세요.";
+"shortcut.takenBy" = "이미 '%@' 단축키입니다. 다른 조합을 누르세요.";
 "shortcut.registerFailed" = "이 조합은 등록되지 않았습니다. 쓰던 단축키를 그대로 둡니다.";
 
 /* 메뉴바 */
@@ -329,3 +328,30 @@
 "intellij.role.notNullAssertion" = "!!";
 "intellij.role.mutableUnderline" = "var 밑줄";
 "intellij.role.smartCastBackground" = "스마트 캐스트 배경";
+
+/* 캡처 편집 */
+"tab.captureEdit" = "캡처 편집";
+"capture.open" = "클립보드 그림 열기";
+"capture.editing" = "편집 창이 열려 있음";
+"capture.shortcutLabel" = "열기 단축키";
+"capture.shortcutHint" = "⌘ ⌥ ⌃ 중 하나 포함. Delete 로 지움.";
+"capture.howTo" = "⌃⌘⇧3 으로 화면을 클립보드에 찍은 뒤 단축키를 누르면 편집 창이 열립니다. 그린 뒤 Enter 나 ⌘C 로 클립보드에 다시 넣습니다.";
+"capture.noImage" = "클립보드에 그림이 없습니다";
+"capture.copyFailed" = "클립보드에 넣지 못했습니다";
+"capture.copy" = "복사하고 닫기";
+"capture.undo" = "되돌리기";
+"capture.keys" = "Enter·⌘C 복사하고 닫기 · Esc 닫기 · ⌘Z 되돌리기";
+"capture.textPrompt" = "입력 후 Enter";
+"capture.lastCopied" = "클립보드에 넣었습니다 (%@)";
+"capture.tool.pen" = "펜";
+"capture.tool.rectangle" = "네모";
+"capture.tool.arrow" = "화살표";
+"capture.tool.text" = "글자";
+"capture.pen.red" = "빨강";
+"capture.pen.yellow" = "노랑";
+"capture.pen.blue" = "파랑";
+"capture.pen.black" = "검정";
+"capture.pen.white" = "흰색";
+"capture.width.thin" = "가늘게";
+"capture.width.regular" = "보통";
+"capture.width.thick" = "굵게";

@@ -14,6 +14,25 @@ import SwiftUI
 /// `product` 를 뺀 나머지는 이 앱에 매이지 않는다. 다른 제품으로 가져갈 때
 /// `design/tokens.json` 의 `primitive` 값만 바꾸면 된다.
 enum Design {
+    enum Capture {
+        /// 화살표 머리가 벌어지는 각(도, 한쪽)
+        static let arrowHeadAngle: CGFloat = 25
+        /// 화살표 머리 길이의 하한(pt). 가는 선에서도 머리가 보이게
+        static let arrowHeadMin: CGFloat = 10
+        /// 화살표 머리 길이 = 굵기 × 이 값. 정한 값 — 눈으로 보고 고친다
+        static let arrowHeadRatio: CGFloat = 4
+        /// '클립보드에 그림이 없습니다' 안내 창을 띄워 두는 시간(초). 사용자 선택
+        static let noticeSeconds: CGFloat = 2
+        /// 굵기 — 보통(pt), 기본. 사용자 선택
+        static let strokeRegular: CGFloat = 4
+        /// 굵기 — 굵게(pt). 사용자 선택
+        static let strokeThick: CGFloat = 8
+        /// 굵기 — 가늘게(pt). 사용자 선택
+        static let strokeThin: CGFloat = 2
+        /// 편집 창이 처음 차지할 수 있는 주 화면 보이는 영역의 비율(가로·세로 각각). 사용자 선택 '화면 절반 안에 맞춤'
+        static let windowFraction: CGFloat = 0.5
+    }
+
     enum Inset {
         /// 기본 동작 버튼 좌우
         static let buttonX: CGFloat = 12
@@ -115,6 +134,16 @@ enum Design {
         static let onAccent = SwiftUI.Color(nsColor: AppKitColor.onAccent)
         /// 선택된 항목 글자. 6.58
         static let onSelection = SwiftUI.Color(nsColor: AppKitColor.onSelection)
+        /// 캡처 편집 펜. 밝은 화면 위 글자. 라이트·다크가 같다 — 그린 결과가 화면 모양을 따라 바뀌면 안 된다
+        static let penBlack = SwiftUI.Color(nsColor: AppKitColor.penBlack)
+        /// 캡처 편집 펜. 라이트·다크가 같다 — 그린 결과가 화면 모양을 따라 바뀌면 안 된다
+        static let penBlue = SwiftUI.Color(nsColor: AppKitColor.penBlue)
+        /// 캡처 편집 펜 — 기본색. 라이트·다크가 같다 — 그린 결과가 화면 모양을 따라 바뀌면 안 된다
+        static let penRed = SwiftUI.Color(nsColor: AppKitColor.penRed)
+        /// 캡처 편집 펜. 어두운 화면 위 글자. 라이트·다크가 같다 — 그린 결과가 화면 모양을 따라 바뀌면 안 된다
+        static let penWhite = SwiftUI.Color(nsColor: AppKitColor.penWhite)
+        /// 캡처 편집 펜. 라이트·다크가 같다 — 그린 결과가 화면 모양을 따라 바뀌면 안 된다
+        static let penYellow = SwiftUI.Color(nsColor: AppKitColor.penYellow)
         /// 선택된 항목 바탕, 칩 바탕
         static let selection = SwiftUI.Color(nsColor: AppKitColor.selection)
         /// 실패·오류
@@ -136,6 +165,11 @@ enum Design {
         static let accent = adaptive(light: rgb(0x38, 0x49, 0x59), dark: rgb(0x88, 0xBD, 0xF2))
         static let onAccent = adaptive(light: rgb(0xFF, 0xFF, 0xFF), dark: rgb(0x1E, 0x1E, 0x1E))
         static let onSelection = adaptive(light: rgb(0x38, 0x49, 0x59), dark: rgb(0xBD, 0xDD, 0xFC))
+        static let penBlack = rgb(0x00, 0x00, 0x00)
+        static let penBlue = rgb(0x00, 0x7A, 0xFF)
+        static let penRed = rgb(0xFF, 0x3B, 0x30)
+        static let penWhite = rgb(0xFF, 0xFF, 0xFF)
+        static let penYellow = rgb(0xFF, 0xCC, 0x00)
         static let selection = adaptive(light: rgb(0xBD, 0xDD, 0xFC), dark: rgb(0x38, 0x49, 0x59))
         static let statusError = NSColor.systemRed
         static let statusIdle = NSColor.systemGray

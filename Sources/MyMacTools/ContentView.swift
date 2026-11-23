@@ -12,6 +12,7 @@ enum Tab: String, CaseIterable, Identifiable {
     case macInfo
     case thermal
     case intellijTheme
+    case captureEdit
 
     var id: String { rawValue }
 
@@ -25,6 +26,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .macInfo: return .tabMacInfo
         case .thermal: return .tabThermal
         case .intellijTheme: return .tabIntelliJTheme
+        case .captureEdit: return .tabCaptureEdit
         }
     }
 
@@ -40,6 +42,7 @@ enum Tab: String, CaseIterable, Identifiable {
         case .macInfo: return "info.circle"             // 이 맥
         case .thermal: return "thermometer.medium"      // 발열
         case .intellijTheme: return "paintpalette"      // IntelliJ 색
+        case .captureEdit: return "scribble.variable"   // 캡처에 그리기
         }
     }
 }
@@ -54,6 +57,7 @@ struct ContentView: View {
     @ObservedObject var macInfo: MacInfoManager
     @ObservedObject var thermal: ThermalManager
     @ObservedObject var intellij: IntelliJThemeManager
+    @ObservedObject var capture: CaptureEditManager
     @ObservedObject var preferences: Preferences
     @ObservedObject var l10n: L10n
 
@@ -102,6 +106,7 @@ struct ContentView: View {
                     case .macInfo: macInfoTab
                     case .thermal: thermalTab
                     case .intellijTheme: intellijTab
+                    case .captureEdit: captureEditTab
                     }
                 }
                 .padding(Design.Inset.screen)
@@ -257,6 +262,7 @@ struct ContentView: View {
         case .cover: return cover.isCovering
         case .localhost: return localhost.isRunning
         case .speedTest: return speedTest.isRunning
+        case .captureEdit: return capture.isEditing
         // 보여주기만 하는 Tool 이라 '돌고 있는' 상태가 없다.
         case .macInfo, .thermal, .intellijTheme: return false
         }
@@ -337,11 +343,20 @@ struct ContentView: View {
         shortcutProblem = outcome == .done ? nil : ShortcutProblem(slot: slot, outcome: outcome)
     }
 
+    /// 단축키 자리의 이름. 겹침 안내에 쓴다.
+    static func title(of slot: HotKeyCenter.Slot) -> L10n.Key {
+        switch slot {
+        case .cover: return .tabCover
+        case .screenOff: return .sleepShortcutLabel
+        case .captureEdit: return .tabCaptureEdit
+        }
+    }
+
     private func shortcutMessage(_ slot: HotKeyCenter.Slot) -> String? {
         guard let problem = shortcutProblem, problem.slot == slot else { return nil }
         switch problem.outcome {
         case .done: return nil
-        case .taken: return l10n(slot == .cover ? .coverShortcutTaken : .sleepShortcutTaken)
+        case .taken(let other): return l10n(.shortcutTakenBy, l10n(Self.title(of: other)))
         case .failed: return l10n(.shortcutRegisterFailed)
         }
     }
@@ -1482,6 +1497,68 @@ struct ContentView: View {
     // MARK: - IntelliJ 색
 
     /// 이 파일이 이미 길어 화면은 따로 둔다. `IntelliJThemeView.swift`.
+    // MARK: - 캡처 편집
+
+    /// 쓰는 법, 열기 단축키, 바로 여는 버튼. 편집은 따로 뜨는 창에서 한다.
+    private var captureEditTab: some View {
+        VStack(spacing: Design.Space.blockLoose) {
+            statusLine(isOn: capture.isEditing, l10n(capture.isEditing ? .captureEditing : .statusIdle))
+
+            Text(l10n(.captureHowTo))
+                .font(.callout)
+                .foregroundStyle(Design.Color.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: Design.Space.rowTight) {
+                HStack(spacing: Design.Space.inline) {
+                    Text(l10n(.captureShortcutLabel))
+                    Spacer(minLength: 4)
+                    ShortcutRecorder(
+                        shortcut: capture.shortcut,
+                        placeholder: l10n(.coverShortcutNone),
+                        recordingLabel: l10n(.coverShortcutRecording)) { value in
+                            record(capture.setShortcut(value), slot: .captureEdit)
+                        }
+                }
+                Text(l10n(.captureShortcutHint))
+                    .font(.caption2)
+                    .foregroundStyle(Design.Color.textSecondary)
+                if let message = shortcutMessage(.captureEdit) {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(Design.Color.statusError)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Button(l10n(.captureOpen)) { capture.open() }
+                .buttonStyle(PrimaryButtonStyle())
+
+            if let result = capture.lastResult {
+                captureResult(result)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func captureResult(_ result: CaptureEditManager.LastResult) -> some View {
+        switch result {
+        case .copied(let date):
+            Text(l10n(.captureLastCopied, date.formatted(date: .omitted, time: .shortened)))
+                .font(.caption)
+                .foregroundStyle(Design.Color.textSecondary)
+        case .noImage:
+            Text(l10n(.captureNoImage))
+                .font(.caption)
+                .foregroundStyle(Design.Color.statusWarning)
+        case .copyFailed:
+            Text(l10n(.captureCopyFailed))
+                .font(.caption)
+                .foregroundStyle(Design.Color.statusError)
+        }
+    }
+
     private var intellijTab: some View {
         IntelliJThemeView(manager: intellij, l10n: l10n)
     }

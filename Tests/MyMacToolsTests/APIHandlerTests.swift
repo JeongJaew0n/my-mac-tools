@@ -13,7 +13,8 @@ struct APIHandlerTests {
         handler = APIHandler(sleep: sleep, lid: LidWorkManager(), cover: ScreenCoverManager(),
                              caffeine: CaffeinateScanner(), localhost: LocalhostManager(),
                              speedTest: SpeedTestManager(), macInfo: MacInfoManager(),
-                             thermal: ThermalManager(), intellij: IntelliJThemeManager())
+                             thermal: ThermalManager(), intellij: IntelliJThemeManager(),
+                             capture: CaptureEditManager())
     }
 
     private func call(_ request: String) throws -> [String: Any] {
@@ -78,7 +79,8 @@ struct APIHandlerTests {
         let handler = APIHandler(sleep: sleep, lid: LidWorkManager(), cover: ScreenCoverManager(),
                                  caffeine: CaffeinateScanner(), localhost: LocalhostManager(),
                                  speedTest: SpeedTestManager(), macInfo: MacInfoManager(),
-                                 thermal: ThermalManager(), intellij: IntelliJThemeManager())
+                                 thermal: ThermalManager(), intellij: IntelliJThemeManager(),
+                             capture: CaptureEditManager())
         let data = handler.respond(to: Data(#"{"method":"cover.start"}"#.utf8))
         let response = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         #expect((response["error"] as? [String: Any])?["code"] as? String == "preconditionFailed")

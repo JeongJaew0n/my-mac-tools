@@ -32,11 +32,12 @@ final class APIHandler {
     private let macInfo: MacInfoManager
     private let thermal: ThermalManager
     private let intellij: IntelliJThemeManager
+    private let capture: CaptureEditManager
 
     init(sleep: BlackWorkManager, lid: LidWorkManager, cover: ScreenCoverManager,
          caffeine: CaffeinateScanner, localhost: LocalhostManager,
          speedTest: SpeedTestManager, macInfo: MacInfoManager,
-         thermal: ThermalManager, intellij: IntelliJThemeManager) {
+         thermal: ThermalManager, intellij: IntelliJThemeManager, capture: CaptureEditManager) {
         self.sleep = sleep
         self.lid = lid
         self.cover = cover
@@ -46,6 +47,7 @@ final class APIHandler {
         self.macInfo = macInfo
         self.thermal = thermal
         self.intellij = intellij
+        self.capture = capture
     }
 
     /// 요청 한 줄을 받아 응답 한 줄을 만든다.
@@ -124,6 +126,12 @@ final class APIHandler {
         // 켜져 있는 IntelliJ 를 끄고 다시 연다. 작업 중인 다른 앱을 에이전트 호출이 끄면
         // 사용자는 왜 꺼졌는지 모른다. 앱에서 직접 누르게 돌려보낸다.
         case "intellij.apply", "intellij.restore": throw Failure.needsHuman
+
+        // 사용자 화면에 편집 창을 띄운다. 그림이 없으면 화면에도 잠깐 안내가 뜬다.
+        case "capture.edit":
+            let result = capture.open()
+            guard result != .noImage else { throw Failure.preconditionFailed }
+            return ["state": result.rawValue]
 
         default: throw Failure.unknownMethod
         }
@@ -490,6 +498,8 @@ final class APIHandler {
             return "시스템 구성요소이거나 이 앱 자신입니다. 앱에서 확인을 거쳐야 끌 수 있습니다."
         case .preconditionFailed where method == "sleep.start":
             return "덮개 기능이 켜져 있으면 '끝나면 Mac잠자기 모드' 를 켤 수 없습니다. 잠자기가 거부되기 때문입니다."
+        case .preconditionFailed where method == "capture.edit":
+            return "클립보드에 그림이 없습니다. 화면을 클립보드로 캡처(⌃⌘⇧3)한 뒤 다시 부르세요."
         case .preconditionFailed:
             return "조건이 맞지 않습니다. 화면 가리기는 사진을 먼저 골라야 합니다."
         case .notFound:

@@ -84,6 +84,7 @@ struct MyMacToolsApp: App {
     @StateObject private var macInfo = MacInfoManager()
     @StateObject private var thermal = ThermalManager()
     @StateObject private var intellij = IntelliJThemeManager()
+    @StateObject private var capture = CaptureEditManager()
     @StateObject private var l10n = L10n()
     @StateObject private var preferences = Preferences()
     /// 본 창이 보여줄 탭. `ContentView` 와 같은 키라 메뉴에서 바꾸면 창이 따라간다.
@@ -118,7 +119,7 @@ struct MyMacToolsApp: App {
     private func installStatusItem() {
         guard appDelegate.statusItem == nil else { return }
         appDelegate.statusItem = StatusItemController(
-            manager: manager, lid: lid, cover: cover, l10n: l10n,
+            manager: manager, lid: lid, cover: cover, capture: capture, l10n: l10n,
             openWindow: { showMainWindow() },
             openSettings: { openWindowAction(id: Self.settingsWindowID) })
     }
@@ -133,7 +134,7 @@ struct MyMacToolsApp: App {
         let handler = APIHandler(sleep: manager, lid: lid, cover: cover,
                                  caffeine: caffeine, localhost: localhost,
                                  speedTest: speedTest, macInfo: macInfo,
-                                 thermal: thermal, intellij: intellij)
+                                 thermal: thermal, intellij: intellij, capture: capture)
         let server = APIServer(handler: handler)
         server.start()
         appDelegate.api = server
@@ -169,7 +170,7 @@ struct MyMacToolsApp: App {
             ContentView(manager: manager, lid: lid, cover: cover, caffeine: caffeine,
                         localhost: localhost, speedTest: speedTest,
                         macInfo: macInfo, thermal: thermal, intellij: intellij,
-                        preferences: preferences, l10n: l10n)
+                        capture: capture, preferences: preferences, l10n: l10n)
                 .onAppear {
                     appDelegate.lid = lid
                     appDelegate.l10n = l10n
@@ -180,6 +181,7 @@ struct MyMacToolsApp: App {
                     }
                     // 커버 화면의 문구도 선택한 언어를 따라야 한다.
                     cover.use(l10n)
+                    capture.use(l10n)
                     installStatusItem()
                     installAPIServer()
                 }

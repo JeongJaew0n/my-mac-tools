@@ -113,10 +113,9 @@ final class L10n: ObservableObject {
         case coverShortcutNone = "cover.shortcutNone"
         case coverShortcutRecording = "cover.shortcutRecording"
         case coverShortcutHint = "cover.shortcutHint"
-        case coverShortcutTaken = "cover.shortcutTaken"
         case sleepShortcutLabel = "sleep.shortcutLabel"
         case sleepShortcutHint = "sleep.shortcutHint"
-        case sleepShortcutTaken = "sleep.shortcutTaken"
+        case shortcutTakenBy = "shortcut.takenBy"
         case shortcutRegisterFailed = "shortcut.registerFailed"
 
         // 현재 실행중인 카페인
@@ -353,6 +352,33 @@ final class L10n: ObservableObject {
         case menuQuit = "menu.quit"
 
         case languageSystem = "language.system"
+
+        // 캡처 편집
+        case tabCaptureEdit = "tab.captureEdit"
+        case captureOpen = "capture.open"
+        case captureEditing = "capture.editing"
+        case captureShortcutLabel = "capture.shortcutLabel"
+        case captureShortcutHint = "capture.shortcutHint"
+        case captureHowTo = "capture.howTo"
+        case captureNoImage = "capture.noImage"
+        case captureCopyFailed = "capture.copyFailed"
+        case captureCopy = "capture.copy"
+        case captureUndo = "capture.undo"
+        case captureKeys = "capture.keys"
+        case captureTextPrompt = "capture.textPrompt"
+        case captureLastCopied = "capture.lastCopied"
+        case captureToolPen = "capture.tool.pen"
+        case captureToolRectangle = "capture.tool.rectangle"
+        case captureToolArrow = "capture.tool.arrow"
+        case captureToolText = "capture.tool.text"
+        case capturePenRed = "capture.pen.red"
+        case capturePenYellow = "capture.pen.yellow"
+        case capturePenBlue = "capture.pen.blue"
+        case capturePenBlack = "capture.pen.black"
+        case capturePenWhite = "capture.pen.white"
+        case captureWidthThin = "capture.width.thin"
+        case captureWidthRegular = "capture.width.regular"
+        case captureWidthThick = "capture.width.thick"
     }
 
     /// `.lproj` 로 존재하는 언어 코드

@@ -83,10 +83,9 @@
 "cover.shortcutNone" = "なし";
 "cover.shortcutRecording" = "キーを押してください…";
 "cover.shortcutHint" = "⌘ ⌥ ⌃ のいずれかを含める。カバーのみ。Delete で消去。";
-"cover.shortcutTaken" = "すでに「画面オフで作業」のショートカットです。別の組み合わせを押してください。";
 "sleep.shortcutLabel" = "画面オフで作業";
 "sleep.shortcutHint" = "どこでも押すと保存した既定値で開始し、画面は「オフのまま維持」。実行中なら停止します。⌘ ⌥ ⌃ のいずれかを含む。Delete で消去。";
-"sleep.shortcutTaken" = "すでに画面カバーのショートカットです。別の組み合わせを押してください。";
+"shortcut.takenBy" = "すでに「%@」のショートカットです。別の組み合わせを押してください。";
 "shortcut.registerFailed" = "この組み合わせは登録できませんでした。以前のショートカットのままです。";
 
 /* メニューバー */
@@ -329,3 +328,30 @@
 "intellij.role.notNullAssertion" = "!!";
 "intellij.role.mutableUnderline" = "var 下線";
 "intellij.role.smartCastBackground" = "スマートキャスト背景";
+
+/* 캡처 편집 */
+"tab.captureEdit" = "キャプチャ編集";
+"capture.open" = "クリップボードの画像を開く";
+"capture.editing" = "編集ウインドウを開いています";
+"capture.shortcutLabel" = "開くショートカット";
+"capture.shortcutHint" = "⌘ ⌥ ⌃ のいずれかを含める。Delete で消去。";
+"capture.howTo" = "⌃⌘⇧3 で画面をクリップボードに撮ってからショートカットを押すと編集ウインドウが開きます。描いたあと Enter か ⌘C でクリップボードに戻します。";
+"capture.noImage" = "クリップボードに画像がありません";
+"capture.copyFailed" = "クリップボードに入れられませんでした";
+"capture.copy" = "コピーして閉じる";
+"capture.undo" = "取り消す";
+"capture.keys" = "Enter・⌘C コピーして閉じる · Esc 閉じる · ⌘Z 取り消す";
+"capture.textPrompt" = "入力して Enter";
+"capture.lastCopied" = "クリップボードに入れました (%@)";
+"capture.tool.pen" = "ペン";
+"capture.tool.rectangle" = "四角";
+"capture.tool.arrow" = "矢印";
+"capture.tool.text" = "テキスト";
+"capture.pen.red" = "赤";
+"capture.pen.yellow" = "黄";
+"capture.pen.blue" = "青";
+"capture.pen.black" = "黒";
+"capture.pen.white" = "白";
+"capture.width.thin" = "細い";
+"capture.width.regular" = "普通";
+"capture.width.thick" = "太い";

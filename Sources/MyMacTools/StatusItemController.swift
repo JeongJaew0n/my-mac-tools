@@ -32,6 +32,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     private let manager: BlackWorkManager
     private let lid: LidWorkManager
     private let cover: ScreenCoverManager
+    private let capture: CaptureEditManager
     private let l10n: L10n
     private let openWindow: () -> Void
     private let openSettings: () -> Void
@@ -45,12 +46,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     init(manager: BlackWorkManager,
          lid: LidWorkManager,
          cover: ScreenCoverManager,
+         capture: CaptureEditManager,
          l10n: L10n,
          openWindow: @escaping () -> Void,
          openSettings: @escaping () -> Void) {
         self.manager = manager
         self.lid = lid
         self.cover = cover
+        self.capture = capture
         self.l10n = l10n
         self.openWindow = openWindow
         self.openSettings = openSettings
@@ -162,6 +165,8 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         add(menu, title: l10n(.tabCover), on: cover.isCovering,
             action: #selector(toggleCover),
             enabled: cover.imagePath != nil || cover.isCovering)
+        // 그림이 있는지는 열 때 본다. 없으면 안내 창이 뜬다 — 메뉴를 열 때마다 클립보드를 읽지 않는다.
+        add(menu, title: l10n(.captureOpen), on: capture.isEditing, action: #selector(openCapture))
 
         menu.addItem(.separator())
         add(menu, title: l10n(.menuOpenWindow), on: false, action: #selector(showWindow))
@@ -226,6 +231,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     @objc private func toggleCover() {
         cover.toggle()
         refreshDot()
+    }
+
+    @objc private func openCapture() {
+        capture.open()
     }
 
     @objc private func showWindow() {

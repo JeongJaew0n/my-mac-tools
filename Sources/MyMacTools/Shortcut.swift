@@ -86,6 +86,7 @@ final class HotKeyCenter {
     enum Slot: UInt32 {
         case cover = 1
         case screenOff = 2
+        case captureEdit = 3
     }
 
     /// `set` 의 결과.
