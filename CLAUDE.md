@@ -41,7 +41,7 @@ Resources/                   Info.plist, 아이콘, ko/en/ja lproj
 Tests/MyMacToolsTests/       swift-testing 시험 — `scripts/test.sh` 로 돌린다
 design/                      디자인 토큰 출처 (tokens.json, themes/)
 scripts/                     build-app.sh, install-sudoers.sh, build-tokens.py, test.sh,
-                             mymactools (API 클라이언트)
+                             release.sh (버전 올리기·태그·GitHub Release), mymactools (API 클라이언트)
 docs/                        계획·용어·트러블슈팅 (아래 docs 규칙 참고)
 ```
 
@@ -75,6 +75,17 @@ Tool 을 추가하면 `enum Tab` 에 case 를 넣고 전용 Manager 를 만든�
 - 색도 같다. 화면 코드는 `Design.Color.<역할>` 만 쓰고 시스템 색(`.secondary`, `.green` …)을
   직접 집지 않는다. 상태색은 토큰이 시스템 색을 가리킨다.
 - 자세한 것은 `docs/design-tokens.md`.
+
+### 버전 (2026-11-24 도입)
+- **0.x.x 에 머문다. 1.0.0 으로 올리지 않는다.** semver 를 따르되 0.x 관례를 쓴다 —
+  기능 추가·호환 깨짐은 MINOR(`0.3.4` → `0.4.0`), 버그 수정·내부 정리는 PATCH(`0.3.4` → `0.3.5`).
+- 번호는 `Resources/Info.plist` 의 `CFBundleShortVersionString` **한 곳**에만 적는다.
+  `CFBundleVersion` 은 `build-app.sh` 가 같은 값으로 채운다 — 원본에 두지 않는다.
+- 릴리스는 `scripts/release.sh <minor|patch> "<무엇이 올랐는지 한 줄>"` 로 낸다. 번호를 올린 커밋·태그
+  `v0.y.z`·푸시·GitHub Release 를 한 번에 한다. 업데이트는 GitHub Release 만 보므로 손으로 태그만 달지 않는다.
+- **사용자 요청 하나를 마칠 때 Claude 가 릴리스를 낸다** (2026-11-24 사용자 결정). 기능이 하나라도 들어갔으면
+  minor, 수정·정리만이면 patch. 문서만 바뀐 요청은 내지 않는다.
+- 자세한 것은 `docs/plans/app-versioning/spec.md`.
 
 ### 설계
 - 기능 묶음 단위는 **Tool** 이다. 새 기능은 기존 Tool 에 넣을지 새 Tool 을 만들지
