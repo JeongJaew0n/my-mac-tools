@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 앱 메뉴 "업데이트…" 로 여는 창. 열 때 GitHub 에 묻는다.
+/// 앱 메뉴 "업데이트…" 로 여는 창. 열 때 GitHub 의 최신 릴리스를 묻는다.
 struct UpdateView: View {
     @ObservedObject var update: UpdateManager
     @ObservedObject var sleep: BlackWorkManager
@@ -37,11 +37,13 @@ struct UpdateView: View {
         }
     }
 
+    /// `지금 버전: 0.1.0 · abc1234`. 빌드 커밋은 같은 버전의 로컬 빌드를 구별하려고 함께 보인다.
     private var installedLine: some View {
         let installed = update.installed
-        var text = installed.commit.map { l10n(.updateInstalled, String($0.prefix(7))) } ?? l10n(.updateInstalledUnknown)
-        if installed.dirty { text += " · " + l10n(.updateLocalChanges) }
-        return Text(text)
+        var parts = [installed.version.map(String.init(describing:)) ?? l10n(.updateVersionUnknown)]
+        if let commit = installed.commit { parts.append(String(commit.prefix(7))) }
+        if installed.dirty { parts.append(l10n(.updateLocalChanges)) }
+        return Text(l10n(.updateInstalled, parts.joined(separator: " · ")))
             .font(.callout.monospacedDigit())
             .foregroundStyle(Design.Color.textSecondary)
             .textSelection(.enabled)
@@ -53,18 +55,29 @@ struct UpdateView: View {
         case .idle, .checking:
             progress(l10n(.updateChecking))
 
-        case .upToDate:
-            Text(l10n(.updateUpToDate))
+        case .upToDate(let latest):
+            Text(l10n(.updateUpToDate, latest.description))
+                .fixedSize(horizontal: false, vertical: true)
+            buttons(primary: nil)
+
+        case .noRelease:
+            Text(l10n(.updateNoRelease))
+                .fixedSize(horizontal: false, vertical: true)
             buttons(primary: nil)
 
         case .available(let available):
-            Text(l10n(.updateAvailable, available.commits.count))
+            Text(l10n(.updateAvailable, available.release.version.description))
                 .font(.headline)
-            if available.installedUnknown {
+                .textSelection(.enabled)
+            if available.commits.isEmpty {
                 Text(l10n(.updateUnknownNote))
                     .font(.caption)
                     .foregroundStyle(Design.Color.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(l10n(.updateCommits, available.commits.count))
+                    .font(.callout)
+                    .foregroundStyle(Design.Color.textSecondary)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: Design.Space.listRow) {

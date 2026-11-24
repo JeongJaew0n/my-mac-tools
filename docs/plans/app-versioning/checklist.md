@@ -7,17 +7,17 @@
 - [x] CLAUDE.md 에 버전 규칙과 릴리스 내는 때
 
 ## 2. 번호와 빌드
-- [ ] Info.plist `CFBundleShortVersionString` = 0.1.0, `CFBundleVersion` 은 build-app.sh 가 채운다
-- [ ] semver 해석·비교 (시험)
+- [x] Info.plist `CFBundleShortVersionString` = 0.1.0, `CFBundleVersion` 은 build-app.sh 가 채운다
+- [x] semver 해석·비교 (시험)
 
 ## 3. 확인·받기
-- [ ] `releases/latest` 해석, 404 → 릴리스 없음 (시험)
-- [ ] 번호 비교 → 최신/새 버전 (시험)
-- [ ] 커밋 목록: 설치 커밋 → 지금 번호 태그 → 없음 순서
-- [ ] 태그를 받아 빌드, 번호·커밋·서명 확인
+- [x] `releases/latest` 해석, 404 → 릴리스 없음 (시험)
+- [x] 번호 비교 → 최신/새 버전 (시험)
+- [x] 커밋 목록: 설치 커밋 → 지금 번호 태그 → 없음 순서
+- [x] 태그를 받아 빌드, 번호·커밋·서명 확인
 
 ## 4. 화면
-- [ ] 지금 버전·새 버전 번호, 최신·릴리스 없음, ko/en/ja
+- [x] 지금 버전·새 버전 번호, 최신·릴리스 없음, ko/en/ja
 
 ## 5. 릴리스 스크립트
 - [ ] `scripts/release.sh <initial|minor|patch> "<한 줄>" [git commit 인자…]`

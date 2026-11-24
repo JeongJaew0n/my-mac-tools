@@ -2,7 +2,33 @@ import Foundation
 import Testing
 @testable import MyMacTools
 
-/// 앱 업데이트. GitHub 에는 묻지 않는다 — 응답 꼴만 시험한다. 바꾸기 도우미는 임시 폴더의 가짜 앱 번들로 돌린다.
+/// 앱 업데이트. GitHub 에는 묻지 않는다 — 응답 꼴과 판단만 시험한다. 바꾸기 도우미는 임시 폴더의 가짜 앱 번들로 돌린다.
+struct SemVerTests {
+    @Test(arguments: ["0.1.0", "0.10.2", "1.2.3", "0.0.0"])
+    func readsThreeNumbers(_ text: String) {
+        #expect(SemVer(text)?.description == text)
+    }
+
+    @Test(arguments: ["", "0.1", "0.1.0.0", "v0.1.0", "0.1.x", "0.01.0", "0.1.-1", "0.1.0-beta", " 0.1.0", "0.١.0"])
+    func rejectsOtherShapes(_ text: String) {
+        #expect(SemVer(text) == nil)
+    }
+
+    /// 글자가 아니라 숫자로 비교한다 — 0.10.0 은 0.9.9 보다 크다.
+    @Test func comparesNumerically() throws {
+        #expect(try #require(SemVer("0.10.0")) > #require(SemVer("0.9.9")))
+        #expect(try #require(SemVer("0.2.0")) > #require(SemVer("0.1.12")))
+        #expect(try #require(SemVer("0.1.1")) > #require(SemVer("0.1.0")))
+        #expect(SemVer("0.1.0") == SemVer(0, 1, 0))
+    }
+
+    @Test func tagNeedsTheV() {
+        #expect(SemVer(tag: "v0.3.1") == SemVer(0, 3, 1))
+        #expect(SemVer(tag: "0.3.1") == nil)
+        #expect(SemVer(0, 3, 1).tag == "v0.3.1")
+    }
+}
+
 struct UpdateCheckTests {
     static func commit(_ sha: String, _ message: String) -> [String: Any] {
         ["sha": sha, "commit": ["message": message]]
@@ -12,45 +38,59 @@ struct UpdateCheckTests {
         try! JSONSerialization.data(withJSONObject: object)
     }
 
-    @Test func compareListsNewCommitsWithTheirFirstLine() throws {
+    static func installed(_ version: String?, commit: String? = "abc") -> UpdateCheck.Installed {
+        UpdateCheck.Installed(version: version.flatMap { SemVer($0) }, commit: commit, dirty: false)
+    }
+
+    static func release(_ version: String) -> UpdateCheck.Release {
+        UpdateCheck.Release(version: SemVer(version)!)
+    }
+
+    @Test func releaseReadsItsTag() throws {
+        let data = Self.json(["tag_name": "v0.2.0", "name": "v0.2.0", "target_commitish": "main"])
+        #expect(try UpdateCheck.parseRelease(data) == Self.release("0.2.0"))
+    }
+
+    /// 그 태그로 받아 빌드하므로 꼴이 다른 태그는 받지 않는다.
+    @Test(arguments: ["0.2.0", "release-1", "v0.2", "v0.2.0-beta"])
+    func releaseRejectsOtherTags(_ tag: String) {
+        #expect(throws: (any Error).self) { try UpdateCheck.parseRelease(Self.json(["tag_name": tag])) }
+    }
+
+    @Test func newerReleaseIsNeeded() {
+        #expect(Self.installed("0.1.0").needs(Self.release("0.2.0")))
+        #expect(Self.installed("0.9.3").needs(Self.release("0.10.0")))
+    }
+
+    /// 같거나 낮으면 최신이다. 릴리스 전 로컬 빌드가 번호를 앞서 있어도 바꿀 것이 없다.
+    @Test(arguments: ["0.2.0", "0.2.1", "0.3.0"])
+    func sameOrNewerInstalledIsUpToDate(_ version: String) {
+        #expect(!Self.installed(version).needs(Self.release("0.2.0")))
+    }
+
+    /// 0.1.0 전 빌드는 버전을 모른다 — 어떤 릴리스든 새것으로 본다.
+    @Test func unknownInstalledNeedsAnyRelease() {
+        #expect(Self.installed(nil).needs(Self.release("0.1.0")))
+    }
+
+    /// 바뀐 커밋은 빌드 커밋 기준이 먼저, 그것이 GitHub 에 없을 때 지금 버전의 태그.
+    @Test func compareBasesTryTheBuildCommitFirst() {
+        #expect(Self.installed("0.1.0", commit: "abc").compareBases == ["abc", "v0.1.0"])
+        #expect(Self.installed(nil, commit: "abc").compareBases == ["abc"])
+        #expect(Self.installed("0.1.0", commit: nil).compareBases == ["v0.1.0"])
+    }
+
+    @Test func compareListsCommitsWithTheirFirstLine() throws {
         let data = Self.json(["status": "ahead", "ahead_by": 2, "commits": [
             Self.commit("aaa111", "Add a thing\n\nLonger body"),
-            Self.commit("bbb222", "Fix the thing"),
+            Self.commit("bbb222", "Release 0.2.0"),
         ]])
-        guard case .available(let available) = try UpdateCheck.parseCompare(data) else {
-            Issue.record("새 커밋이 있어야 한다"); return
-        }
-        #expect(available.latest == "bbb222")
-        #expect(available.commits.map(\.title) == ["Add a thing", "Fix the thing"])
-        #expect(!available.installedUnknown)
-    }
-
-    @Test(arguments: ["identical", "behind"])
-    func nothingAheadIsUpToDate(_ status: String) throws {
-        let data = Self.json(["status": status, "ahead_by": 0, "commits": [[String: Any]]()])
-        #expect(try UpdateCheck.parseCompare(data) == .upToDate)
-    }
-
-    /// 밀지 않은 로컬 커밋으로 빌드해 갈라졌어도 main 에 새 것이 있으면 업데이트할 것이 있다.
-    @Test func divergedWithNewCommitsIsAvailable() throws {
-        let data = Self.json(["status": "diverged", "ahead_by": 1, "behind_by": 3,
-                              "commits": [Self.commit("ccc333", "On main")]])
-        guard case .available(let available) = try UpdateCheck.parseCompare(data) else {
-            Issue.record("새 커밋이 있어야 한다"); return
-        }
-        #expect(available.latest == "ccc333")
-    }
-
-    @Test func latestOnlyWhenInstalledIsUnknown() throws {
-        let data = Self.json(Self.commit("ddd444", "Latest\nbody"))
-        guard case .available(let available) = try UpdateCheck.parseLatest(data) else {
-            Issue.record("최신 커밋이 있어야 한다"); return
-        }
-        #expect(available.installedUnknown && available.commits.map(\.title) == ["Latest"])
+        #expect(try UpdateCheck.parseCompare(data).map(\.title) == ["Add a thing", "Release 0.2.0"])
     }
 
     @Test func malformedResponseThrows() {
         #expect(throws: (any Error).self) { try UpdateCheck.parseCompare(Data("{}".utf8)) }
+        #expect(throws: (any Error).self) { try UpdateCheck.parseRelease(Data("{}".utf8)) }
     }
 
     /// 앱이 다시 켜지면 끊기는 것이 하나라도 있으면 막는다.

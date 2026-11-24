@@ -359,13 +359,15 @@
 /* 업데이트 */
 "update.menu" = "アップデート…";
 "update.title" = "アップデート";
-"update.installed" = "現在の版: %@";
-"update.installedUnknown" = "現在の版: 不明(コミット情報のないビルド)";
+"update.installed" = "現在のバージョン: %@";
+"update.versionUnknown" = "不明";
 "update.localChanges" = "未コミットの変更を含む";
 "update.checking" = "GitHub を確認中…";
-"update.upToDate" = "最新の版です。";
-"update.available" = "新しいコミット %d 件";
-"update.unknownNote" = "現在の版が不明なため main の最新コミットだけを表示します。アップデートするとその版になります。";
+"update.upToDate" = "最新のバージョンです。GitHub の最新リリースは %@ です。";
+"update.available" = "新しいバージョン %@";
+"update.commits" = "変更されたコミット %d 件";
+"update.noRelease" = "GitHub にはまだリリースがありません。";
+"update.unknownNote" = "現在のビルドと比べる基準が GitHub にないため、変更されたコミットを表示できません。アップデートするとこのバージョンになります。";
 "update.blocked" = "実行中: %@。アップデートするとアプリが再起動して止まるので、先に止めてください。";
 "update.button" = "アップデート";
 "update.later" = "後で";
@@ -379,4 +381,4 @@
 "update.failedCommand" = "取得またはビルドに失敗しました。現在のアプリはそのままです。";
 "update.failedVerify" = "ビルド結果を確認できませんでした(%@)。現在のアプリはそのままです。";
 "update.failedNotWritable" = "アプリの場所に書き込めません: %@";
-"update.rolledBack" = "更新したアプリが起動しなかったため、前の版に戻しました。";
+"update.rolledBack" = "更新したアプリが起動しなかったため、前のバージョンに戻しました。";

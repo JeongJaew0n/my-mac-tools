@@ -359,13 +359,15 @@
 /* 업데이트 */
 "update.menu" = "업데이트…";
 "update.title" = "업데이트";
-"update.installed" = "지금 판: %@";
-"update.installedUnknown" = "지금 판: 알 수 없음 (커밋 정보가 없는 빌드)";
+"update.installed" = "지금 버전: %@";
+"update.versionUnknown" = "알 수 없음";
 "update.localChanges" = "커밋하지 않은 수정 포함";
 "update.checking" = "GitHub 에서 확인하는 중…";
-"update.upToDate" = "최신 판입니다.";
-"update.available" = "새 커밋 %d개";
-"update.unknownNote" = "지금 판을 알 수 없어 main 의 최신 커밋만 보입니다. 업데이트하면 그 판으로 바뀝니다.";
+"update.upToDate" = "최신 버전입니다. GitHub 의 최신 릴리스는 %@ 입니다.";
+"update.available" = "새 버전 %@";
+"update.commits" = "바뀐 커밋 %d개";
+"update.noRelease" = "GitHub 에 낸 버전(릴리스)이 아직 없습니다.";
+"update.unknownNote" = "지금 빌드와 비교할 기준이 GitHub 에 없어 바뀐 커밋 목록을 보일 수 없습니다. 업데이트하면 이 버전으로 바뀝니다.";
 "update.blocked" = "돌고 있는 것: %@. 업데이트하면 앱이 다시 켜져 끊기므로, 끈 뒤 다시 하세요.";
 "update.button" = "업데이트";
 "update.later" = "나중에";
@@ -379,4 +381,4 @@
 "update.failedCommand" = "받기나 빌드가 실패했습니다. 지금 앱은 그대로입니다.";
 "update.failedVerify" = "빌드 결과를 확인하지 못했습니다(%@). 지금 앱은 그대로입니다.";
 "update.failedNotWritable" = "앱이 있는 곳에 쓸 수 없습니다: %@";
-"update.rolledBack" = "지난 업데이트에서 새 앱이 켜지지 않아 이전 판으로 되돌렸습니다.";
+"update.rolledBack" = "지난 업데이트에서 새 앱이 켜지지 않아 이전 버전으로 되돌렸습니다.";
