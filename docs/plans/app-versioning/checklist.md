@@ -20,8 +20,8 @@
 - [x] 지금 버전·새 버전 번호, 최신·릴리스 없음, ko/en/ja
 
 ## 5. 릴리스 스크립트
-- [ ] `scripts/release.sh <initial|minor|patch> "<한 줄>" [git commit 인자…]`
-- [ ] 시험: 임시 저장소 + 가짜 gh — initial, minor, patch, 더러운 트리·있는 태그 거절
+- [x] `scripts/release.sh <initial|minor|patch> "<한 줄>" [git commit 인자…]`
+- [x] 시험: 임시 저장소 + 가짜 gh — initial, minor, patch, 더러운 트리·있는 태그 거절
 
 ## 6. 검증·릴리스
 - [ ] `scripts/test.sh`
