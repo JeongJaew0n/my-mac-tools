@@ -6,7 +6,7 @@ import Foundation
 /// 결정과 근거는 `docs/plans/app-update/spec.md` 와 `docs/plans/app-versioning/spec.md`. 요약하면:
 /// - 새것은 버전(semver)으로만 판단한다. GitHub `releases/latest` 의 태그 `v0.y.z` 와 `CFBundleShortVersionString`.
 /// - main 최신이 아니라 그 릴리스 태그를 앱 전용 사본에 받아 `scripts/build-app.sh` 로 빌드한다.
-/// - 바꾸기는 앱이 끝난 뒤 도우미 스크립트가 한다. 새 앱이 켜졌다는 신호가 30초 안에 없으면 이전 판으로 되돌린다.
+/// - 바꾸기는 앱이 끝난 뒤 도우미 스크립트가 한다. 새 앱이 켜졌다는 신호가 30초 안에 없으면 이전 버전으로 되돌린다.
 @MainActor
 final class UpdateManager: ObservableObject {
 
@@ -41,7 +41,7 @@ final class UpdateManager: ObservableObject {
     }
 
     @Published private(set) var phase: Phase = .idle
-    /// 지난 업데이트에서 새 앱이 켜지지 않아 이 판으로 되돌아왔다.
+    /// 지난 업데이트에서 새 앱이 켜지지 않아 이 버전으로 되돌아왔다.
     @Published private(set) var rolledBack = false
 
     let installed: UpdateCheck.Installed
