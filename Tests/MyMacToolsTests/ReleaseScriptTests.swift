@@ -127,6 +127,8 @@ struct ReleaseScriptTests {
         #expect(box.originTags == ["v0.1.0"])
         #expect(try box.git(["rev-parse", "v0.1.0^{commit}"], in: box.origin) == before)
         #expect(box.ghCalls.contains { $0.hasPrefix("release create v0.1.0 --verify-tag") })
+        // 다른 호스트의 끊긴 로그인 때문에 거절하지 않도록 github.com 만 묻는다.
+        #expect(box.ghCalls.first == "auth status --hostname github.com")
     }
 
     @Test func minorBumpsCommitsTagsAndPushesTogether() throws {

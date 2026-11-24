@@ -36,7 +36,8 @@ read_version() { /usr/libexec/PlistBuddy -c "Print :${KEY}" "$PLIST"; }
 [ -z "$(git status --porcelain)" ] || die "커밋하지 않은 변경이 있다"
 git fetch --quiet --tags origin main
 git merge-base --is-ancestor FETCH_HEAD HEAD || die "origin/main 에 받지 않은 커밋이 있다 — 먼저 받는다"
-"$GH" auth status >/dev/null 2>&1 || die "gh 로그인이 필요하다 (gh auth login)"
+# 다른 호스트(사내 GitHub 등)의 로그인이 끊겨 있어도 상관없다 — github.com 만 본다.
+"$GH" auth status --hostname github.com >/dev/null 2>&1 || die "github.com 에 gh 로그인이 필요하다 (gh auth login)"
 
 # 2. 번호.
 CURRENT="$(read_version)"
